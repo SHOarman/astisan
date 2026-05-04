@@ -10,7 +10,7 @@ class SplashController extends GetxController {
 
   /// Wait for 3 seconds then navigate to Onboarding Screen
   void _navigateToNextScreen() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 5));
     Get.offAllNamed(Routes.ONBOARDING);
   }
 }

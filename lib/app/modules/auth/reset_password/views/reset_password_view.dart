@@ -70,15 +70,16 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
         children: [
           Obx(() => CustomTextField(
             labelText: AppStrings.newPassword.tr,
-            hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
+            hintText: '***********',
             controller: controller.newPasswordController,
             obscureText: controller.obscureNewPassword.value,
             suffixIcon: IconButton(
-              icon: SvgPicture.asset(
-                controller.obscureNewPassword.value ? AppImages.eyeHideIcon : AppImages.eyeShowIcon,
-                width: 24.0,
-                height: 24.0,
-                colorFilter: const ColorFilter.mode(AppColors.greyText, BlendMode.srcIn),
+              icon: Icon(
+                controller.obscureConfirmPassword.value
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: AppColors.greyText,
+                size: 24.0,
               ),
               onPressed: controller.toggleNewPasswordVisibility,
             ),
@@ -93,15 +94,16 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
           SizedBox(height: 16.0),
           Obx(() => CustomTextField(
             labelText: AppStrings.confirmPassword.tr,
-            hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
+            hintText: '***********',
             controller: controller.confirmPasswordController,
             obscureText: controller.obscureConfirmPassword.value,
             suffixIcon: IconButton(
-              icon: SvgPicture.asset(
-                controller.obscureConfirmPassword.value ? AppImages.eyeHideIcon : AppImages.eyeShowIcon,
-                width: 24.0,
-                height: 24.0,
-                colorFilter: const ColorFilter.mode(AppColors.greyText, BlendMode.srcIn),
+              icon: Icon(
+                controller.obscureConfirmPassword.value
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: AppColors.greyText,
+                size: 24.0,
               ),
               onPressed: controller.toggleConfirmPasswordVisibility,
             ),

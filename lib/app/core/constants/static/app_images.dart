@@ -7,7 +7,7 @@ class AppImages {
   static const String _iconRootMenu = 'assets/icons/menu';
 
   // Images
-  static const String logo = '$_imageRoot/logo.png';
+  static const String logo = '$_imageRoot/IMG_4318 1.png';
   static const String onboarding1 = '$_imageRoot/onboarding-1.png';
   static const String onboarding2 = '$_imageRoot/onboarding-2.png';
   static const String onboarding3 = '$_imageRoot/onboarding-3.png';
@@ -100,7 +100,7 @@ class AppImages {
   // Home Page Images
   static const String homeAcService = '$_homeImageRoot/AC Service & Repair.png';
   static const String homeDanielCarter = '$_homeImageRoot/Daniel Carter.png';
-  static const String homeDeepCleaning = '$_homeImageRoot/Deep House Cleaning.png';
+  static const String homeDeepCleaning = '$_homeImageRoot/Image (7).png';
   static const String homeElectricalWiring = '$_homeImageRoot/Electrical Wiring.png';
   static const String homeFirstServicePromo = '$_homeImageRoot/First Service 20% Off!.png';
   static const String homeMarcusJohnson = '$_homeImageRoot/Marcus Johnson.png';

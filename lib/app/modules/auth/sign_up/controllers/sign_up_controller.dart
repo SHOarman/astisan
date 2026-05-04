@@ -16,11 +16,6 @@ class SignUpController extends GetxController {
 
   @override
   void onClose() {
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
     super.onClose();
   }
 
@@ -40,6 +35,7 @@ class SignUpController extends GetxController {
 
   void signUp() {
     if (formKey.currentState!.validate() && agreeToTerms.value) {
+      Get.focusScope?.unfocus();
       Get.offAllNamed(Routes.LOGIN);
     } else if (!agreeToTerms.value) {
       Get.snackbar('Terms & Privacy', 'You must agree to the terms and privacy policy');
@@ -47,6 +43,7 @@ class SignUpController extends GetxController {
   }
 
   void navigateToLogin() {
+    Get.focusScope?.unfocus();
     Get.back();
   }
 

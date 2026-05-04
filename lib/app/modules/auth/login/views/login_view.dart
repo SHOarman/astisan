@@ -21,18 +21,18 @@ class LoginView extends GetView<LoginController> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              SizedBox(height: 40.0),
+              const SizedBox(height: 40.0),
               _buildLoginForm(),
-              SizedBox(height: 32.0),
+              const SizedBox(height: 32.0),
               _buildOrDivider(),
-              SizedBox(height: 24.0),
+              const SizedBox(height: 24.0),
               _buildSocialLogins(),
-              SizedBox(height: 40.0),
+              const SizedBox(height: 40.0),
               _buildSignUpPrompt(),
             ],
           ),
@@ -53,7 +53,7 @@ class LoginView extends GetView<LoginController> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        SizedBox(height: 8.0),
+        const SizedBox(height: 8.0),
         Text(
           AppStrings.signInSub.tr,
           style: GoogleFonts.poppins(
@@ -73,7 +73,7 @@ class LoginView extends GetView<LoginController> {
         children: [
           CustomTextField(
             labelText: AppStrings.email.tr,
-            hintText: 'brooklynsim@gm |',
+            hintText: 'example@mail.com',
             controller: controller.emailController,
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -83,22 +83,24 @@ class LoginView extends GetView<LoginController> {
               return null;
             },
           ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
+
+          // Password field with Toggle Eye Icon logic
           Obx(() => CustomTextField(
+
             labelText: AppStrings.password.tr,
-            hintText: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
+            hintText: '***************',
             controller: controller.passwordController,
-            obscureText: controller.obscurePassword.value,
+             obscureText: controller.obscurePassword.value,
             suffixIcon: IconButton(
-              icon: SvgPicture.asset(
-                controller.obscurePassword.value 
-                  ? AppImages.eyeHideIcon 
-                  : AppImages.eyeShowIcon,
-                width: 24.0,
-                height: 24.0,
-                colorFilter: const ColorFilter.mode(AppColors.greyText, BlendMode.srcIn),
+              onPressed: () => controller.togglePasswordVisibility(),
+              icon: Icon(
+                controller.obscurePassword.value
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: AppColors.greyText,
+                size: 24.0,
               ),
-              onPressed: controller.togglePasswordVisibility,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -107,13 +109,14 @@ class LoginView extends GetView<LoginController> {
               return null;
             },
           )),
-          SizedBox(height: 16.0),
+
+          const SizedBox(height: 16.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                   Obx(() => Checkbox(
+                  Obx(() => Checkbox(
                     value: controller.rememberMe.value,
                     onChanged: controller.toggleRememberMe,
                     activeColor: AppColors.checkboxActive,
@@ -145,7 +148,7 @@ class LoginView extends GetView<LoginController> {
               ),
             ],
           ),
-          SizedBox(height: 24.0),
+          const SizedBox(height: 24.0),
           CustomButton(
             text: AppStrings.signIn.tr,
             onPressed: controller.signIn,
@@ -176,7 +179,7 @@ class LoginView extends GetView<LoginController> {
           iconPath: AppImages.googleIcon,
           onPressed: () => controller.onSocialLogin('Google'),
         ),
-        SizedBox(width: 20.0),
+        const SizedBox(width: 20.0),
         CustomSocialButton(
           iconPath: AppImages.appleIcon,
           onPressed: () => controller.onSocialLogin('Apple'),
@@ -211,4 +214,3 @@ class LoginView extends GetView<LoginController> {
     );
   }
 }
-
