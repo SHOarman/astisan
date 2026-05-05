@@ -1,5 +1,4 @@
 ﻿import 'package:get/get.dart';
-
 import '../../../core/routes/app_routes.dart';
 import '../../../core/global_controllers/role_controller.dart';
 
@@ -8,16 +7,16 @@ class RoleSelectionController extends GetxController {
 
   void selectRole(String role) {
     selectedRole.value = role;
-    
-    // Set global role based on selection
+
     final roleController = Get.find<RoleController>();
+
     if (role == 'help') {
       roleController.setRole('client');
+      Get.offAllNamed(Routes.LOGIN);
     } else if (role == 'work') {
       roleController.setRole('worker');
-    }
 
-    Get.offAllNamed(Routes.LOGIN);
+       Get.offAllNamed(Routes.sing_in);
+    }
   }
 }
-

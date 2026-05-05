@@ -1,20 +1,25 @@
 import 'package:get/get.dart';
+import '../../modules/auth_clinet/forgot_password/controllers/forgot_password_controller.dart';
+import '../../modules/auth_clinet/forgot_password/views/forgot_password_view.dart';
+import '../../modules/auth_clinet/login/controllers/login_controller.dart';
+import '../../modules/auth_clinet/login/views/login_view.dart';
+import '../../modules/auth_clinet/reset_password/controllers/reset_password_controller.dart';
+import '../../modules/auth_clinet/reset_password/views/reset_password_view.dart';
+import '../../modules/auth_clinet/reset_password/views/reset_success_view.dart';
+import '../../modules/auth_clinet/sign_up/controllers/sign_up_controller.dart';
+import '../../modules/auth_clinet/sign_up/views/sign_up_view.dart';
+import '../../modules/auth_clinet/verification/controllers/verification_controller.dart';
+import '../../modules/auth_clinet/verification/views/verification_view.dart';
+import '../../modules/auth_worker/forgot_password.dart';
+import '../../modules/auth_worker/reset_password.dart';
+import '../../modules/auth_worker/serives_detels.dart';
+import '../../modules/auth_worker/sing_in.dart';
+import '../../modules/auth_worker/sing_up.dart';
 import '../../modules/client/tracking/views/tracking_screen.dart';
 import '../../modules/splash/views/splash_view.dart';
 import '../../modules/onboarding/views/onboarding_view.dart';
-import '../../modules/auth/login/views/login_view.dart';
-import '../../modules/auth/login/controllers/login_controller.dart';
 import '../../modules/role_selection/views/role_selection_view.dart';
 import '../../modules/role_selection/controllers/role_selection_controller.dart';
-import '../../modules/auth/sign_up/views/sign_up_view.dart';
-import '../../modules/auth/sign_up/controllers/sign_up_controller.dart';
-import '../../modules/auth/forgot_password/views/forgot_password_view.dart';
-import '../../modules/auth/forgot_password/controllers/forgot_password_controller.dart';
-import '../../modules/auth/verification/views/verification_view.dart';
-import '../../modules/auth/verification/controllers/verification_controller.dart';
-import '../../modules/auth/reset_password/views/reset_password_view.dart';
-import '../../modules/auth/reset_password/controllers/reset_password_controller.dart';
-import '../../modules/auth/reset_password/views/reset_success_view.dart';
 import '../../modules/dashboard/views/dashboard_view.dart';
 import '../../modules/dashboard/controllers/dashboard_controller.dart';
 import '../../modules/client/service_details/views/service_details_view.dart';
@@ -67,6 +72,7 @@ import '../../modules/client/get_bonus/views/get_bonus_view.dart';
 import '../../modules/client/get_bonus/controllers/get_bonus_controller.dart';
 import '../../modules/client/activity/views/activity_view.dart';
 import '../../modules/client/activity/controllers/activity_controller.dart';
+import '../../modules/worker/dashboard/views/worker_dashboard_view.dart';
 import './app_routes.dart';
 
 import '../../modules/worker/job_completion/views/job_completion_view.dart';
@@ -483,5 +489,28 @@ class AppPages {
         Get.lazyPut<WorkerTrackingController>(() => WorkerTrackingController());
       }),
     ),
+
+
+
+
+
+
+    ///==============================================auth_worker=================================================
+
+    GetPage(name: Routes.sing_in, page: () =>  SingIn()),
+
+    GetPage(name: Routes.sing_up, page: () =>  SingUp()),
+    GetPage(name: Routes.forgot_password, page: () =>  ForgotPassword()),
+    GetPage(name: Routes.serives_detels, page: () =>  SerivesDetels()),
+    GetPage(name: Routes.reset_password, page: () =>  ResetPassword()),
+
+
+
+    //==========================================worker=================================================================================================================
+
+    GetPage(name: Routes.worker_deshbord_user, page: ()=> WorkerDashboardView()),
+
+
+
   ];
 }

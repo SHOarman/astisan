@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:get/get.dart';
@@ -9,8 +9,10 @@ import './app/core/routes/app_pages.dart';
 import './app/core/routes/app_routes.dart';
 import './app/core/theme/app_theme.dart';
 import './app/core/global_controllers/role_controller.dart';
+import './app/core/dependency_injection/injection.dart';
 
 void main() {
+  DependencyInjection.bindings();
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,

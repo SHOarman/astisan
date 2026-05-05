@@ -58,6 +58,27 @@ abstract class Routes {
   static const MY_REVIEWS = '/my-reviews';
   static const PERFORMANCE = '/performance';
   static const WORKER_TRACKING = '/worker-tracking';
+
+
+
+
+  static const String worker_deshbord_user = '/worker_deshbord_user';
+
+
+
+
+  //================================================auth_worker============================================
+
+
+static const String  sing_in = '/sing_in';
+static const String  sing_up = '/sing_up';
+static const String  forgot_password = '/forgot_password';
+static const String  serives_detels = '/serives_detels';
+static const String reset_password = '/reset_password';
+
+
+
+
 }
 
 

@@ -28,7 +28,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                   children: [
                     const SizedBox(height: 24.0),
 
-                    // New Request Banner (Only when online)
+
                     if (controller.isOnline.value) ...[
                       _buildIncomingRequestBanner(),
                       const SizedBox(height: 24.0),
@@ -41,10 +41,11 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
 
                     const SizedBox(height: 24.0),
 
-                    // Weekly Summary Card
+
                     _buildWeeklySummarySection(),
 
-                    const SizedBox(height: 120.0), // Gap for bottom navigation
+                    const SizedBox(height: 120.0),
+
                   ],
                 ),
               ),
