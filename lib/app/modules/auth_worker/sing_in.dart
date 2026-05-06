@@ -4,7 +4,6 @@ import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
 import '../../core/components/custom_button.dart';
 import '../../core/components/custom_social_button.dart';
 import '../../core/components/custom_text_field.dart';
@@ -86,28 +85,30 @@ class SingIn extends GetView<AuthWorkerController> {
           const SizedBox(height: 16.0),
 
           // Password field with Toggle Eye Icon logic
-          Obx(() => CustomTextField(
-            labelText: AppStrings.password.tr,
-            hintText: '***************',
-            controller: controller.passwordController,
-            obscureText: controller.obscurePassword.value,
-            suffixIcon: IconButton(
-              onPressed: () => controller.togglePasswordVisibility(),
-              icon: Icon(
-                controller.obscurePassword.value
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: AppColors.greyText,
-                size: 24.0,
+          Obx(
+            () => CustomTextField(
+              labelText: AppStrings.password.tr,
+              hintText: '***************',
+              controller: controller.passwordController,
+              obscureText: controller.obscurePassword.value,
+              suffixIcon: IconButton(
+                onPressed: () => controller.togglePasswordVisibility(),
+                icon: Icon(
+                  controller.obscurePassword.value
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: AppColors.greyText,
+                  size: 24.0,
+                ),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your password';
+                }
+                return null;
+              },
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              return null;
-            },
-          )),
+          ),
 
           const SizedBox(height: 16.0),
           Row(
@@ -115,15 +116,17 @@ class SingIn extends GetView<AuthWorkerController> {
             children: [
               Row(
                 children: [
-                  Obx(() => Checkbox(
-                    value: controller.rememberMe.value,
-                    onChanged: controller.toggleRememberMe,
-                    activeColor: AppColors.checkboxActive,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0),
+                  Obx(
+                    () => Checkbox(
+                      value: controller.rememberMe.value,
+                      onChanged: controller.toggleRememberMe,
+                      activeColor: AppColors.checkboxActive,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      side: const BorderSide(color: AppColors.border),
                     ),
-                    side: const BorderSide(color: AppColors.border),
-                  )),
+                  ),
                   Text(
                     AppStrings.rememberMe.tr,
                     style: GoogleFonts.poppins(
@@ -135,7 +138,8 @@ class SingIn extends GetView<AuthWorkerController> {
                 ],
               ),
               TextButton(
-                onPressed: () => controller.navigateForgotPassword(),
+                // onPressed: () => controller.navigateForgotPassword(),
+                onPressed: () {},
                 child: Text(
                   AppStrings.forgotPassword.tr,
                   style: GoogleFonts.poppins(
@@ -205,7 +209,8 @@ class SingIn extends GetView<AuthWorkerController> {
                 fontSize: 14.0,
                 fontWeight: FontWeight.w700,
               ),
-              recognizer: TapGestureRecognizer()..onTap = controller.navigateToSignUp,
+              recognizer: TapGestureRecognizer()
+                ..onTap = controller.navigateToSignUp,
             ),
           ],
         ),

@@ -16,6 +16,15 @@ class ProfileController extends GetxController {
   }.obs;
 
   final menuItems = [
+
+
+
+    {
+      'title': "Language",
+      'subtitle': 'English, Franch',
+      'icon': Icons.language,
+      'color': const Color(0xFF6C63FF),
+    },
     {
       'title': AppStrings.orderHistory.tr,
       'subtitle': '4 completed bookings',
@@ -34,6 +43,14 @@ class ProfileController extends GetxController {
       'icon': Icons.credit_card,
       'color': const Color(0xFF4CAF50),
     },
+
+    {
+      'title': 'Emergency Support',
+      'subtitle': '24/7 AI & Admin chat',
+      'icon': Icons.chat_bubble_outline,
+      'color': const Color(0xFFF44336),
+    },
+
     {
       'title': 'Refer & Get Bonus',
       'subtitle': 'Invite friends, earn €15',
@@ -67,6 +84,12 @@ class ProfileController extends GetxController {
       Get.toNamed(Routes.ORDER_HISTORY);
     } else if (title == 'Refer & Get Bonus') {
       Get.toNamed(Routes.GET_BONUS);
+    }
+    else if (title == 'Emergency Support') {
+      Get.toNamed(Routes.emergency_support);
+    }
+    else if (title == 'Language') {
+      Get.toNamed(Routes.language);
     }
     // Add other routes as needed
   }

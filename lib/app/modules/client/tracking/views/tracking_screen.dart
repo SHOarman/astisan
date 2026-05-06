@@ -1,8 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
-
+import '../../../../core/routes/app_routes.dart';
 import '../controllers/tracking_controller.dart';
 
 class TrackingScreen extends GetView<TrackingController> {
@@ -10,10 +8,11 @@ class TrackingScreen extends GetView<TrackingController> {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the controller
+    // Initialize the controller if not already initialized by bindings
     Get.put(TrackingController());
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -30,7 +29,7 @@ class TrackingScreen extends GetView<TrackingController> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomButton(),
+      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -218,7 +217,7 @@ class TrackingScreen extends GetView<TrackingController> {
             isLast: false,
             isCompleted: true,
             iconData: Icons.check,
-            iconBgColor: const Color(0xFF57A783), // Green
+            iconBgColor: const Color(0xFF57A783),
             title: "Booking Confirmed",
             subtitle: "Your booking has been accepted",
             time: "09:45 AM",
@@ -227,7 +226,7 @@ class TrackingScreen extends GetView<TrackingController> {
             isLast: false,
             isCompleted: true,
             iconData: Icons.check,
-            iconBgColor: const Color(0xFF57A783), // Green
+            iconBgColor: const Color(0xFF57A783),
             title: "On the Way",
             subtitle: "Artisan is heading to your location",
             time: "10:00 AM",
@@ -237,13 +236,12 @@ class TrackingScreen extends GetView<TrackingController> {
             isCompleted: false,
             isCurrent: true,
             iconData: Icons.build,
-            iconBgColor: const Color(0xFF34608D), // Blue
+            iconBgColor: const Color(0xFF34608D),
             title: "Working",
             subtitle: "Service in progress at your location",
             time: "10:18 AM",
             extraWidget: Row(
               children: [
-                const SizedBox(height: 24),
                 _buildDot(),
                 _buildDot(),
                 _buildDot(),
@@ -263,7 +261,7 @@ class TrackingScreen extends GetView<TrackingController> {
             isLast: true,
             isCompleted: false,
             iconData: Icons.celebration,
-            iconBgColor: Colors.grey.shade100, // Greyed out
+            iconBgColor: Colors.grey.shade100,
             iconColor: Colors.grey.shade500,
             title: "Completed",
             subtitle: "Service has been completed",
@@ -275,7 +273,6 @@ class TrackingScreen extends GetView<TrackingController> {
     );
   }
 
-  // Helper for Timeline Steps
   Widget _buildTimelineStep({
     required bool isLast,
     required bool isCompleted,
@@ -292,7 +289,6 @@ class TrackingScreen extends GetView<TrackingController> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Icon and Line
         Column(
           children: [
             Container(
@@ -315,7 +311,6 @@ class TrackingScreen extends GetView<TrackingController> {
           ],
         ),
         const SizedBox(width: 16),
-        // Text Content
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,18 +328,11 @@ class TrackingScreen extends GetView<TrackingController> {
                   ),
                   Row(
                     children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 12,
-                        color: Colors.grey.shade400,
-                      ),
+                      Icon(Icons.access_time, size: 12, color: Colors.grey.shade400),
                       const SizedBox(width: 4),
                       Text(
                         time,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                       ),
                     ],
                   ),
@@ -358,8 +346,11 @@ class TrackingScreen extends GetView<TrackingController> {
                   color: isFaded ? Colors.grey.shade400 : Colors.grey.shade600,
                 ),
               ),
-              ?extraWidget,
-              const SizedBox(height: 16), // Bottom padding per step
+              if (extraWidget != null) ...[
+                const SizedBox(height: 8),
+                extraWidget,
+              ],
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -367,7 +358,6 @@ class TrackingScreen extends GetView<TrackingController> {
     );
   }
 
-  // Small blue dot for "In Progress"
   Widget _buildDot() {
     return Container(
       margin: const EdgeInsets.only(right: 4),
@@ -420,40 +410,68 @@ class TrackingScreen extends GetView<TrackingController> {
     );
   }
 
-  // --- BOTTOM BUTTON ---
-  Widget _buildBottomButton() {
+  // --- BOTTOM BUTTONS (UPDATED AS PER IMAGE_758FF5.PNG) ---
+  Widget _buildBottomButtons() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: () => controller.viewCompletionWork(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(
-                0xFF34608D,
-              ), // Matches the Blue theme
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Track Artisan Button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.toNamed(Routes.TRACKING);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4A7EAF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "Track Artisan",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-              elevation: 0,
             ),
-            child: const Text(
-              "View Completion work",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => controller.viewCompletionWork(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBDC3D1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "View Completion work",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  // --- REUSABLE CARD CONTAINER ---
   Widget _customCard({required Widget child}) {
     return Container(
       width: double.infinity,
@@ -462,6 +480,13 @@ class TrackingScreen extends GetView<TrackingController> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: child,
     );

@@ -20,7 +20,7 @@ class FindingArtisanController extends GetxController {
   }
 
   void trackArtisan() {
-    Get.offNamed(Routes.TRACKING);
+    Get.offNamed(Routes.DASHBOARD);
   }
 }
 

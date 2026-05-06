@@ -15,6 +15,7 @@ import '../../modules/auth_worker/reset_password.dart';
 import '../../modules/auth_worker/serives_detels.dart';
 import '../../modules/auth_worker/sing_in.dart';
 import '../../modules/auth_worker/sing_up.dart';
+import '../../modules/client/profile/views/language.dart';
 import '../../modules/client/tracking/views/tracking_screen.dart';
 import '../../modules/splash/views/splash_view.dart';
 import '../../modules/onboarding/views/onboarding_view.dart';
@@ -72,7 +73,9 @@ import '../../modules/client/get_bonus/views/get_bonus_view.dart';
 import '../../modules/client/get_bonus/controllers/get_bonus_controller.dart';
 import '../../modules/client/activity/views/activity_view.dart';
 import '../../modules/client/activity/controllers/activity_controller.dart';
+import '../../modules/worker/account/views/emergencysupport.dart';
 import '../../modules/worker/dashboard/views/worker_dashboard_view.dart';
+import '../../modules/worker/incoming_requests/views/incoming_requests_view.dart';
 import './app_routes.dart';
 
 import '../../modules/worker/job_completion/views/job_completion_view.dart';
@@ -509,6 +512,14 @@ class AppPages {
     //==========================================worker=================================================================================================================
 
     GetPage(name: Routes.worker_deshbord_user, page: ()=> WorkerDashboardView()),
+
+    GetPage(name: Routes.emergency_support, page: ()=> EmergencySupport()),
+    GetPage(name: Routes.language, page: ()=> Language()),
+    GetPage(name: Routes.incomingrequests, page: ()=> IncomingRequestsView()),
+
+
+
+
 
 
 

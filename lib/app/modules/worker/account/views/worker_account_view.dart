@@ -300,6 +300,15 @@ class WorkerAccountView extends GetView<WorkerAccountController> {
       ),
       child: Column(
         children: [
+
+
+
+          _buildMenuTile(
+            Icons.language,
+            "Language",
+            "English, Franch",
+            onTap: () => Get.toNamed(Routes.language),
+          ),
           _buildMenuTile(
             Icons.badge_outlined,
             "Account Verification",
@@ -324,6 +333,13 @@ class WorkerAccountView extends GetView<WorkerAccountController> {
             "Account Settings",
             "Payment, availability, zones",
             onTap: () => Get.toNamed(Routes.WORKER_ACCOUNT_SETTINGS),
+          ),
+
+          _buildMenuTile(
+            Icons.chat_bubble_outline_rounded,
+            "Emergency Support",
+            "chat with admin",
+            onTap: () => Get.toNamed(Routes.emergency_support),
           ),
           _buildMenuTile(
             Icons.security,

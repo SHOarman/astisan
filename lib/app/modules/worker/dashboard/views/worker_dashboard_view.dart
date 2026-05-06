@@ -368,11 +368,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
               ],
             ),
           ),
-          const Icon(
-            Icons.arrow_forward_ios,
-            color: AppColors.greyText,
-            size: 16,
-          ),
+
         ],
       ),
     );

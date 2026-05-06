@@ -29,9 +29,7 @@ class EarningsView extends GetView<EarningsController> {
                   const SizedBox(height: 20.0),
                   
                   // Next Payout Banner
-                  _buildPayoutBanner(),
-                  const SizedBox(height: 40.0),
-                  
+
                   // Recent Transactions Header
                   Text(
                     "Recent Transactions",
@@ -302,59 +300,7 @@ class EarningsView extends GetView<EarningsController> {
     );
   }
 
-  Widget _buildPayoutBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE9F9EE),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.onlineGreen.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: AppColors.onlineGreen,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.attach_money_rounded, color: Colors.white, size: 26),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Next Payout: \$425.00",
-                  style: GoogleFonts.poppins(
-                    fontSize: 17.0,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1B5E20),
-                  ),
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.access_time_filled_rounded, color: Color(0xFF1B5E20), size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Processing in 2 days",
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.0,
-                        color: const Color(0xFF1B5E20).withOpacity(0.7),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF1B5E20), size: 18),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildTransactionsList() {
     return Obx(() => Column(

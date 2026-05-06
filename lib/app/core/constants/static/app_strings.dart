@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
 
 class AppStrings extends Translations {
+
+  static const  rejected ="Rejected";
+  static const viewbokking="View Booking";
   // Page 1
   static const findTrustedHelp = 'Find Skilled Artisans Near You';
   static const findTrustedHelpSub = 'Browse trusted professionals for plumbing, electrical work, repairs, and more â€” all in one place.';

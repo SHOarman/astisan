@@ -4,10 +4,10 @@ import 'package:artisan/app/core/constants/static/app_images.dart';
 
 class ActivityController extends GetxController {
   final filters = [
-    AppStrings.all.tr,
+    AppStrings.upcoming.tr,
     AppStrings.completed.tr,
     AppStrings.cancelled.tr,
-    AppStrings.upcoming.tr,
+    AppStrings.rejected.tr,
   ].obs;
 
   final selectedFilter = AppStrings.all.tr.obs;
@@ -46,7 +46,7 @@ class ActivityController extends GetxController {
       'date': 'Feb 5, 2026',
       'price': '\$75',
       'status': AppStrings.completed.tr,
-      'image': AppImages.popPipeLeak, // Just using another available image as garden placeholder if not found
+      'image': AppImages.popPipeLeak,
       'avatar': AppImages.placeholderAvatar,
     },
   ].obs;

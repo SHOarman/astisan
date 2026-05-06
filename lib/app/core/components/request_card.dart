@@ -177,20 +177,20 @@ class RequestCard extends StatelessWidget {
                   // Communication Buttons
                   Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onCall,
-                          icon: const Icon(Icons.call_rounded, size: 18.0),
-                          label: Text(AppStrings.call.tr),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textColor,
-                            side: BorderSide(color: Colors.grey.shade200),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14),
-                          ),
-                        ),
-                      ),
+                      // Expanded(
+                      //   child: OutlinedButton.icon(
+                      //     onPressed: onCall,
+                      //     icon: const Icon(Icons.call_rounded, size: 18.0),
+                      //     label: Text(AppStrings.call.tr),
+                      //     style: OutlinedButton.styleFrom(
+                      //       foregroundColor: AppColors.textColor,
+                      //       side: BorderSide(color: Colors.grey.shade200),
+                      //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                      //       padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      //       textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14),
+                      //     ),
+                      //   ),
+                      // ),
                       const SizedBox(width: 12.0),
                       Expanded(
                         child: OutlinedButton.icon(

@@ -8,7 +8,6 @@ import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/components/service_item_card.dart';
 import '../../../../core/components/artisan_profile_card.dart';
-import '../inner_widgets/promo_card.dart';
 import '../controllers/home_controller.dart';
 
 import '../../../../core/routes/app_routes.dart';
@@ -47,7 +46,6 @@ class HomeView extends GetView<HomeController> {
                       SizedBox(height: 24.0),
                       _buildRecommendedArtisansSection(),
                       SizedBox(height: 24.0),
-                      _buildPromoBanner(),
                       SizedBox(height: 40.0),
                     ],
                   ),
@@ -386,7 +384,4 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildPromoBanner() {
-    return const PromoCard();
-  }
 }

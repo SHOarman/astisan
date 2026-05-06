@@ -56,9 +56,33 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 8.0, height: 8.0, margin: EdgeInsets.symmetric(horizontal: 4.0), decoration: const BoxDecoration(color: AppColors.white, shape: BoxShape.circle)),
-              Container(width: 8.0, height: 8.0, margin: EdgeInsets.symmetric(horizontal: 4.0), decoration: BoxDecoration(color: AppColors.white.withAlpha(100), shape: BoxShape.circle)),
-              Container(width: 8.0, height: 8.0, margin: EdgeInsets.symmetric(horizontal: 4.0), decoration: BoxDecoration(color: AppColors.white.withAlpha(100), shape: BoxShape.circle)),
+              Container(
+                width: 8.0,
+                height: 8.0,
+                margin: EdgeInsets.symmetric(horizontal: 4.0),
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Container(
+                width: 8.0,
+                height: 8.0,
+                margin: EdgeInsets.symmetric(horizontal: 4.0),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withAlpha(100),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Container(
+                width: 8.0,
+                height: 8.0,
+                margin: EdgeInsets.symmetric(horizontal: 4.0),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withAlpha(100),
+                  shape: BoxShape.circle,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 16.0),
@@ -83,8 +107,14 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
             child: ListView(
               padding: EdgeInsets.symmetric(horizontal: 24.0),
               children: [
-                _buildSearchStepNode(AppStrings.searchingNearby.tr, isCompleted: true),
-                _buildSearchStepNode(AppStrings.checkingAvailability.tr, isActive: true),
+                _buildSearchStepNode(
+                  AppStrings.searchingNearby.tr,
+                  isCompleted: true,
+                ),
+                _buildSearchStepNode(
+                  AppStrings.checkingAvailability.tr,
+                  isActive: true,
+                ),
                 _buildSearchStepNode(AppStrings.matchingRequirements.tr),
                 _buildSearchStepNode(AppStrings.artisanFoundConfirming.tr),
               ],
@@ -108,7 +138,10 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
             height: 240.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.radarRing.withAlpha(50), width: 1),
+              border: Border.all(
+                color: AppColors.radarRing.withAlpha(50),
+                width: 1,
+              ),
             ),
           ),
           Container(
@@ -116,7 +149,10 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
             height: 170.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.radarRing.withAlpha(80), width: 1),
+              border: Border.all(
+                color: AppColors.radarRing.withAlpha(80),
+                width: 1,
+              ),
             ),
           ),
           Container(
@@ -124,7 +160,10 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
             height: 90.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.radarRing.withAlpha(150), width: 1),
+              border: Border.all(
+                color: AppColors.radarRing.withAlpha(150),
+                width: 1,
+              ),
             ),
           ),
           // Center Location Pin
@@ -139,7 +178,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                   color: AppColors.timelineActive.withAlpha(100),
                   blurRadius: 15,
                   spreadRadius: 5,
-                )
+                ),
               ],
             ),
             child: Icon(Icons.location_on, color: AppColors.white, size: 24.0),
@@ -150,21 +189,9 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
             left: MediaQuery.of(Get.context!).size.width * 0.3,
             child: _buildAvatarNode(40.0),
           ),
-          Positioned(
-            top: 80.0,
-            right: 40.0,
-            child: _buildAvatarNode(45.0),
-          ),
-          Positioned(
-            bottom: 60.0,
-            right: 120.0,
-            child: _buildAvatarNode(50.0),
-          ),
-          Positioned(
-            bottom: 100.0,
-            left: 50.0,
-            child: _buildAvatarNode(45.0),
-          ),
+          Positioned(top: 80.0, right: 40.0, child: _buildAvatarNode(45.0)),
+          Positioned(bottom: 60.0, right: 120.0, child: _buildAvatarNode(50.0)),
+          Positioned(bottom: 100.0, left: 50.0, child: _buildAvatarNode(45.0)),
         ],
       ),
     );
@@ -185,7 +212,11 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
     );
   }
 
-  Widget _buildSearchStepNode(String text, {bool isCompleted = false, bool isActive = false}) {
+  Widget _buildSearchStepNode(
+    String text, {
+    bool isCompleted = false,
+    bool isActive = false,
+  }) {
     Color bgColor = AppColors.white.withAlpha(10);
     Color borderColor = Colors.transparent;
     Widget leadingWidget = Container(
@@ -198,7 +229,10 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
       child: Center(
         child: Text(
           '3', // Placeholder for index if needed, design shows 3, 4 for uncompleted
-          style: TextStyle(color: AppColors.white.withAlpha(100), fontSize: 10.0),
+          style: TextStyle(
+            color: AppColors.white.withAlpha(100),
+            fontSize: 10.0,
+          ),
         ),
       ),
     );
@@ -253,9 +287,13 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
           Text(
             text,
             style: GoogleFonts.poppins(
-              color: isCompleted || isActive ? AppColors.white : AppColors.white.withAlpha(100),
+              color: isCompleted || isActive
+                  ? AppColors.white
+                  : AppColors.white.withAlpha(100),
               fontSize: 14.0,
-              fontWeight: isCompleted || isActive ? FontWeight.w500 : FontWeight.w400,
+              fontWeight: isCompleted || isActive
+                  ? FontWeight.w500
+                  : FontWeight.w400,
             ),
           ),
         ],
@@ -299,12 +337,18 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.primary, width: 3),
                   boxShadow: [
-                    BoxShadow(color: AppColors.primary.withAlpha(50), blurRadius: 15)
+                    BoxShadow(
+                      color: AppColors.primary.withAlpha(50),
+                      blurRadius: 15,
+                    ),
                   ],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30.0),
-                  child: Image.asset(AppImages.placeholderAvatar, fit: BoxFit.cover),
+                  child: Image.asset(
+                    AppImages.placeholderAvatar,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
@@ -315,7 +359,10 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               child: ArtisanBottomSheetCard(
                 headerWidget: Center(
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.timelineActive.withAlpha(20),
                       borderRadius: BorderRadius.circular(20.0),
@@ -323,7 +370,11 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check, color: AppColors.timelineActive, size: 16.0),
+                        Icon(
+                          Icons.check,
+                          color: AppColors.timelineActive,
+                          size: 16.0,
+                        ),
                         SizedBox(width: 8.0),
                         Text(
                           'Artisan Found!',
@@ -356,7 +407,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                           elevation: 0,
                         ),
                         child: Text(
-                          AppStrings.trackArtisan.tr,
+                          AppStrings.viewbokking.tr,
                           style: GoogleFonts.poppins(
                             color: AppColors.white,
                             fontSize: 16.0,
@@ -369,7 +420,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed:() {
+                        onPressed: () {
                           showDialog(
                             context: context,
                             builder: (context) => CustomDialog(
@@ -387,7 +438,9 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          side: BorderSide(color: AppColors.greyText.withAlpha(50)),
+                          side: BorderSide(
+                            color: AppColors.greyText.withAlpha(50),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.0),
                           ),
@@ -412,4 +465,3 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
     );
   }
 }
-
