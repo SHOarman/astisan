@@ -1,5 +1,9 @@
+import 'package:artisan/app/core/routes/app_routes.dart';
 import 'package:artisan/app/modules/client/activity/views/wideget/commonorderlist.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../payment_success/views/rating_view.dart';
 
 class Completed extends StatelessWidget {
   const Completed({super.key});
@@ -27,7 +31,8 @@ class Completed extends StatelessWidget {
 
                 rateButtonText: "Rate",
                 onRateTap: () {
-                  print("Rating");
+                 Get.toNamed(Routes.ratingview);
+
                 },
 
                 rebookButtonText: "Rebook",

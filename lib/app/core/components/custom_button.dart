@@ -6,13 +6,13 @@ import '../constants/static/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String? trailingIconPath;
 
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     this.trailingIconPath,
   });
 

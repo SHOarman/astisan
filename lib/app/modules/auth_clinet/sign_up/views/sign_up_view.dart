@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -112,27 +112,13 @@ class SignUpView extends GetView<SignUpController> {
             validator: (value) => value == null || value.isEmpty ? 'Please enter your password' : null,
           )),
           SizedBox(height: 16.0),
-          Obx(() => CustomTextField(
-            labelText: AppStrings.confirmPassword.tr,
-            hintText: '***********',
-            controller: controller.confirmPasswordController,
-            obscureText: controller.obscureConfirmPassword.value,
-            suffixIcon: IconButton(
-              icon: Icon(
-                controller.obscureConfirmPassword.value
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: AppColors.greyText,
-                size: 24.0,
-              ),
-              onPressed: controller.toggleConfirmPasswordVisibility,
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Please confirm your password';
-              if (value != controller.passwordController.text) return 'Passwords do not match';
-              return null;
-            },
-          )),
+
+          SizedBox(height: 16.0),
+          CustomTextField(
+            labelText: 'Referral Code (Optional)',
+            hintText: 'Enter referral code',
+            controller: controller.referralController,
+          ),
           SizedBox(height: 16.0),
           Row(
             children: [

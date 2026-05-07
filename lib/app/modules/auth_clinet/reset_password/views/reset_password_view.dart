@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/components/custom_button.dart';
 import '../../../../core/components/custom_text_field.dart';
 import '../../../../core/constants/static/app_colors.dart';
-import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/constants/static/app_strings.dart';
 import '../controllers/reset_password_controller.dart';
 
@@ -118,10 +117,10 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
             },
           )),
           SizedBox(height: 32.0),
-          CustomButton(
-            text: AppStrings.changePassword.tr,
-            onPressed: controller.submit,
-          ),
+          Obx(() => CustomButton(
+            text: controller.isLoading.value ? 'Loading...' : AppStrings.changePassword.tr,
+            onPressed: controller.isLoading.value ? null : controller.confirmReset,
+          )),
         ],
       ),
     );

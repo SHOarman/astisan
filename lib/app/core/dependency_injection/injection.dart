@@ -14,6 +14,7 @@ class DependencyInjection {
 
     Get.lazyPut<AuthWorkerController>(() => AuthWorkerController());
 
+    //=================================client_worker=============================================
 
 
 

@@ -25,7 +25,7 @@ class BookingController extends GetxController {
     '4:00 PM',
     '6:00 PM',
   ];
-  final selectedTimeIndex = 1.obs; // 10:00 AM selected
+  final selectedTime = DateTime.now().obs;
 
   // Address
   final addresses = [
@@ -77,6 +77,7 @@ class BookingController extends GetxController {
   }
 
   void nextStep() {
+    Get.focusScope?.unfocus();
     if (currentStep.value < 3) {
       currentStep.value++;
     } else if (currentStep.value == 3) {
@@ -88,6 +89,7 @@ class BookingController extends GetxController {
   }
 
   void previousStep() {
+    Get.focusScope?.unfocus();
     if (currentStep.value > 1) {
       currentStep.value--;
     } else {

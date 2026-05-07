@@ -112,6 +112,8 @@ class PaymentSuccessController extends GetxController {
       Get.snackbar('Oops', 'Please provide a star rating.');
       return;
     }
+    // Unfocus before changing state to avoid "attached: is not true" assertion error
+    FocusManager.instance.primaryFocus?.unfocus();
     isReviewSubmitted.value = true;
   }
 }

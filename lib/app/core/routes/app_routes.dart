@@ -12,6 +12,7 @@ abstract class Routes {
   static const POPULAR_SERVICES = '/popular-services';
   static const SELECT_LOCATION = '/select-location';
   static const NOTIFICATIONS = '/notifications';
+  static const restverifcationemail="/restverifcationemail";
   
   static const FORGOT_PASSWORD = '/forgot-password';
   static const VERIFICATION = '/verification';
@@ -82,6 +83,9 @@ static const String reset_password = '/reset_password';
 static const String emergency_support = '/emergency_support';
 static const String language = '/language';
 static const String incomingrequests = '/incomingrequests';
+
+
+static const String ratingview="/ratingview";
 
 
 

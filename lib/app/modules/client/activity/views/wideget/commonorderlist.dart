@@ -55,12 +55,19 @@ class CustomBookingCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: Image.network(
-                  imageUrl,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
+                child: imageUrl.startsWith('http')
+                    ? Image.network(
+                        imageUrl,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        imageUrl,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(

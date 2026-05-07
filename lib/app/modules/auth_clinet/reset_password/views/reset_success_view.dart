@@ -28,7 +28,7 @@ class ResetSuccessView extends StatelessWidget {
                 height: 150.0,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withAlpha(25), // Light blue background
+                  color: AppColors.primary.withAlpha(25),
                 ),
                 alignment: Alignment.center,
                 child: SvgPicture.asset(

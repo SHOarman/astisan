@@ -22,12 +22,12 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               _buildHeader(),
-              SizedBox(height: 40.0),
+              _buildHeader(),
+              const SizedBox(height: 40.0),
               _buildForm(),
             ],
           ),
@@ -48,7 +48,7 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        SizedBox(height: 8.0),
+        const SizedBox(height: 8.0),
         Text(
           AppStrings.forgotPasswordSub.tr,
           style: GoogleFonts.poppins(
@@ -75,17 +75,19 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
               }
+              if (!GetUtils.isEmail(value)) {
+                return 'Please enter a valid email';
+              }
               return null;
             },
           ),
-          SizedBox(height: 32.0),
-          CustomButton(
-            text: AppStrings.sendCode.tr,
-            onPressed: controller.sendCode,
-          ),
+          const SizedBox(height: 32.0),
+          Obx(() => CustomButton(
+            text: controller.isLoading.value ? 'Sending...' : AppStrings.sendCode.tr,
+            onPressed: controller.isLoading.value ? null : controller.sendCode,
+          )),
         ],
       ),
     );
   }
 }
-

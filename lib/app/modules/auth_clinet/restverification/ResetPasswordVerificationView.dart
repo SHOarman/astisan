@@ -1,15 +1,17 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/components/custom_button.dart';
+import '../../../core/components/custom_otp_input.dart';
+import '../../../core/constants/static/app_colors.dart';
 
-import '../../../../core/components/custom_button.dart';
-import '../../../../core/components/custom_otp_input.dart';
-import '../../../../core/constants/static/app_colors.dart';
-import '../../../../core/constants/static/app_strings.dart';
-import '../controllers/verification_controller.dart';
 
-class VerificationView extends GetView<VerificationController> {
-  const VerificationView({super.key});
+import '../../../core/constants/static/app_strings.dart';
+import 'controller/ResetPasswordVerificationController.dart';
+
+
+class ResetPasswordVerificationView extends GetView<ResetPasswordVerificationController> {
+  const ResetPasswordVerificationView({super.key});
 
   @override
   Widget build(BuildContext context) {

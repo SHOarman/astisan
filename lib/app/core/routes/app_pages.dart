@@ -1,3 +1,5 @@
+import 'package:artisan/app/modules/auth_clinet/restverification/ResetPasswordVerificationView.dart';
+import 'package:artisan/app/modules/client/payment_success/views/rating_view.dart';
 import 'package:get/get.dart';
 import '../../modules/auth_clinet/forgot_password/controllers/forgot_password_controller.dart';
 import '../../modules/auth_clinet/forgot_password/views/forgot_password_view.dart';
@@ -139,6 +141,16 @@ class AppPages {
         Get.lazyPut<ForgotPasswordController>(() => ForgotPasswordController());
       }),
     ),
+
+    GetPage(
+      name: Routes.restverifcationemail,
+      page: () => const ResetPasswordVerificationView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<ResetPasswordVerificationView>(() => ResetPasswordVerificationView());
+      }),
+    ),
+
+
     GetPage(
       name: Routes.VERIFICATION,
       page: () => const VerificationView(),
@@ -493,35 +505,23 @@ class AppPages {
       }),
     ),
 
-
-
-
-
-
     ///==============================================auth_worker=================================================
+    GetPage(name: Routes.sing_in, page: () => SingIn()),
 
-    GetPage(name: Routes.sing_in, page: () =>  SingIn()),
-
-    GetPage(name: Routes.sing_up, page: () =>  SingUp()),
-    GetPage(name: Routes.forgot_password, page: () =>  ForgotPassword()),
-    GetPage(name: Routes.serives_detels, page: () =>  SerivesDetels()),
-    GetPage(name: Routes.reset_password, page: () =>  ResetPassword()),
-
-
+    GetPage(name: Routes.sing_up, page: () => SingUp()),
+    GetPage(name: Routes.forgot_password, page: () => ForgotPassword()),
+    GetPage(name: Routes.serives_detels, page: () => SerivesDetels()),
+    GetPage(name: Routes.reset_password, page: () => ResetPassword()),
 
     //==========================================worker=================================================================================================================
+    GetPage(
+      name: Routes.worker_deshbord_user,
+      page: () => WorkerDashboardView(),
+    ),
 
-    GetPage(name: Routes.worker_deshbord_user, page: ()=> WorkerDashboardView()),
-
-    GetPage(name: Routes.emergency_support, page: ()=> EmergencySupport()),
-    GetPage(name: Routes.language, page: ()=> Language()),
-    GetPage(name: Routes.incomingrequests, page: ()=> IncomingRequestsView()),
-
-
-
-
-
-
-
+    GetPage(name: Routes.emergency_support, page: () => EmergencySupport()),
+    GetPage(name: Routes.language, page: () => Language()),
+    GetPage(name: Routes.incomingrequests, page: () => IncomingRequestsView()),
+    GetPage(name: Routes.ratingview, page: () => RatingView()),
   ];
 }

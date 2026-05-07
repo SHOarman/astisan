@@ -1,6 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -84,14 +83,11 @@ class LoginView extends GetView<LoginController> {
             },
           ),
           const SizedBox(height: 16.0),
-
-          // Password field with Toggle Eye Icon logic
           Obx(() => CustomTextField(
-
             labelText: AppStrings.password.tr,
             hintText: '***************',
             controller: controller.passwordController,
-             obscureText: controller.obscurePassword.value,
+            obscureText: controller.obscurePassword.value,
             suffixIcon: IconButton(
               onPressed: () => controller.togglePasswordVisibility(),
               icon: Icon(
@@ -109,7 +105,6 @@ class LoginView extends GetView<LoginController> {
               return null;
             },
           )),
-
           const SizedBox(height: 16.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,11 +143,11 @@ class LoginView extends GetView<LoginController> {
               ),
             ],
           ),
-          const SizedBox(height: 24.0),
-          CustomButton(
-            text: AppStrings.signIn.tr,
-            onPressed: controller.signIn,
-          ),
+           SizedBox(height: 24.0),
+          Obx(() => CustomButton(
+            text: controller.isLoading.value ? 'Signing In...' : AppStrings.signIn.tr,
+            onPressed: controller.isLoading.value ? null : () => controller.signIn(),
+          )),
         ],
       ),
     );

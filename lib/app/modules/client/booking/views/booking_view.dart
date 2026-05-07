@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -154,26 +155,30 @@ class BookingView extends GetView<BookingController> {
                   ],
                 ),
                 SizedBox(height: 16.0),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16.0,
-                    mainAxisSpacing: 16.0,
-                    childAspectRatio: 2.5,
-                  ),
-                  itemCount: controller.times.length,
-                  itemBuilder: (context, index) {
-                    return Obx(
-                      () => SelectableTimeChip(
-                        time: controller.times[index],
-                        isSelected: controller.selectedTimeIndex.value == index,
-                        onTap: () => controller.selectedTimeIndex.value = index,
+                SizedBox(
+                  height: 160,
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      textTheme: CupertinoTextThemeData(
+                        dateTimePickerTextStyle: GoogleFonts.poppins(
+                          color: AppColors.textColor,
+                          fontSize: 22.0,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                    child: CupertinoDatePicker(
+                      mode: CupertinoDatePickerMode.time,
+                      initialDateTime: controller.selectedTime.value,
+                      onDateTimeChanged: (DateTime newTime) {
+                        controller.selectedTime.value = newTime;
+                      },
+                    ),
+                  ),
+
                 ),
+                SizedBox(height: 16.0),
+                
               ],
             ),
           ),
