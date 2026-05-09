@@ -20,7 +20,6 @@ class DashboardView extends GetView<DashboardController> {
 
   @override
   Widget build(BuildContext context) {
-    // Explicitly initialize controller here to prevent crashes if route bindings are bypassed
     Get.put(DashboardController());
     final roleController = Get.find<RoleController>();
 
@@ -42,7 +41,6 @@ class DashboardView extends GetView<DashboardController> {
       final isWorker = roleController.isWorker;
       
       if (isWorker) {
-        // Placeholder for Worker screens in IndexedStack
         return Scaffold(
           backgroundColor: AppColors.background,
           body: IndexedStack(

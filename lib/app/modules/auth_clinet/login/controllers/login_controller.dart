@@ -18,8 +18,6 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
     super.onClose();
   }
 
@@ -60,22 +58,44 @@ class LoginController extends GetxController {
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           print("--- LOGIN SUCCESS ---");
-          print("Full API Response: $data");
+          print("Full API Response Body: ${response.body}");
 
-          String token = data['access'] ?? data['token'] ?? data['access_token'] ?? '';
+          // Robust token extraction
+          String token = '';
           
-          if (data['data'] != null && data['data'] is Map) {
-            token = data['data']['access'] ?? data['data']['token'] ?? token;
+          // Check top level
+          token = data['access']?.toString() ?? 
+                  data['token']?.toString() ?? 
+                  data['access_token']?.toString() ?? '';
+          
+          // Check nested 'data' object
+          if (token.isEmpty && data['data'] != null && data['data'] is Map) {
+            final nested = data['data'];
+            token = nested['access']?.toString() ?? 
+                    nested['token']?.toString() ?? 
+                    nested['access_token']?.toString() ?? '';
+          }
+          
+          // Check nested 'tokens' object (common in some frameworks)
+          if (token.isEmpty && data['tokens'] != null && data['tokens'] is Map) {
+            token = data['tokens']['access']?.toString() ?? '';
           }
 
-          print("User Token: $token");
-
-          final SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', token);
+          if (token.isEmpty) {
+            print("WARNING: Login successful but NO TOKEN found in response keys");
+            Get.snackbar('Warning', 'Login success, but session token missing');
+          } else {
+            print("Extracted Token: $token");
+            final SharedPreferences prefs = await SharedPreferences.getInstance();
+            bool saved = await prefs.setString('token', token);
+            print("Token saved to SharedPreferences: $saved");
+            
+            String? savedToken = prefs.getString('token');
+            print("Verification - Saved Token in Prefs: $savedToken");
+          }
 
           Get.snackbar('Success', 'Login Successful');
           
-          // ফোকাস রিমুভ করে নেভিগেট করার আগে একটু সময় নেওয়া, যাতে caret render error না আসে
           FocusManager.instance.primaryFocus?.unfocus();
           await Future.delayed(const Duration(milliseconds: 250));
           

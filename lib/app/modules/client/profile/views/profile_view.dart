@@ -60,10 +60,10 @@ class ProfileView extends GetView<ProfileController> {
                     ),
                   ),
 
-                  // Alex Thompson Section (on Blue)
+                  // User Info Section (on Blue)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Row(
+                    child: Obx(() => Row(
                       children: [
                         Container(
                           width: 80.0,
@@ -74,10 +74,17 @@ class ProfileView extends GetView<ProfileController> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20.0),
-                            child: Image.asset(
-                              AppImages.homeMarcusJohnson, // Using a consistent avatar
-                              fit: BoxFit.cover,
-                            ),
+                            child: controller.userProfileImage.value.isNotEmpty
+                                ? Image.network(
+                                    controller.userProfileImage.value,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover),
+                                  )
+                                : Image.asset(
+                                    AppImages.homeMarcusJohnson,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                         ),
                         const SizedBox(width: 20.0),
@@ -111,7 +118,7 @@ class ProfileView extends GetView<ProfileController> {
                           ),
                         ),
                       ],
-                    ),
+                    )),
                   ),
 
                   const SizedBox(height: 24.0),

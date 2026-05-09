@@ -4,10 +4,60 @@ import '../../../../core/routes/app_routes.dart';
 import 'package:artisan/app/core/constants/static/app_images.dart';
 import '../../../../core/constants/static/app_strings.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/Services/api_services.dart';
+
 class ProfileController extends GetxController {
-  final userName = 'Alex Thompson'.obs;
-  final userEmail = 'alex.thompson@email.com'.obs;
-  final userPhone = '+1 (555) 234-5678'.obs;
+  final userName = 'Loading...'.obs;
+  final userEmail = '...'.obs;
+  final userPhone = '...'.obs;
+  final userProfileImage = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchProfile();
+  }
+
+  Future<void> fetchProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("Error: No token found in SharedPreferences");
+        userName.value = 'Not Logged In';
+        return;
+      }
+
+      print("Fetching profile with token: Bearer $token");
+
+      final response = await http.get(
+        Uri.parse(ApiServices.client_profile),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      print("Profile Fetch Status: ${response.statusCode}");
+      print("Profile Fetch Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        userName.value = data['full_name'] ?? 'No Name';
+        userEmail.value = data['email'] ?? 'No Email';
+        userPhone.value = data['phone'] ?? 'No Phone';
+        userProfileImage.value = data['profile_picture'] ?? '';
+      } else {
+        userName.value = 'Error Loading Profile';
+      }
+    } catch (e) {
+      print("Error fetching profile in ProfileController: $e");
+    }
+  }
 
   final stats = {
     'bookings': 4,

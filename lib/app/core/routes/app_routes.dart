@@ -39,6 +39,7 @@ abstract class Routes {
   static const PAYMENT_METHOD = '/payment-method';
   static const ADD_CARD = '/add-card';
   static const SAVED_ADDRESSES = '/saved-addresses';
+  static const ADD_ADDRESS = '/add-address';
   static const SECURITY = '/security';
   static const CHANGE_PASSWORD = '/change-password';
   static const GET_BONUS = '/get-bonus';

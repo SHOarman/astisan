@@ -67,7 +67,7 @@ class SingIn extends GetView<AuthWorkerController> {
 
   Widget _buildLoginForm() {
     return Form(
-      key: controller.formKey,
+      key: controller.loginFormKey,
       child: Column(
         children: [
           CustomTextField(
@@ -115,6 +115,7 @@ class SingIn extends GetView<AuthWorkerController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Obx(
                     () => Checkbox(
@@ -137,8 +138,8 @@ class SingIn extends GetView<AuthWorkerController> {
                   ),
                 ],
               ),
+              // Forgot Password section
               TextButton(
-                // onPressed: () => controller.navigateForgotPassword(),
                 onPressed: () {},
                 child: Text(
                   AppStrings.forgotPassword.tr,
@@ -152,9 +153,12 @@ class SingIn extends GetView<AuthWorkerController> {
             ],
           ),
           const SizedBox(height: 24.0),
-          CustomButton(
-            text: AppStrings.signIn.tr,
-            onPressed: controller.signIn,
+          Obx(
+            () => CustomButton(
+              text: AppStrings.signIn.tr,
+              isLoading: controller.isLoading.value,
+              onPressed: controller.signIn,
+            ),
           ),
         ],
       ),

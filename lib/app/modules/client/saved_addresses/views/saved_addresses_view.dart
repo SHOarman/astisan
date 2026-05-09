@@ -54,8 +54,27 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  Obx(
-                    () => ListView.builder(
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(child: Padding(
+                        padding: EdgeInsets.all(40.0),
+                        child: CircularProgressIndicator(),
+                      ));
+                    }
+                    
+                    if (controller.savedAddresses.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Text(
+                            "No saved addresses found",
+                            style: GoogleFonts.poppins(color: AppColors.greyText),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -67,13 +86,12 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
                           address: addr['address'],
                           isDefault: addr['isDefault'],
                           icon: addr['icon'],
-                          isSelected:
-                              index == 0, // Mockup shows first one selected
                           onTap: () {},
+                          onDelete: () => controller.deleteAddress(addr['id'].toString()),
                         );
                       },
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 12.0),
                   _buildAddNewButton(),
                   const SizedBox(height: 24),

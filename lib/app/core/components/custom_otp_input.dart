@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -43,6 +43,7 @@ class _CustomOtpInputState extends State<CustomOtpInput> {
   }
 
   void _onChanged(String value, int index) {
+    if (!mounted) return;
     if (value.isNotEmpty) {
       if (index < widget.length - 1) {
         _focusNodes[index + 1].requestFocus();

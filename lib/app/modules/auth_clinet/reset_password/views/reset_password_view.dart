@@ -74,7 +74,7 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
             obscureText: controller.obscureNewPassword.value,
             suffixIcon: IconButton(
               icon: Icon(
-                controller.obscureConfirmPassword.value
+                controller.obscureNewPassword.value
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
                 color: AppColors.greyText,

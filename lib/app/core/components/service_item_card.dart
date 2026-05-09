@@ -43,16 +43,19 @@ class ServiceItemCard extends StatelessWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-                child: Image.asset(
-                  imagePath,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: double.infinity,
-                    color: AppColors.border,
-                    child: Icon(Icons.image, color: AppColors.greyText, size: 40.0),
-                  ),
-                ),
+                child: imagePath.startsWith('http')
+                    ? Image.network(
+                        imagePath,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _buildErrorPlaceholder(),
+                      )
+                    : Image.asset(
+                        imagePath,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _buildErrorPlaceholder(),
+                      ),
               ),
             ),
             Padding(
@@ -85,25 +88,24 @@ class ServiceItemCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4.0),
-                      Expanded(
-                        child: Text(
-                          '($reviews)',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.0,
-                            color: AppColors.greyText,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
                       Text(
-                        priceRange,
+                        '($reviews)',
                         style: GoogleFonts.poppins(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                          fontSize: 11.0,
+                          color: AppColors.greyText,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 4.0),
+                  Text(
+                    priceRange,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
@@ -111,6 +113,14 @@ class ServiceItemCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildErrorPlaceholder() {
+    return Container(
+      width: double.infinity,
+      color: AppColors.border,
+      child: const Icon(Icons.image, color: AppColors.greyText, size: 40.0),
     );
   }
 }

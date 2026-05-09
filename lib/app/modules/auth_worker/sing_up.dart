@@ -35,9 +35,12 @@ class SingUp extends GetView<AuthWorkerController> {
                 const SizedBox(height: 24.0),
                 _buildTermsSection(),
                 const SizedBox(height: 24.0),
-                CustomButton(
-                  text: AppStrings.signUp.tr,
-                  onPressed: controller.signUp,
+                Obx(
+                  () => CustomButton(
+                    text: AppStrings.signUp.tr,
+                    isLoading: controller.isLoading.value,
+                    onPressed: controller.signUp,
+                  ),
                 ),
                 const SizedBox(height: 40.0),
                 _buildLoginPrompt(),
@@ -106,17 +109,7 @@ class SingUp extends GetView<AuthWorkerController> {
           validator: (v) => v == null || v.isEmpty ? 'Enter password' : null,
         )),
         const SizedBox(height: 16.0),
-        Obx(() => CustomTextField(
-          labelText: AppStrings.confirmPassword.tr,
-          hintText: '***********',
-          controller: controller.confirmPasswordController,
-          obscureText: controller.obscureConfirmPassword.value,
-          suffixIcon: IconButton(
-            icon: Icon(controller.obscureConfirmPassword.value ? Icons.visibility_off : Icons.visibility, color: AppColors.greyText),
-            onPressed: controller.toggleConfirmPasswordVisibility,
-          ),
-          validator: (v) => v != controller.passwordController.text ? 'Not match' : null,
-        )),
+    
       ],
     );
   }
@@ -126,29 +119,63 @@ class SingUp extends GetView<AuthWorkerController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionTitle("Service Details"),
-        Obx(() => _buildDropdown(
-          label: "Select Category",
-          value: controller.selectedCategory.value.isEmpty ? null : controller.selectedCategory.value,
-          items: controller.categoryData.keys.toList(),
-          onChanged: (val) {
-            controller.selectedCategory.value = val!;
-            controller.selectedService.value = '';
-          },
-        )),
-        const SizedBox(height: 16.0),
-        Obx(() => _buildDropdown(
-          label: "Select Service",
-          value: controller.selectedService.value.isEmpty ? null : controller.selectedService.value,
-          items: controller.selectedCategory.value.isNotEmpty ? controller.categoryData[controller.selectedCategory.value]! : [],
-          onChanged: (val) => controller.selectedService.value = val!,
-        )),
-        const SizedBox(height: 16.0),
-        CustomTextField(
-          labelText: "Service Rate",
-          hintText: "\$40",
-          controller: controller.rateController,
-          validator: (v) => v == null || v.isEmpty ? 'Enter rate' : null,
+        
+        // Category Dropdown
+        Obx(() => controller.isCategoriesLoading.value 
+          ? const Center(child: CircularProgressIndicator())
+          : _buildDropdown(
+            label: "Select Category",
+            value: controller.selectedCategoryId.value.isEmpty ? null : controller.selectedCategoryId.value,
+            items: controller.categories.map((c) => DropdownMenuItem(
+              value: c['id'].toString(), 
+              child: Text(c['name'], style: GoogleFonts.poppins(fontSize: 14))
+            )).toList(),
+            onChanged: controller.onCategoryChanged,
+          )
         ),
+        
+        const SizedBox(height: 16.0),
+        
+        // Service Dropdown
+        Obx(() => controller.isServicesLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : _buildDropdown(
+            label: "Select Service",
+            value: controller.selectedServiceId.value.isEmpty ? null : controller.selectedServiceId.value,
+            items: controller.services.map((s) => DropdownMenuItem(
+              value: s['id'].toString(), 
+              child: Text(s['name'], style: GoogleFonts.poppins(fontSize: 14))
+            )).toList(),
+            onChanged: controller.onServiceChanged,
+          )
+        ),
+        
+        const SizedBox(height: 16.0),
+        
+        Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomTextField(
+              labelText: "Service Rate",
+              hintText: "Enter your rate",
+              controller: controller.rateController,
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Enter rate' : null,
+            ),
+            if (controller.priceMin.value > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                child: Text(
+                  "Allowed range: ${controller.priceMin.value} to ${controller.priceMax.value}",
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        )),
       ],
     );
   }
@@ -160,7 +187,12 @@ class SingUp extends GetView<AuthWorkerController> {
     );
   }
 
-  Widget _buildDropdown({required String label, required String? value, required List<String> items, required ValueChanged<String?> onChanged}) {
+  Widget _buildDropdown({
+    required String label, 
+    required String? value, 
+    required List<DropdownMenuItem<String>> items, 
+    required ValueChanged<String?> onChanged
+  }) {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: InputDecoration(
@@ -169,7 +201,7 @@ class SingUp extends GetView<AuthWorkerController> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.border)),
       ),
-      items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: GoogleFonts.poppins(fontSize: 14)))).toList(),
+      items: items,
       onChanged: onChanged,
     );
   }

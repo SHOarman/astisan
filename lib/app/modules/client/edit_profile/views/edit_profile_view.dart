@@ -55,19 +55,28 @@ class EditProfileView extends GetView<EditProfileController> {
   }
 
   Widget _buildAvatarSection() {
-    return Stack(
+    return Obx(() => Stack(
       children: [
         Container(
           width: 100.0,
           height: 100.0,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            image: const DecorationImage(
-              image: AssetImage(
-                AppImages.homeMarcusJohnson,
-              ), // Placeholder for Alex Johnson
-              fit: BoxFit.cover,
-            ),
+            color: const Color(0xFFF1F4F8),
+            image: controller.profileImage.value != null
+                ? DecorationImage(
+                    image: FileImage(controller.profileImage.value!),
+                    fit: BoxFit.cover,
+                  )
+                : (controller.profileImageUrl.value.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(controller.profileImageUrl.value),
+                        fit: BoxFit.cover,
+                      )
+                    : const DecorationImage(
+                        image: AssetImage(AppImages.homeMarcusJohnson),
+                        fit: BoxFit.cover,
+                      )),
           ),
         ),
         Positioned(
@@ -98,7 +107,7 @@ class EditProfileView extends GetView<EditProfileController> {
           ),
         ),
       ],
-    );
+    ));
   }
 
   Widget _buildForm() {
@@ -107,14 +116,14 @@ class EditProfileView extends GetView<EditProfileController> {
       children: [
         _buildLabeledField("Full Name", controller.fullNameController),
         const SizedBox(height: 24.0),
-        _buildLabeledField("Email", controller.emailController),
+        _buildLabeledField("Email", controller.emailController, readOnly: true),
         const SizedBox(height: 24.0),
         _buildLabeledField("Number", controller.phoneController),
       ],
     );
   }
 
-  Widget _buildLabeledField(String label, TextEditingController ctr) {
+  Widget _buildLabeledField(String label, TextEditingController ctr, {bool readOnly = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,12 +139,13 @@ class EditProfileView extends GetView<EditProfileController> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F4F8),
+            color: readOnly ? const Color(0xFFE5E7EB) : const Color(0xFFF1F4F8),
             borderRadius: BorderRadius.circular(12.0),
             border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
           child: TextField(
             controller: ctr,
+            readOnly: readOnly,
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 16.0),
@@ -155,8 +165,8 @@ class EditProfileView extends GetView<EditProfileController> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: ElevatedButton(
-          onPressed: controller.saveChanges,
+        child: Obx(() => ElevatedButton(
+          onPressed: controller.isLoading.value ? null : controller.saveChanges,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             minimumSize: const Size(double.infinity, 56.0),
@@ -165,15 +175,24 @@ class EditProfileView extends GetView<EditProfileController> {
             ),
             elevation: 0,
           ),
-          child: Text(
-            "Save Changes",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
+          child: controller.isLoading.value
+              ? const SizedBox(
+                  height: 24.0,
+                  width: 24.0,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.0,
+                  ),
+                )
+              : Text(
+                  "Save Changes",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        )),
       ),
     );
   }

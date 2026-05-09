@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../../core/Services/api_services.dart';
+import '../../../../core/global_controllers/role_controller.dart';
 import '../../../../core/routes/app_routes.dart';
 
 class ForgotPasswordController extends GetxController {
@@ -12,7 +13,6 @@ class ForgotPasswordController extends GetxController {
 
   @override
   void onClose() {
-    emailController.dispose();
     super.onClose();
   }
 
@@ -21,10 +21,14 @@ class ForgotPasswordController extends GetxController {
       Get.focusScope?.unfocus();
       isLoading.value = true;
       try {
+        final roleController = Get.find<RoleController>();
         final response = await http.post(
           Uri.parse(ApiServices.forgot_password_init),
           headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-          body: json.encode({"email": emailController.text.trim()}),
+          body: json.encode({
+            "email": emailController.text.trim(),
+            "role": roleController.currentRole.value
+          }),
         );
         final data = json.decode(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -35,7 +39,11 @@ class ForgotPasswordController extends GetxController {
           
           Get.toNamed(Routes.restverifcationemail, arguments: {'email': emailController.text.trim()});
         } else {
-          Get.snackbar('Error', data['message'] ?? 'Failed to send code');
+          String errorMsg = 'Failed to send code';
+          if (data is Map) {
+            errorMsg = data['message'] ?? data['detail'] ?? data['error'] ?? 'User with this email not found';
+          }
+          Get.snackbar('Error', errorMsg);
         }
       } catch (e) {
         Get.snackbar('Error', 'Connection failed');

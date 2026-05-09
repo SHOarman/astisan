@@ -1,8 +1,62 @@
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/constants/static/app_strings.dart';
+import '../../../../core/global_controllers/location_controller.dart';
+import '../../../../core/Services/api_services.dart';
 
 class HomeController extends GetxController {
+  final locationController = Get.find<LocationController>();
+  final isLoadingPopular = false.obs;
+  
+  @override
+  void onInit() {
+    super.onInit();
+    fetchPopularServices();
+  }
+
+  Future<void> fetchPopularServices() async {
+    isLoadingPopular.value = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      
+      final response = await http.get(
+        Uri.parse(ApiServices.popular_services),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic decodedData = json.decode(response.body);
+        List<dynamic> dataList = [];
+        
+        if (decodedData is List) {
+          dataList = decodedData;
+        } else if (decodedData is Map) {
+          dataList = decodedData['results'] ?? [];
+        }
+
+        popularServices.assignAll(dataList.map((e) => {
+          'id': e['id'],
+          'title': e['name'] ?? 'Service',
+          'image': e['image'] ?? '',
+          'rating': double.tryParse(e['avg_rating'].toString()) ?? 0.0,
+          'reviews': e['review_count'] ?? 0,
+          'priceRange': '\$${e['price_range_min'] ?? '0'}-\$${e['price_range_max'] ?? '0'}',
+        }).toList());
+      }
+    } catch (e) {
+      print("Error fetching popular services: $e");
+    } finally {
+      isLoadingPopular.value = false;
+    }
+  }
+  
   final forYouCategories = <Map<String, dynamic>>[
     {
       'title': AppStrings.repairMaintenance,
@@ -22,36 +76,7 @@ class HomeController extends GetxController {
     },
   ].obs;
 
-  final popularServices = <Map<String, dynamic>>[
-    {
-      'title': 'Pipe Leak Repair',
-      'image': AppImages.homePipeLeak,
-      'rating': 4.8,
-      'reviews': 89,
-      'priceRange': '\$40-\$80',
-    },
-    {
-      'title': 'Toilet Repair',
-      'image': AppImages.homeToiletRepair,
-      'rating': 4.8,
-      'reviews': 69,
-      'priceRange': '\$35-\$65',
-    },
-    {
-      'title': 'Deep House Cleaning',
-      'image': AppImages.homeDeepCleaning,
-      'rating': 4.8,
-      'reviews': 89,
-      'priceRange': '\$60-\$120',
-    },
-    {
-      'title': 'Electrical Wiring',
-      'image': AppImages.homeElectricalWiring,
-      'rating': 4.8,
-      'reviews': 89,
-      'priceRange': '\$80-\$200',
-    },
-  ].obs;
+  final popularServices = <Map<String, dynamic>>[].obs;
 
   final recommendedArtisans = <Map<String, dynamic>>[
     {
@@ -86,12 +111,8 @@ class HomeController extends GetxController {
     },
   ].obs;
 
-  final selectedCity = 'San Francisco'.obs;
-  final selectedAddress = '75 Wellington Street, ON K1A 0A2'.obs;
-
   void updateAddress(String city, String address) {
-    selectedCity.value = city;
-    selectedAddress.value = address;
+    locationController.updateLocation(city, address);
   }
 }
 

@@ -8,12 +8,14 @@ class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final String? trailingIconPath;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
     required this.text,
     this.onPressed,
     this.trailingIconPath,
+    this.isLoading = false,
   });
 
   @override
@@ -24,37 +26,47 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
+          disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
           elevation: 0,
         ),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              text,
-              style: GoogleFonts.poppins(
-                color: AppColors.white,
-                fontSize: 16.0,
-                fontWeight: FontWeight.w600,
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading 
+          ? const SizedBox(
+              width: 24.0,
+              height: 24.0,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3.0,
               ),
-            ),
-            if (trailingIconPath != null) ...[
-              SizedBox(width: 8.0),
-              SvgPicture.asset(
-                trailingIconPath!,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.white,
-                  BlendMode.srcIn,
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  text,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                width: 20.0,
-                height: 20.0,
-              ),
-            ],
-          ],
-        ),
+                if (trailingIconPath != null) ...[
+                  const SizedBox(width: 8.0),
+                  SvgPicture.asset(
+                    trailingIconPath!,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.white,
+                      BlendMode.srcIn,
+                    ),
+                    width: 20.0,
+                    height: 20.0,
+                  ),
+                ],
+              ],
+            ),
       ),
     );
   }

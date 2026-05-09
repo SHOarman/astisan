@@ -1,4 +1,5 @@
 import 'package:artisan/app/modules/auth_clinet/restverification/ResetPasswordVerificationView.dart';
+import 'package:artisan/app/modules/auth_clinet/restverification/controller/ResetPasswordVerificationController.dart';
 import 'package:artisan/app/modules/client/payment_success/views/rating_view.dart';
 import 'package:get/get.dart';
 import '../../modules/auth_clinet/forgot_password/controllers/forgot_password_controller.dart';
@@ -12,6 +13,7 @@ import '../../modules/auth_clinet/sign_up/controllers/sign_up_controller.dart';
 import '../../modules/auth_clinet/sign_up/views/sign_up_view.dart';
 import '../../modules/auth_clinet/verification/controllers/verification_controller.dart';
 import '../../modules/auth_clinet/verification/views/verification_view.dart';
+import '../../modules/auth_worker/auth_controller_worker/auth_worker_controller.dart';
 import '../../modules/auth_worker/forgot_password.dart';
 import '../../modules/auth_worker/reset_password.dart';
 import '../../modules/auth_worker/serives_detels.dart';
@@ -67,6 +69,8 @@ import '../../modules/client/payment_method/controllers/payment_method_controlle
 import '../../modules/client/add_card/views/add_card_view.dart';
 import '../../modules/client/add_card/controllers/add_card_controller.dart';
 import '../../modules/client/saved_addresses/views/saved_addresses_view.dart';
+import '../../modules/client/add_address/views/add_address_view.dart';
+import '../../modules/client/add_address/controllers/add_address_controller.dart';
 import '../../modules/client/saved_addresses/controllers/saved_addresses_controller.dart';
 import '../../modules/client/security/views/security_view.dart';
 import '../../modules/client/security/views/change_password_view.dart';
@@ -146,7 +150,7 @@ class AppPages {
       name: Routes.restverifcationemail,
       page: () => const ResetPasswordVerificationView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<ResetPasswordVerificationView>(() => ResetPasswordVerificationView());
+        Get.lazyPut<ResetPasswordVerificationController>(() => ResetPasswordVerificationController());
       }),
     ),
 
@@ -422,6 +426,13 @@ class AppPages {
       }),
     ),
     GetPage(
+      name: Routes.ADD_ADDRESS,
+      page: () => const AddAddressView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<AddAddressController>(() => AddAddressController());
+      }),
+    ),
+    GetPage(
       name: Routes.SECURITY,
       page: () => const SecurityView(),
       binding: BindingsBuilder(() {
@@ -506,12 +517,24 @@ class AppPages {
     ),
 
     ///==============================================auth_worker=================================================
-    GetPage(name: Routes.sing_in, page: () => SingIn()),
+    GetPage(
+      name: Routes.sing_in, 
+      page: () => const SingIn(),
+      binding: BindingsBuilder(() {
+        Get.put<AuthWorkerController>(AuthWorkerController());
+      }),
+    ),
 
-    GetPage(name: Routes.sing_up, page: () => SingUp()),
-    GetPage(name: Routes.forgot_password, page: () => ForgotPassword()),
-    GetPage(name: Routes.serives_detels, page: () => SerivesDetels()),
-    GetPage(name: Routes.reset_password, page: () => ResetPassword()),
+    GetPage(
+      name: Routes.sing_up, 
+      page: () => const SingUp(),
+      binding: BindingsBuilder(() {
+        Get.put<AuthWorkerController>(AuthWorkerController());
+      }),
+    ),
+    GetPage(name: Routes.forgot_password, page: () => const ForgotPassword()),
+    GetPage(name: Routes.serives_detels, page: () => const SerivesDetels()),
+    GetPage(name: Routes.reset_password, page: () => const ResetPassword()),
 
     //==========================================worker=================================================================================================================
     GetPage(

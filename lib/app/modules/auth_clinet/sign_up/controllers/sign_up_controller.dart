@@ -81,8 +81,11 @@ class SignUpController extends GetxController {
           Get.toNamed(
             Routes.VERIFICATION,
             arguments: {
+              'full_name': nameController.text.trim(),
               'email': emailController.text.trim(),
               'phone': phoneController.text.trim(),
+              'password': passwordController.text,
+              'referral_code': referralController.text.trim(),
             },
           );
         } else {

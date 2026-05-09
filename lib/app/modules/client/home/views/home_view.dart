@@ -87,7 +87,7 @@ class HomeView extends GetView<HomeController> {
                           children: [
                             Obx(
                               () => Text(
-                                controller.selectedCity.value,
+                                controller.locationController.selectedCity.value,
                                 style: GoogleFonts.poppins(
                                   color: AppColors.white,
                                   fontSize: 16.0,
@@ -95,16 +95,16 @@ class HomeView extends GetView<HomeController> {
                                 ),
                               ),
                             ),
-                            Icon(
-                              Icons.keyboard_arrow_down,
-                              color: AppColors.white,
-                              size: 20.0,
-                            ),
+                            // Icon(
+                            //   Icons.keyboard_arrow_down,
+                            //   color: AppColors.white,
+                            //   size: 20.0,
+                            // ),
                           ],
                         ),
                         Obx(
                           () => Text(
-                            controller.selectedAddress.value,
+                            controller.locationController.selectedAddress.value,
                             style: GoogleFonts.poppins(
                               color: AppColors.white.withAlpha(200),
                               fontSize: 12.0,

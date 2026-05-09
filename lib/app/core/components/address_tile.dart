@@ -9,6 +9,7 @@ class AddressTile extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const AddressTile({
     super.key,
@@ -18,6 +19,7 @@ class AddressTile extends StatelessWidget {
     required this.icon,
     this.isSelected = false,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -113,6 +115,11 @@ class AddressTile extends StatelessWidget {
                 Icons.check_circle,
                 color: Color(0xFF4CAF50),
                 size: 24,
+              )
+            else if (onDelete != null)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: AppColors.urgentRed, size: 22),
+                onPressed: onDelete,
               ),
           ],
         ),

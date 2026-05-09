@@ -1,4 +1,4 @@
-﻿import 'package:get/get.dart';
+import 'package:get/get.dart';
 
 class RoleController extends GetxController {
   // Observable role, defaults to 'client'

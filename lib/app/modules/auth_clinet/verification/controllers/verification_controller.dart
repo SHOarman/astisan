@@ -11,18 +11,40 @@ class VerificationController extends GetxController {
   final phone = ''.obs;
   final referralCode = ''.obs;
   final otpCode = ''.obs;
-  final timerSeconds = 300.obs;
+  final fullName = ''.obs;
+  final password = ''.obs;
+  final timerSeconds = 60.obs;
   final isLoading = false.obs;
   Timer? _timer;
+
+  final role = 'client'.obs;
+  final artisanData = <String, dynamic>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
     if (Get.arguments != null) {
-      email.value = Get.arguments['email'] ?? '';
-      phone.value = Get.arguments['phone'] ?? '';
-      referralCode.value = Get.arguments['referral_code'] ?? '';
+      // Handle different argument structures
+      if (Get.arguments is Map) {
+        role.value = Get.arguments['role'] ?? 'client';
+        
+        if (role.value == 'artisan') {
+          final data = Get.arguments['data'] ?? {};
+          artisanData.value = data;
+          fullName.value = data['full_name'] ?? '';
+          email.value = data['email'] ?? '';
+          phone.value = data['phone'] ?? '';
+          password.value = data['password'] ?? '';
+        } else {
+          fullName.value = Get.arguments['full_name'] ?? '';
+          email.value = Get.arguments['email'] ?? '';
+          phone.value = Get.arguments['phone'] ?? '';
+          password.value = Get.arguments['password'] ?? '';
+          referralCode.value = Get.arguments['referral_code'] ?? '';
+        }
+      }
     }
+    print("Verification started for Role: ${role.value}, Email: ${email.value}");
     startTimer();
   }
 
@@ -33,7 +55,7 @@ class VerificationController extends GetxController {
   }
 
   void startTimer() {
-    timerSeconds.value = 300;
+    timerSeconds.value = 60;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timerSeconds.value > 0) {
@@ -48,14 +70,31 @@ class VerificationController extends GetxController {
     if (timerSeconds.value == 0 && !isLoading.value) {
       isLoading.value = true;
       try {
+        final Map<String, dynamic> requestBody = {
+          "full_name": fullName.value,
+          "email": email.value,
+          "phone": phone.value,
+          "password": password.value,
+        };
+
+        if (referralCode.value.isNotEmpty) {
+          requestBody["referral_code"] = referralCode.value;
+        }
+
+        final String url = role.value == 'artisan' 
+            ? ApiServices.artisan_sendotp 
+            : ApiServices.client_sendotp;
+
         final response = await http.post(
-          Uri.parse(ApiServices.client_sendotp),
+          Uri.parse(url),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: json.encode({"email": email.value}),
+          body: json.encode(requestBody),
         );
+
+        print("Resend Response [${role.value}]: ${response.body}");
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           startTimer();
@@ -74,18 +113,26 @@ class VerificationController extends GetxController {
 
   Future<void> verify() async {
     if (otpCode.value.length == 6) {
+      FocusManager.instance.primaryFocus?.unfocus();
       Get.focusScope?.unfocus();
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       isLoading.value = true;
 
       try {
         final Map<String, dynamic> requestBody = {
           "email": email.value,
           "otp": otpCode.value,
-          "referral_code": referralCode.value,
+          if (referralCode.value.isNotEmpty) "referral_code": referralCode.value,
         };
 
+        final String verifyUrl = role.value == 'artisan' 
+            ? ApiServices.artisan_reg 
+            : ApiServices.client_reg;
+
+        print("Verifying [${role.value}] at $verifyUrl");
         final response = await http.post(
-          Uri.parse(ApiServices.client_reg),
+          Uri.parse(verifyUrl),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -93,30 +140,67 @@ class VerificationController extends GetxController {
           body: json.encode(requestBody),
         );
 
-        final data = json.decode(response.body);
+        print("Verify Response Status: ${response.statusCode}");
+        print("Verify Response Body: ${response.body}");
 
-        print("Status: ${response.statusCode}");
-        print("Data: $data");
+        final data = json.decode(response.body);
+        print("Decoded Verify Data: $data");
 
         if (response.statusCode == 200 || response.statusCode == 201) {
+          // If Artisan, we need to set up their service
+          if (role.value == 'artisan') {
+            String? token;
+            if (data is Map) {
+              token = data['access'] ?? data['token'] ?? data['access_token'];
+              if (token == null && data['data'] != null && data['data'] is Map) {
+                token = data['data']['access'] ?? data['data']['token'];
+              }
+            }
+            
+            print("Extracted Registration Token: $token");
+            
+            if (token != null && artisanData['service_id'] != null) {
+              await _setupArtisanService(token);
+            }
+          }
 
           Get.snackbar('Success', data['message'] ?? 'Verification successful!');
-          
-          FocusManager.instance.primaryFocus?.unfocus();
-          await Future.delayed(const Duration(milliseconds: 250));
-          
-          Get.offAllNamed(Routes.LOGIN);
-
+          await Future.delayed(const Duration(milliseconds: 600));
+          Get.offAllNamed(Routes.sing_in); // Go to Artisan Login
         } else {
           Get.snackbar('Error', data['message'] ?? 'Invalid OTP, please try again.');
         }
       } catch (e) {
+        print("Verify Exception: $e");
         Get.snackbar('Error', 'Connection failed. Try again.');
       } finally {
         isLoading.value = false;
       }
     } else {
       Get.snackbar('Invalid Code', 'Please enter a 6-digit verification code.');
+    }
+  }
+
+  Future<void> _setupArtisanService(String token) async {
+    try {
+      print("Setting up artisan service...");
+      final response = await http.post(
+        Uri.parse(ApiServices.artisan_my_services),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          "service": artisanData['service_id'],
+          "price_override": artisanData['service_rate'],
+          "is_active": true
+        }),
+      );
+      print("Service Setup Status: ${response.statusCode}");
+      print("Service Setup Body: ${response.body}");
+    } catch (e) {
+      print("Error setting up service: $e");
     }
   }
 }

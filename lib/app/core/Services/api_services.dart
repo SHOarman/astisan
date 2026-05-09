@@ -34,12 +34,18 @@ class ApiServices {
   static const String user_settings = "$baseurl/api/user/settings/";
 
   // ========================== Profile - Client ==========================
+  static const String client_profile = "$baseurl/api/user/client/profile/";
   static const String client_addresses = "$baseurl/api/user/client/addresses/";
 
   // ========================== Services - Artisan ==========================
   static const String artisan_my_services = "$baseurl/api/services/artisan/my-services/";
   static const String artisan_service_catalogue = "$baseurl/api/services/artisan/catalogue/";
   static const String artisan_service_categories = "$baseurl/api/services/artisan/catalogue/categories/";
+
+  // ========================== Services - Shared ==========================
+  static const String services_categories = "$baseurl/api/services/client/categories/";
+  static const String category_services = "$baseurl/api/services/client/categories/"; // + {id}/services/
+  static const String popular_services = "$baseurl/api/services/client/services/popular/";
 
   // ========================== Bookings - Client ==========================
   static const String client_create_booking = "$baseurl/api/bookings/client/";
