@@ -95,11 +95,7 @@ class HomeView extends GetView<HomeController> {
                                 ),
                               ),
                             ),
-                            // Icon(
-                            //   Icons.keyboard_arrow_down,
-                            //   color: AppColors.white,
-                            //   size: 20.0,
-                            // ),
+
                           ],
                         ),
                         Obx(

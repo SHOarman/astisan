@@ -204,103 +204,238 @@ class AuthWorkerController extends GetxController {
     if (value != null) rememberMe.value = value;
   }
 
+  // void signIn() async {
+  //   if (loginFormKey.currentState?.validate() ?? false) {
+  //     Get.focusScope?.unfocus();
+  //     isLoading.value = true;
+  //
+  //     try {
+  //       print("Attempting Artisan Login: ${emailController.text.trim()}");
+  //       final response = await http
+  //           .post(
+  //             Uri.parse(ApiServices.artisan_login),
+  //             headers: {
+  //               'Content-Type': 'application/json',
+  //               'Accept': 'application/json',
+  //             },
+  //             body: json.encode({
+  //               "email": emailController.text.trim().toLowerCase(),
+  //               "password": passwordController.text,
+  //             }),
+  //           )
+  //           .timeout(const Duration(seconds: 15));
+  //
+  //       print("Login Status: ${response.statusCode}");
+  //       print("Login Body: ${response.body}");
+  //
+  //       final data = json.decode(response.body);
+  //       print("Decoded Login Data: $data");
+  //
+  //       if (response.statusCode == 200 || response.statusCode == 201) {
+  //         final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //
+  //         // Robust token extraction
+  //         String? accessToken;
+  //         String? refreshToken;
+  //
+  //         if (data is Map) {
+  //           accessToken =
+  //               data['access'] ?? data['token'] ?? data['access_token'];
+  //           refreshToken = data['refresh'] ?? data['refresh_token'];
+  //
+  //           // Check inside 'data' or 'results' if nested
+  //           if (accessToken == null &&
+  //               data['data'] != null &&
+  //               data['data'] is Map) {
+  //             accessToken = data['data']['access'] ?? data['data']['token'];
+  //             refreshToken ??= data['data']['refresh'];
+  //           }
+  //         }
+  //
+  //         print("Extracted Token: $accessToken");
+  //
+  //         if (accessToken != null) {
+  //           await prefs.setString('token', accessToken.toString());
+  //           if (refreshToken != null) {
+  //             await prefs.setString('refresh', refreshToken.toString());
+  //           }
+  //
+  //           await prefs.setString('role', 'worker');
+  //           Get.find<RoleController>().setRole('worker');
+  //
+  //           Get.snackbar('Success', 'Login Successful!');
+  //           Get.offAllNamed(Routes.DASHBOARD);
+  //         } else {
+  //           data.forEach((key, value) {
+  //             if (key.toString().toLowerCase().contains('token') ||
+  //                 (value is String && value.length > 50)) {
+  //               accessToken ??= value.toString();
+  //             }
+  //           });
+  //
+  //           if (accessToken != null) {
+  //             // await prefs.setString('token', accessToken!);
+  //             // Get.offAllNamed(Routes.worker_deshbord_user);
+  //           } else {
+  //             _showErrorSnackBar(
+  //               'Login Debug',
+  //               'Response: ${response.body.length > 100 ? response.body.substring(0, 100) : response.body}',
+  //             );
+  //           }
+  //         }
+  //       } else {
+  //         String msg = 'Login failed';
+  //         if (data is Map) {
+  //           msg = data['message'] ?? data['detail'] ?? msg;
+  //         }
+  //         _showErrorSnackBar('Login Error', msg);
+  //       }
+  //     } catch (e) {
+  //       print("Login Exception: $e");
+  //       _showErrorSnackBar(
+  //         'Connection Error',
+  //         'Please check your internet connection',
+  //       );
+  //     } finally {
+  //       isLoading.value = false;
+  //     }
+  //   }
+  // }
   void signIn() async {
     if (loginFormKey.currentState?.validate() ?? false) {
       Get.focusScope?.unfocus();
       isLoading.value = true;
 
       try {
-        print("Attempting Artisan Login: ${emailController.text.trim()}");
         final response = await http
             .post(
-              Uri.parse(ApiServices.artisan_login),
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              body: json.encode({
-                "email": emailController.text.trim().toLowerCase(),
-                "password": passwordController.text,
-              }),
-            )
+          Uri.parse(ApiServices.artisan_login),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: json.encode({
+            "email": emailController.text.trim().toLowerCase(),
+            "password": passwordController.text,
+          }),
+        )
             .timeout(const Duration(seconds: 15));
 
-        print("Login Status: ${response.statusCode}");
-        print("Login Body: ${response.body}");
-
         final data = json.decode(response.body);
-        print("Decoded Login Data: $data");
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-          // Robust token extraction
           String? accessToken;
           String? refreshToken;
 
           if (data is Map) {
-            accessToken =
-                data['access'] ?? data['token'] ?? data['access_token'];
-            refreshToken = data['refresh'] ?? data['refresh_token'];
+            accessToken = data['access'] ??
+                data['token'] ??
+                data['access_token'] ??
+                (data['data'] is Map ? (data['data']['access'] ?? data['data']['token'] ?? data['data']['access_token']) : null);
 
-            // Check inside 'data' or 'results' if nested
-            if (accessToken == null &&
-                data['data'] != null &&
-                data['data'] is Map) {
-              accessToken = data['data']['access'] ?? data['data']['token'];
-              refreshToken ??= data['data']['refresh'];
+            refreshToken = data['refresh'] ??
+                data['refresh_token'] ??
+                (data['data'] is Map ? (data['data']['refresh'] ?? data['data']['refresh_token']) : null);
+
+            if (accessToken == null && data is Map) {
+              data.forEach((key, value) {
+                if (key.toString().toLowerCase().contains('token') && value is String && value.length > 20) {
+                  accessToken = value;
+                }
+              });
             }
           }
 
-          print("Extracted Token: $accessToken");
-
           if (accessToken != null) {
-            await prefs.setString('token', accessToken.toString());
+            String cleanAccessToken = _cleanToken(accessToken.toString());
+            print("DEBUG: Final Clean Token: $cleanAccessToken (Length: ${cleanAccessToken.length})");
+            await prefs.setString('token', cleanAccessToken);
+
             if (refreshToken != null) {
-              await prefs.setString('refresh', refreshToken.toString());
+              await prefs.setString('refresh', _cleanToken(refreshToken.toString()));
             }
 
             await prefs.setString('role', 'worker');
             Get.find<RoleController>().setRole('worker');
 
-            Get.snackbar('Success', 'Login Successful!');
-            Get.offAllNamed(Routes.worker_deshbord_user);
-          } else {
-            data.forEach((key, value) {
-              if (key.toString().toLowerCase().contains('token') ||
-                  (value is String && value.length > 50)) {
-                accessToken ??= value.toString();
-              }
-            });
+            await fetchAndSaveProfile(accessToken.toString());
 
-            if (accessToken != null) {
-              await prefs.setString('token', accessToken!);
-              Get.offAllNamed(Routes.worker_deshbord_user);
+            Get.snackbar('Success', 'Login Successful!');
+            Get.offAllNamed(Routes.DASHBOARD);
+          } else {
+            print("CRITICAL ERROR: Token not found in Login Response.");
+            print("FULL RESPONSE BODY: ${response.body}");
+
+            // One last attempt: search the entire decoded map for ANY long string
+            String? fallbackToken;
+            if (data is Map) {
+              void findToken(Map map) {
+                map.forEach((key, value) {
+                  if (value is String && value.length > 30) {
+                    fallbackToken = value;
+                  } else if (value is Map) {
+                    findToken(value);
+                  }
+                });
+              }
+              findToken(data);
+            }
+
+            if (fallbackToken != null) {
+              print("DEBUG: Found fallback token: $fallbackToken");
+              await prefs.setString('token', fallbackToken!);
+              await prefs.setString('role', 'worker');
+              Get.find<RoleController>().setRole('worker');
+              await fetchAndSaveProfile(fallbackToken!);
+              Get.offAllNamed(Routes.DASHBOARD);
             } else {
-              _showErrorSnackBar(
-                'Login Debug',
-                'Response: ${response.body.length > 100 ? response.body.substring(0, 100) : response.body}',
-              );
+              _showErrorSnackBar('Login Error', 'The server did not send a valid session token. Response: ${response.body}');
             }
           }
         } else {
           String msg = 'Login failed';
+          final data = json.decode(response.body);
           if (data is Map) {
             msg = data['message'] ?? data['detail'] ?? msg;
           }
           _showErrorSnackBar('Login Error', msg);
         }
       } catch (e) {
-        print("Login Exception: $e");
-        _showErrorSnackBar(
-          'Connection Error',
-          'Please check your internet connection',
-        );
+        _showErrorSnackBar('Connection Error', 'Please check your internet connection');
       } finally {
         isLoading.value = false;
       }
     }
   }
+
+  Future<void> fetchAndSaveProfile(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiServices.artisan_profile),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print("DEBUG: Login Response Body: ${response.body}");
+        final data = json.decode(response.body);
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_name', data['full_name'] ?? '');
+        await prefs.setString('user_profile_pic', data['profile_picture'] ?? '');
+        print("DEBUG: Profile saved locally after login");
+      }
+    } catch (e) {
+      print("DEBUG: Error saving profile after login: $e");
+    }
+  }
+
+
+
+
 
   void signUp() async {
     if (formKey.currentState!.validate()) {
@@ -335,15 +470,15 @@ class AuthWorkerController extends GetxController {
       try {
         final response = await http
             .post(
-              Uri.parse(ApiServices.artisan_sendotp),
-              headers: {'Content-Type': 'application/json'},
-              body: json.encode({
-                "full_name": nameController.text.trim(),
-                "email": emailController.text.trim().toLowerCase(),
-                "phone": phoneController.text.trim(),
-                "password": passwordController.text,
-              }),
-            )
+          Uri.parse(ApiServices.artisan_sendotp),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            "full_name": nameController.text.trim(),
+            "email": emailController.text.trim().toLowerCase(),
+            "phone": phoneController.text.trim(),
+            "password": passwordController.text,
+          }),
+        )
             .timeout(const Duration(seconds: 15));
 
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -399,5 +534,16 @@ class AuthWorkerController extends GetxController {
       'Clicked on $provider',
       snackPosition: SnackPosition.BOTTOM,
     );
+  }
+
+  String _cleanToken(String token) {
+    String clean = token.toString().trim();
+    if (clean.startsWith('"') && clean.endsWith('"')) {
+      clean = clean.substring(1, clean.length - 1);
+    }
+    if (clean.toLowerCase().startsWith("bearer ")) {
+      clean = clean.substring(7).trim();
+    }
+    return clean;
   }
 }

@@ -28,7 +28,7 @@ class ApiServices {
   static const String artisan_profile = "$baseurl/api/user/artisan/profile/";
   static const String artisan_toggle_online = "$baseurl/api/user/artisan/profile/toggle-online/";
   static const String artisan_home_address = "$baseurl/api/user/artisan/profile/home-address/";
-  static const String artisan_public_profile = "$baseurl/api/user/artisan/"; // + {artisan_id}/public/
+  static const String artisan_public_profile = "$baseurl/api/user/artisan/";
   static const String referral_code = "$baseurl/api/user/referral/code/";
   static const String referral_history = "$baseurl/api/user/referral/history/";
   static const String user_settings = "$baseurl/api/user/settings/";

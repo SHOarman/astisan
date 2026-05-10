@@ -81,10 +81,15 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                       height: 54,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        image: const DecorationImage(
-                          image: AssetImage(AppImages.homeMarcusJohnson),
-                          fit: BoxFit.cover,
-                        ),
+                        image: controller.profilePicture.value.isNotEmpty
+                            ? DecorationImage(
+                                image: NetworkImage(controller.profilePicture.value),
+                                fit: BoxFit.cover,
+                              )
+                            : const DecorationImage(
+                                image: AssetImage(AppImages.homeMarcusJohnson),
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                     Positioned(
@@ -120,7 +125,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                         ),
                       ),
                       Text(
-                        "Marcus Johnson",
+                        controller.userName.value,
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 20.0,

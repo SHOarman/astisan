@@ -12,11 +12,11 @@ class RoleSelectionController extends GetxController {
 
     if (role == 'help') {
       roleController.setRole('client');
-      Get.offAllNamed(Routes.LOGIN);
+      Get.toNamed(Routes.LOGIN);
     } else if (role == 'work') {
       roleController.setRole('worker');
 
-       Get.offAllNamed(Routes.sing_in);
+       Get.toNamed(Routes.sing_in);
     }
   }
 }

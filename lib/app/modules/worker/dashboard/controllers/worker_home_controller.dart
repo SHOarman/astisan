@@ -1,11 +1,84 @@
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/Services/api_services.dart';
 
 class WorkerHomeController extends GetxController {
   final isOnline = true.obs;
+  
+  // Real Data from API
+  final userName = 'Loading...'.obs;
+  final userEmail = '...'.obs;
+  final phoneNumber = '...'.obs;
+  final profilePicture = ''.obs;
 
-  void toggleStatus(bool value) {
+  @override
+  void onInit() {
+    super.onInit();
+    fetchCurrentStatus();
+  }
+
+  Future<void> fetchCurrentStatus() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      if (token == null) return;
+      
+      final String cleanToken = token.trim().replaceAll('"', '');
+
+      final response = await http.get(
+        Uri.parse(ApiServices.artisan_profile),
+        headers: {
+          'Authorization': 'Bearer $cleanToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        // Updating Identity Data
+        userName.value = data['full_name'] ?? '';
+        userEmail.value = data['email'] ?? '';
+        phoneNumber.value = data['phone'] ?? '';
+        profilePicture.value = data['profile_picture'] ?? '';
+        
+        final artisan = data['artisan_profile'];
+        if (artisan != null) {
+          isOnline.value = artisan['is_online'] ?? true;
+        }
+      }
+    } catch (e) {
+      print("DEBUG: Dashboard status fetch error: $e");
+    }
+  }
+
+  Future<void> toggleStatus(bool value) async {
     isOnline.value = value;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      if (token == null) return;
+      
+      final String cleanToken = token.trim().replaceAll('"', '');
+
+      final response = await http.post(
+        Uri.parse(ApiServices.artisan_toggle_online),
+        headers: {
+          'Authorization': 'Bearer $cleanToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        isOnline.value = data['is_online'] ?? value;
+      }
+    } catch (e) {
+      print("DEBUG: Dashboard toggle error: $e");
+    }
   }
 
   void goToJobDetails() {

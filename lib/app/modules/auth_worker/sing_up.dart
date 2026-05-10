@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/components/custom_button.dart';
@@ -23,7 +20,7 @@ class SingUp extends GetView<AuthWorkerController> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Form(
-            key: controller.formKey,
+            key: controller.formKey, // Controller এর formKey ব্যবহার নিশ্চিত করা হয়েছে
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -36,10 +33,10 @@ class SingUp extends GetView<AuthWorkerController> {
                 _buildTermsSection(),
                 const SizedBox(height: 24.0),
                 Obx(
-                  () => CustomButton(
+                      () => CustomButton(
                     text: AppStrings.signUp.tr,
                     isLoading: controller.isLoading.value,
-                    onPressed: controller.signUp,
+                    onPressed: () => controller.signUp(), // Function call update
                   ),
                 ),
                 const SizedBox(height: 40.0),
@@ -86,7 +83,7 @@ class SingUp extends GetView<AuthWorkerController> {
           hintText: 'example@mail.com',
           controller: controller.emailController,
           keyboardType: TextInputType.emailAddress,
-          validator: (v) => v == null || v.isEmpty ? 'Enter email' : null,
+          validator: (v) => v == null || v.isEmpty ? 'Enter email' : (v.isEmail ? null : 'Invalid email'),
         ),
         const SizedBox(height: 16.0),
         CustomTextField(
@@ -106,10 +103,8 @@ class SingUp extends GetView<AuthWorkerController> {
             icon: Icon(controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility, color: AppColors.greyText),
             onPressed: controller.togglePasswordVisibility,
           ),
-          validator: (v) => v == null || v.isEmpty ? 'Enter password' : null,
+          validator: (v) => v != null && v.length < 6 ? 'Password must be 6+ chars' : null,
         )),
-        const SizedBox(height: 16.0),
-    
       ],
     );
   }
@@ -119,39 +114,37 @@ class SingUp extends GetView<AuthWorkerController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionTitle("Service Details"),
-        
-        // Category Dropdown
-        Obx(() => controller.isCategoriesLoading.value 
-          ? const Center(child: CircularProgressIndicator())
-          : _buildDropdown(
-            label: "Select Category",
-            value: controller.selectedCategoryId.value.isEmpty ? null : controller.selectedCategoryId.value,
-            items: controller.categories.map((c) => DropdownMenuItem(
-              value: c['id'].toString(), 
+
+        Obx(() => controller.isCategoriesLoading.value
+            ? const LinearProgressIndicator()
+            : _buildDropdown(
+          label: "Select Category",
+          value: controller.selectedCategoryId.value.isEmpty ? null : controller.selectedCategoryId.value,
+          items: controller.categories.map((c) => DropdownMenuItem<String>(
+              value: c['id'].toString(),
               child: Text(c['name'], style: GoogleFonts.poppins(fontSize: 14))
-            )).toList(),
-            onChanged: controller.onCategoryChanged,
-          )
+          )).toList(),
+          onChanged: controller.onCategoryChanged,
+        )
         ),
-        
+
         const SizedBox(height: 16.0),
-        
-        // Service Dropdown
+
         Obx(() => controller.isServicesLoading.value
-          ? const Center(child: CircularProgressIndicator())
-          : _buildDropdown(
-            label: "Select Service",
-            value: controller.selectedServiceId.value.isEmpty ? null : controller.selectedServiceId.value,
-            items: controller.services.map((s) => DropdownMenuItem(
-              value: s['id'].toString(), 
+            ? const LinearProgressIndicator()
+            : _buildDropdown(
+          label: "Select Service",
+          value: controller.selectedServiceId.value.isEmpty ? null : controller.selectedServiceId.value,
+          items: controller.services.map((s) => DropdownMenuItem<String>(
+              value: s['id'].toString(),
               child: Text(s['name'], style: GoogleFonts.poppins(fontSize: 14))
-            )).toList(),
-            onChanged: controller.onServiceChanged,
-          )
+          )).toList(),
+          onChanged: controller.onServiceChanged,
+        )
         ),
-        
+
         const SizedBox(height: 16.0),
-        
+
         Obx(() => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -188,16 +181,18 @@ class SingUp extends GetView<AuthWorkerController> {
   }
 
   Widget _buildDropdown({
-    required String label, 
-    required String? value, 
-    required List<DropdownMenuItem<String>> items, 
+    required String label,
+    required String? value,
+    required List<DropdownMenuItem<String>> items,
     required ValueChanged<String?> onChanged
   }) {
     return DropdownButtonFormField<String>(
       value: value,
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.poppins(fontSize: 14, color: AppColors.greyText),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.border)),
       ),
@@ -209,7 +204,11 @@ class SingUp extends GetView<AuthWorkerController> {
   Widget _buildTermsSection() {
     return Row(
       children: [
-        Obx(() => Checkbox(value: controller.agreeToTerms.value, onChanged: controller.toggleTermsAgreement, activeColor: AppColors.checkboxActive)),
+        Obx(() => Checkbox(
+            value: controller.agreeToTerms.value,
+            onChanged: (val) => controller.toggleTermsAgreement(val),
+            activeColor: AppColors.checkboxActive
+        )),
         Expanded(child: Text("Agree with terms and privacy", style: GoogleFonts.poppins(fontSize: 14))),
       ],
     );
