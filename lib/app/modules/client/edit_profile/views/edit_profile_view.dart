@@ -111,7 +111,7 @@ class EditProfileView extends GetView<EditProfileController> {
   }
 
   Widget _buildForm() {
-    return Column(
+    return Obx(() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabeledField("Full Name", controller.fullNameController),
@@ -119,11 +119,26 @@ class EditProfileView extends GetView<EditProfileController> {
         _buildLabeledField("Email", controller.emailController, readOnly: true),
         const SizedBox(height: 24.0),
         _buildLabeledField("Number", controller.phoneController),
+        
+        if (controller.isWorker.value) ...[
+          const SizedBox(height: 24.0),
+          _buildLabeledField("Occupation", controller.occupationController),
+          const SizedBox(height: 24.0),
+          _buildLabeledField("Bio", controller.bioController, maxLines: 3),
+          const SizedBox(height: 24.0),
+          _buildLabeledField("Experience (Years)", controller.experienceController, keyboardType: TextInputType.number),
+          const SizedBox(height: 24.0),
+          _buildLabeledField("Hourly Rate ()", controller.rateController, keyboardType: TextInputType.number),
+          const SizedBox(height: 24.0),
+          _buildLabeledField("Skills (comma separated)", controller.skillsController),
+          const SizedBox(height: 24.0),
+          _buildLabeledField("Service Areas (comma separated)", controller.areasController),
+        ],
       ],
-    );
+    ));
   }
 
-  Widget _buildLabeledField(String label, TextEditingController ctr, {bool readOnly = false}) {
+  Widget _buildLabeledField(String label, TextEditingController ctr, {bool readOnly = false, int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -146,6 +161,8 @@ class EditProfileView extends GetView<EditProfileController> {
           child: TextField(
             controller: ctr,
             readOnly: readOnly,
+            maxLines: maxLines,
+            keyboardType: keyboardType,
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 16.0),

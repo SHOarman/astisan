@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_strings.dart';
@@ -362,7 +363,7 @@ class WorkerVerificationView extends GetView<WorkerVerificationController> {
           ),
           const SizedBox(height: 12.0),
           Text(
-            "Take both side pictures of your government issued ID card",
+            "Take a clear picture of your government issued ID card",
             style: GoogleFonts.poppins(
               fontSize: 14.0,
               fontWeight: FontWeight.w500,
@@ -371,67 +372,32 @@ class WorkerVerificationView extends GetView<WorkerVerificationController> {
           ),
           const SizedBox(height: 48.0),
           Center(
-            child: Container(
-              width: double.infinity,
-              height: 240.0,
-              decoration: BoxDecoration(
-                color: const Color(0xFFB3E5FC), // Mockup light blue
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Placeholder for the illustration since we don't have the asset
-                  Container(
-                    width: 250,
-                    height: 154,
+            child: GestureDetector(
+              onTap: () => controller.pickImage(ImageSource.camera),
+              child: Obx(() {
+                if (controller.pickedImage.value != null) {
+                  return Container(
+                    width: double.infinity,
+                    height: 240.0,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.account_box_rounded,
-                          size: 80,
-                          color: Color(0xFF4299E1),
-                        ),
-                        const SizedBox(height: 12.0),
-                        Container(
-                          width: 100,
-                          height: 8,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                        const SizedBox(height: 4.0),
-                        Container(
-                          width: 80,
-                          height: 8,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 12,
-                    child: Text(
-                      "ID CARD",
-                      style: GoogleFonts.poppins(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.0),
+                      image: DecorationImage(
+                        image: FileImage(controller.pickedImage.value!),
+                        fit: BoxFit.cover,
                       ),
                     ),
+                  );
+                }
+                return Container(
+                  width: double.infinity,
+                  height: 240.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFB3E5FC),
+                    borderRadius: BorderRadius.circular(20.0),
                   ),
-                ],
-              ),
+                  child: const Icon(Icons.camera_alt_rounded, size: 80, color: Colors.white),
+                );
+              }),
             ),
           ),
         ],
@@ -443,63 +409,78 @@ class WorkerVerificationView extends GetView<WorkerVerificationController> {
     return Container(
       color: const Color(0xFF0F172A),
       width: double.infinity,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: [
-          const Spacer(flex: 3),
-          Container(
-            width: 340.0,
-            height: 220.0,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 1.5),
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-          ),
-          const SizedBox(height: 32.0),
-          RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 18.0,
-                fontWeight: FontWeight.w500,
-              ),
-              children: [
-                const TextSpan(text: 'Place the '),
-                TextSpan(
-                  text: 'ID Card',
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF4299E1),
-                    fontWeight: FontWeight.w600,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(flex: 3),
+              Obx(() {
+                if (controller.pickedImage.value != null) {
+                  return Container(
+                    width: 340.0,
+                    height: 220.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                      image: DecorationImage(
+                        image: FileImage(controller.pickedImage.value!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }
+                return Container(
+                  width: 340.0,
+                  height: 220.0,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white, width: 1.5),
+                    borderRadius: BorderRadius.circular(12.0),
                   ),
-                ),
-                const TextSpan(text: ' in the frame'),
-              ],
-            ),
-          ),
-          const Spacer(flex: 4),
-          GestureDetector(
-            onTap: controller.showSuccess, // Direct to success for demo
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 60.0),
-              width: 80.0,
-              height: 80.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
+                );
+              }),
+              const SizedBox(height: 32.0),
+              Text(
+                "Confirm Document Photo",
+                style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
               ),
-              child: Center(
-                child: Container(
-                  width: 60.0,
-                  height: 60.0,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
+              const Spacer(flex: 4),
+              Obx(() {
+                return GestureDetector(
+                  onTap: controller.isLoading.value ? null : controller.submitVerification,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 60.0),
+                    width: 80.0,
+                    height: 80.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                    ),
+                    child: Center(
+                      child: controller.isLoading.value
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Container(
+                              width: 60.0,
+                              height: 60.0,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.check, color: AppColors.primary, size: 40),
+                            ),
+                    ),
                   ),
-                ),
-              ),
-            ),
+                );
+              }),
+            ],
           ),
+          Positioned(
+            top: 20,
+            left: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: controller.previousStep,
+            ),
+          )
         ],
       ),
     );

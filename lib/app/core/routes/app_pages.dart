@@ -519,7 +519,7 @@ class AppPages {
     ///==============================================auth_worker=================================================
     GetPage(
       name: Routes.sing_in, 
-      page: () => const SingIn(),
+      page: () =>  SingIn(),
       binding: BindingsBuilder(() {
         Get.put<AuthWorkerController>(AuthWorkerController());
       }),

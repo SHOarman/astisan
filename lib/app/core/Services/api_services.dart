@@ -103,4 +103,8 @@ class ApiServices {
   static const String privacy_policy = "$baseurl/api/supports/privacy/";
   static const String submit_feedback = "$baseurl/api/supports/feedback/submit/";
   static const String my_feedbacks = "$baseurl/api/supports/feedback/my-feedbacks/";
+
+  // ========================== AI Verification ==========================
+  static const String ai_verification_base = "https://document-verification-ai-chatbot.onrender.com";
+  static const String ai_verify = "$ai_verification_base/api/verification/verify/";
 }

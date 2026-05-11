@@ -147,26 +147,27 @@ class VerificationController extends GetxController {
         print("Decoded Verify Data: $data");
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          // If Artisan, we need to set up their service
+          // If Artisan, we need to set up their service AFTER account confirmation
           if (role.value == 'artisan') {
-            String? token;
-            if (data is Map) {
-              token = data['access'] ?? data['token'] ?? data['access_token'];
-              if (token == null && data['data'] != null && data['data'] is Map) {
-                token = data['data']['access'] ?? data['data']['token'];
-              }
+            String? accessToken;
+            // Handle different token locations in response (including access_token at root)
+            if (data['data'] != null && data['data'] is Map) {
+              accessToken = data['data']['access'] ?? data['data']['token'] ?? data['data']['access_token'];
             }
+            accessToken ??= data['access_token'] ?? data['access'] ?? data['token'] ?? (data['tokens'] != null ? data['tokens']['access'] : null);
             
-            print("Extracted Registration Token: $token");
+            print("DEBUG: Extracted Token for Service Setup: $accessToken");
             
-            if (token != null && artisanData['service_id'] != null) {
-              await _setupArtisanService(token);
+            if (accessToken != null && artisanData['service_id'] != null && artisanData['service_id'].toString().isNotEmpty) {
+              await _setupArtisanService(accessToken.toString().trim().replaceAll('"', ''));
+            } else {
+              print("DEBUG: Skipping service setup. Token or ServiceId missing. Token: $accessToken, ServiceId: ${artisanData['service_id']}");
             }
           }
 
           Get.snackbar('Success', data['message'] ?? 'Verification successful!');
-          await Future.delayed(const Duration(milliseconds: 600));
-          Get.offAllNamed(Routes.sing_in); // Go to Artisan Login
+          await Future.delayed(const Duration(milliseconds: 1000));
+          Get.offAllNamed(Routes.sing_in);
         } else {
           Get.snackbar('Error', data['message'] ?? 'Invalid OTP, please try again.');
         }
@@ -183,24 +184,29 @@ class VerificationController extends GetxController {
 
   Future<void> _setupArtisanService(String token) async {
     try {
-      print("Setting up artisan service...");
+      String cleanToken = token;
+      if (cleanToken.toLowerCase().startsWith("bearer ")) cleanToken = cleanToken.substring(7).trim();
+
+      print("DEBUG: Hitting Service Setup API: ${ApiServices.artisan_my_services}");
+      print("DEBUG: Payload: service=${artisanData['service_id']}, rate=${artisanData['service_rate']}");
+
       final response = await http.post(
         Uri.parse(ApiServices.artisan_my_services),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $cleanToken',
         },
         body: json.encode({
           "service": artisanData['service_id'],
           "price_override": artisanData['service_rate'],
           "is_active": true
         }),
-      );
-      print("Service Setup Status: ${response.statusCode}");
-      print("Service Setup Body: ${response.body}");
+      ).timeout(const Duration(seconds: 15));
+
+      print("DEBUG: Service Setup Response (${response.statusCode}): ${response.body}");
     } catch (e) {
-      print("Error setting up service: $e");
+      print("DEBUG: Service Setup Exception: $e");
     }
   }
 }

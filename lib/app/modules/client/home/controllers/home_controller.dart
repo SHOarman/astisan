@@ -20,13 +20,21 @@ class HomeController extends GetxController {
   Future<void> fetchPopularServices() async {
     isLoadingPopular.value = true;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      
+      // Robust token cleaning
+      if (token != null) {
+        token = token.trim().replaceAll('"', '');
+        if (token.isEmpty || token.toLowerCase() == 'null') {
+          token = null;
+        }
+      }
       
       final response = await http.get(
         Uri.parse(ApiServices.popular_services),
         headers: {
-          'Authorization': 'Bearer $token',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );

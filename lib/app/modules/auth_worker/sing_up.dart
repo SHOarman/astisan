@@ -20,7 +20,7 @@ class SingUp extends GetView<AuthWorkerController> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Form(
-            key: controller.formKey, // Controller এর formKey ব্যবহার নিশ্চিত করা হয়েছে
+            key: controller.formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

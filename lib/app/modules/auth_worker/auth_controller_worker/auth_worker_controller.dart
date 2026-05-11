@@ -1,12 +1,6 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_instance/src/extension_instance.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
-import 'package:get/get_navigation/src/snackbar/snackbar.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/Services/api_services.dart';
@@ -17,7 +11,6 @@ class AuthWorkerController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final loginFormKey = GlobalKey<FormState>();
 
-  // TextEditingControllers
   late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController phoneController;
@@ -56,119 +49,161 @@ class AuthWorkerController extends GetxController {
     fetchCategories();
   }
 
-  @override
-  void onClose() {
-    super.onClose();
-  }
-
-  // --- API Functions ---
-
   Future<void> fetchCategories() async {
     isCategoriesLoading.value = true;
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString('token');
+      await Future.delayed(const Duration(milliseconds: 300));
 
-      final response = await http.get(
-        Uri.parse(ApiServices.services_categories),
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      );
+      // Attempt 1: With Trailing Slash (Standard)
+      String url1 = ApiServices.services_categories;
+      if (!url1.endsWith('/')) url1 += '/';
 
-      if (response.statusCode == 200) {
-        final dynamic data = json.decode(response.body);
-        List<dynamic> results = [];
-        if (data is Map && data.containsKey('results')) {
-          results = data['results'];
-        } else if (data is List) {
-          results = data;
-        }
+      print("DEBUG: Category Fetch Attempt 1: $url1");
+      final resp1 = await http
+          .get(Uri.parse(url1), headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 10));
+      print("DEBUG: Attempt 1 Status: ${resp1.statusCode}");
 
+      if (resp1.statusCode == 200) {
+        final data = json.decode(resp1.body);
+        List<dynamic> results = _extractResults(data);
         if (results.isNotEmpty) {
           categories.assignAll(results);
-        } else {
-          _loadFallbackCategories();
+          print("DEBUG: Successfully loaded ${results.length} categories");
+          return;
         }
-      } else {
-        _loadFallbackCategories();
+      }
+
+      // Attempt 2: Without Trailing Slash
+      String url2 = url1.substring(0, url1.length - 1);
+      print("DEBUG: Category Fetch Attempt 2: $url2");
+      final resp2 = await http
+          .get(Uri.parse(url2), headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 10));
+      print("DEBUG: Attempt 2 Status: ${resp2.statusCode}");
+
+      if (resp2.statusCode == 200) {
+        final data = json.decode(resp2.body);
+        List<dynamic> results = _extractResults(data);
+        if (results.isNotEmpty) {
+          categories.assignAll(results);
+          return;
+        }
+      }
+
+      // Attempt 3: Artisan Catalogue Categories
+      String artisanUrl = ApiServices.artisan_service_categories;
+      print("DEBUG: Category Fetch Attempt 3 (Artisan): $artisanUrl");
+      final resp3 = await http
+          .get(Uri.parse(artisanUrl), headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 10));
+
+      if (resp3.statusCode == 200) {
+        final data = json.decode(resp3.body);
+        List<dynamic> results = _extractResults(data);
+        if (results.isNotEmpty) {
+          categories.assignAll(results);
+          return;
+        }
       }
     } catch (e) {
-      _loadFallbackCategories();
+      print("DEBUG: Critical Category Error: $e");
     } finally {
+      if (categories.isEmpty) {
+        print("DEBUG: All API attempts failed, using fallback labels");
+        _loadFallbackCategories();
+      }
       isCategoriesLoading.value = false;
     }
   }
 
-  void _loadFallbackCategories() {
-    categories.assignAll([
-      {
-        'id': 'fc01a070-0d15-4706-b36d-252cc3a366fe',
-        'name': 'REPAIR & MAINTENANCE',
-      },
-      {
-        'id': 'ba747375-cfd4-4669-bd12-c534bf40c83b',
-        'name': 'CLEANING SERVICE',
-      },
-    ]);
+  List<dynamic> _extractResults(dynamic data) {
+    if (data == null) return [];
+    if (data is List) return data;
+    if (data is Map) {
+      if (data.containsKey('results') && data['results'] is List)
+        return data['results'];
+      if (data.containsKey('data') && data['data'] is List) return data['data'];
+    }
+    return [];
   }
 
   Future<void> fetchServices(String catId) async {
     isServicesLoading.value = true;
+    services.clear(); // Clear old data to show we are loading fresh
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString('token');
+      // 1. Try Artisan Catalogue Primary (Filtered by Category)
+      String artisanUrl = ApiServices.artisan_service_catalogue;
+      if (artisanUrl.endsWith('/'))
+        artisanUrl = artisanUrl.substring(0, artisanUrl.length - 1);
+      artisanUrl = "$artisanUrl?category=$catId";
 
-      final String url = "${ApiServices.category_services}$catId/services/";
-
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
+      print("DEBUG: Fetching services from Artisan API: $artisanUrl");
+      final response = await http
+          .get(Uri.parse(artisanUrl), headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        final dynamic data = json.decode(response.body);
-        List<dynamic> results = [];
-        if (data is Map && data.containsKey('results')) {
-          results = data['results'];
-        } else if (data is List) {
-          results = data;
+        final data = json.decode(response.body);
+        List<dynamic> results = _extractResults(data);
+        if (results.isNotEmpty) {
+          services.assignAll(results);
+          print(
+            "DEBUG: Loaded ${results.length} services from Artisan Catalogue",
+          );
+          return;
         }
-        services.assignAll(results);
-      } else {
-        services.assignAll([
-          {
-            'id': 's1',
-            'name': 'General Service',
-            'price_range_min': '100',
-            'price_range_max': '500',
-          },
-          {
-            'id': 's2',
-            'name': 'Deep Cleaning',
-            'price_range_min': '200',
-            'price_range_max': '800',
-          },
-        ]);
+      }
+
+      // 2. Fallback to Client Public Categories Endpoint
+      String clientUrl = ApiServices.category_services;
+      if (!clientUrl.endsWith('/')) clientUrl += '/';
+      clientUrl = "$clientUrl$catId/services/";
+
+      print("DEBUG: Trying fallback Client API: $clientUrl");
+      final clientResponse = await http
+          .get(Uri.parse(clientUrl), headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 10));
+
+      if (clientResponse.statusCode == 200) {
+        final data = json.decode(clientResponse.body);
+        List<dynamic> results = _extractResults(data);
+        if (results.isNotEmpty) {
+          services.assignAll(results);
+          print("DEBUG: Loaded ${results.length} services from Client API");
+          return;
+        }
       }
     } catch (e) {
-      print("Error: $e");
+      print("DEBUG: Service fetch error: $e");
     } finally {
+      if (services.isEmpty) {
+        print("DEBUG: No services found on server for category $catId");
+        // We do NOT load dummy data here as requested
+      }
       isServicesLoading.value = false;
     }
   }
 
-  // --- Logic Functions ---
+  void _loadFallbackCategories() {
+    // Keep a very minimal fallback only for critical failure
+    categories.assignAll([
+      {'id': 'repair', 'name': 'REPAIR & MAINTENANCE'},
+      {'id': 'cleaning', 'name': 'CLEANING SERVICE'},
+    ]);
+  }
+
+  void _loadFallbackServices() {
+    // Empty as requested, no dummy data
+    services.clear();
+  }
 
   void onCategoryChanged(String? id) {
     if (id != null) {
       selectedCategoryId.value = id;
-      final cat = categories.firstWhere((element) => element['id'] == id);
+      final cat = categories.firstWhere(
+        (element) => element['id'].toString() == id,
+      );
       selectedCategoryName.value = cat['name'];
       selectedServiceId.value = '';
       selectedServiceName.value = '';
@@ -180,16 +215,24 @@ class AuthWorkerController extends GetxController {
   void onServiceChanged(String? id) {
     if (id != null) {
       selectedServiceId.value = id;
-      final service = services.firstWhere((element) => element['id'] == id);
+      final service = services.firstWhere(
+        (element) => element['id'].toString() == id,
+      );
       selectedServiceName.value = service['name'];
-
       priceMin.value =
           double.tryParse(service['price_range_min']?.toString() ?? '0') ?? 0;
       priceMax.value =
           double.tryParse(service['price_range_max']?.toString() ?? '0') ?? 0;
-
       rateController.text = priceMin.value.toStringAsFixed(0);
     }
+  }
+
+  void navigateToSignUp() {
+    Get.toNamed(Routes.sing_up);
+  }
+
+  void navigateToLogin() {
+    Get.back();
   }
 
   void togglePasswordVisibility() =>
@@ -204,210 +247,60 @@ class AuthWorkerController extends GetxController {
     if (value != null) rememberMe.value = value;
   }
 
-  // void signIn() async {
-  //   if (loginFormKey.currentState?.validate() ?? false) {
-  //     Get.focusScope?.unfocus();
-  //     isLoading.value = true;
-  //
-  //     try {
-  //       print("Attempting Artisan Login: ${emailController.text.trim()}");
-  //       final response = await http
-  //           .post(
-  //             Uri.parse(ApiServices.artisan_login),
-  //             headers: {
-  //               'Content-Type': 'application/json',
-  //               'Accept': 'application/json',
-  //             },
-  //             body: json.encode({
-  //               "email": emailController.text.trim().toLowerCase(),
-  //               "password": passwordController.text,
-  //             }),
-  //           )
-  //           .timeout(const Duration(seconds: 15));
-  //
-  //       print("Login Status: ${response.statusCode}");
-  //       print("Login Body: ${response.body}");
-  //
-  //       final data = json.decode(response.body);
-  //       print("Decoded Login Data: $data");
-  //
-  //       if (response.statusCode == 200 || response.statusCode == 201) {
-  //         final SharedPreferences prefs = await SharedPreferences.getInstance();
-  //
-  //         // Robust token extraction
-  //         String? accessToken;
-  //         String? refreshToken;
-  //
-  //         if (data is Map) {
-  //           accessToken =
-  //               data['access'] ?? data['token'] ?? data['access_token'];
-  //           refreshToken = data['refresh'] ?? data['refresh_token'];
-  //
-  //           // Check inside 'data' or 'results' if nested
-  //           if (accessToken == null &&
-  //               data['data'] != null &&
-  //               data['data'] is Map) {
-  //             accessToken = data['data']['access'] ?? data['data']['token'];
-  //             refreshToken ??= data['data']['refresh'];
-  //           }
-  //         }
-  //
-  //         print("Extracted Token: $accessToken");
-  //
-  //         if (accessToken != null) {
-  //           await prefs.setString('token', accessToken.toString());
-  //           if (refreshToken != null) {
-  //             await prefs.setString('refresh', refreshToken.toString());
-  //           }
-  //
-  //           await prefs.setString('role', 'worker');
-  //           Get.find<RoleController>().setRole('worker');
-  //
-  //           Get.snackbar('Success', 'Login Successful!');
-  //           Get.offAllNamed(Routes.DASHBOARD);
-  //         } else {
-  //           data.forEach((key, value) {
-  //             if (key.toString().toLowerCase().contains('token') ||
-  //                 (value is String && value.length > 50)) {
-  //               accessToken ??= value.toString();
-  //             }
-  //           });
-  //
-  //           if (accessToken != null) {
-  //             // await prefs.setString('token', accessToken!);
-  //             // Get.offAllNamed(Routes.worker_deshbord_user);
-  //           } else {
-  //             _showErrorSnackBar(
-  //               'Login Debug',
-  //               'Response: ${response.body.length > 100 ? response.body.substring(0, 100) : response.body}',
-  //             );
-  //           }
-  //         }
-  //       } else {
-  //         String msg = 'Login failed';
-  //         if (data is Map) {
-  //           msg = data['message'] ?? data['detail'] ?? msg;
-  //         }
-  //         _showErrorSnackBar('Login Error', msg);
-  //       }
-  //     } catch (e) {
-  //       print("Login Exception: $e");
-  //       _showErrorSnackBar(
-  //         'Connection Error',
-  //         'Please check your internet connection',
-  //       );
-  //     } finally {
-  //       isLoading.value = false;
-  //     }
-  //   }
-  // }
   void signIn() async {
     if (loginFormKey.currentState?.validate() ?? false) {
       Get.focusScope?.unfocus();
       isLoading.value = true;
-
       try {
         final response = await http
             .post(
-          Uri.parse(ApiServices.artisan_login),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: json.encode({
-            "email": emailController.text.trim().toLowerCase(),
-            "password": passwordController.text,
-          }),
-        )
+              Uri.parse(ApiServices.artisan_login),
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: json.encode({
+                "email": emailController.text.trim().toLowerCase(),
+                "password": passwordController.text,
+              }),
+            )
             .timeout(const Duration(seconds: 15));
 
         final data = json.decode(response.body);
-
         if (response.statusCode == 200 || response.statusCode == 201) {
           final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-          String? accessToken;
-          String? refreshToken;
-
-          if (data is Map) {
-            accessToken = data['access'] ??
-                data['token'] ??
-                data['access_token'] ??
-                (data['data'] is Map ? (data['data']['access'] ?? data['data']['token'] ?? data['data']['access_token']) : null);
-
-            refreshToken = data['refresh'] ??
-                data['refresh_token'] ??
-                (data['data'] is Map ? (data['data']['refresh'] ?? data['data']['refresh_token']) : null);
-
-            if (accessToken == null && data is Map) {
-              data.forEach((key, value) {
-                if (key.toString().toLowerCase().contains('token') && value is String && value.length > 20) {
-                  accessToken = value;
-                }
-              });
-            }
-          }
-
+          String? accessToken = _extractToken(data);
           if (accessToken != null) {
-            String cleanAccessToken = _cleanToken(accessToken.toString());
-            print("DEBUG: Final Clean Token: $cleanAccessToken (Length: ${cleanAccessToken.length})");
-            await prefs.setString('token', cleanAccessToken);
-
-            if (refreshToken != null) {
-              await prefs.setString('refresh', _cleanToken(refreshToken.toString()));
-            }
-
+            String cleanToken = _cleanToken(accessToken);
+            await prefs.setString('token', cleanToken);
             await prefs.setString('role', 'worker');
             Get.find<RoleController>().setRole('worker');
-
-            await fetchAndSaveProfile(accessToken.toString());
-
+            await fetchAndSaveProfile(cleanToken);
             Get.snackbar('Success', 'Login Successful!');
             Get.offAllNamed(Routes.DASHBOARD);
           } else {
-            print("CRITICAL ERROR: Token not found in Login Response.");
-            print("FULL RESPONSE BODY: ${response.body}");
-
-            // One last attempt: search the entire decoded map for ANY long string
-            String? fallbackToken;
-            if (data is Map) {
-              void findToken(Map map) {
-                map.forEach((key, value) {
-                  if (value is String && value.length > 30) {
-                    fallbackToken = value;
-                  } else if (value is Map) {
-                    findToken(value);
-                  }
-                });
-              }
-              findToken(data);
-            }
-
-            if (fallbackToken != null) {
-              print("DEBUG: Found fallback token: $fallbackToken");
-              await prefs.setString('token', fallbackToken!);
-              await prefs.setString('role', 'worker');
-              Get.find<RoleController>().setRole('worker');
-              await fetchAndSaveProfile(fallbackToken!);
-              Get.offAllNamed(Routes.DASHBOARD);
-            } else {
-              _showErrorSnackBar('Login Error', 'The server did not send a valid session token. Response: ${response.body}');
-            }
+            _showErrorSnackBar('Login Error', 'Token not found.');
           }
         } else {
-          String msg = 'Login failed';
-          final data = json.decode(response.body);
-          if (data is Map) {
-            msg = data['message'] ?? data['detail'] ?? msg;
-          }
-          _showErrorSnackBar('Login Error', msg);
+          _showErrorSnackBar('Login Error', data['message'] ?? 'Login failed');
         }
       } catch (e) {
-        _showErrorSnackBar('Connection Error', 'Please check your internet connection');
+        _showErrorSnackBar('Connection Error', 'Check your connection');
       } finally {
         isLoading.value = false;
       }
     }
+  }
+
+  String? _extractToken(dynamic data) {
+    if (data is! Map) return null;
+    return data['access'] ??
+        data['token'] ??
+        data['access_token'] ??
+        (data['tokens'] is Map ? data['tokens']['access'] : null) ??
+        (data['data'] is Map
+            ? (data['data']['access'] ?? data['data']['token'])
+            : null);
   }
 
   Future<void> fetchAndSaveProfile(String token) async {
@@ -419,70 +312,58 @@ class AuthWorkerController extends GetxController {
           'Accept': 'application/json',
         },
       );
-
       if (response.statusCode == 200) {
-        print("DEBUG: Login Response Body: ${response.body}");
         final data = json.decode(response.body);
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_name', data['full_name'] ?? '');
-        await prefs.setString('user_profile_pic', data['profile_picture'] ?? '');
-        print("DEBUG: Profile saved locally after login");
+        await prefs.setString(
+          'user_profile_pic',
+          data['profile_picture'] ?? '',
+        );
       }
     } catch (e) {
-      print("DEBUG: Error saving profile after login: $e");
+      print("Error saving profile: $e");
     }
   }
-
-
-
-
 
   void signUp() async {
     if (formKey.currentState!.validate()) {
       if (!agreeToTerms.value) {
-        _showErrorSnackBar(
-          'Terms & Privacy',
-          'You must agree to the terms and privacy policy',
-        );
+        _showErrorSnackBar('Terms', 'Agree to terms first');
         return;
       }
-
       if (selectedServiceId.value.isEmpty) {
-        _showErrorSnackBar(
-          'Service Selection',
-          'Please select a category and a service',
-        );
+        _showErrorSnackBar('Service', 'Select category & service');
         return;
       }
 
       double enteredRate = double.tryParse(rateController.text) ?? 0;
-      if (enteredRate < priceMin.value || enteredRate > priceMax.value) {
+      if (enteredRate < priceMin.value ||
+          (priceMax.value > 0 && enteredRate > priceMax.value)) {
         _showErrorSnackBar(
-          'Price Range Warning',
-          'Allowed range: ${priceMin.value} to ${priceMax.value}.',
+          'Price',
+          'Allowed: ${priceMin.value} to ${priceMax.value}',
         );
         return;
       }
 
       Get.focusScope?.unfocus();
       isLoading.value = true;
-
       try {
         final response = await http
             .post(
-          Uri.parse(ApiServices.artisan_sendotp),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            "full_name": nameController.text.trim(),
-            "email": emailController.text.trim().toLowerCase(),
-            "phone": phoneController.text.trim(),
-            "password": passwordController.text,
-          }),
-        )
+              Uri.parse(ApiServices.artisan_sendotp),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({
+                "full_name": nameController.text.trim(),
+                "email": emailController.text.trim().toLowerCase(),
+                "phone": phoneController.text.trim(),
+                "password": passwordController.text,
+              }),
+            )
             .timeout(const Duration(seconds: 15));
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Get.snackbar('Success', 'OTP sent to your email');
           Get.toNamed(
             Routes.VERIFICATION,
             arguments: {
@@ -503,7 +384,7 @@ class AuthWorkerController extends GetxController {
           _showErrorSnackBar('Error', 'Registration failed');
         }
       } catch (e) {
-        _showErrorSnackBar('Connection Error', e.toString());
+        _showErrorSnackBar('Error', e.toString());
       } finally {
         isLoading.value = false;
       }
@@ -520,30 +401,10 @@ class AuthWorkerController extends GetxController {
     );
   }
 
-  void navigateToSignUp() {
-    Get.toNamed(Routes.sing_up);
-  }
-
-  void navigateToLogin() {
-    Get.back();
-  }
-
-  void onSocialLogin(String provider) {
-    Get.snackbar(
-      'Social Login',
-      'Clicked on $provider',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-
   String _cleanToken(String token) {
-    String clean = token.toString().trim();
-    if (clean.startsWith('"') && clean.endsWith('"')) {
-      clean = clean.substring(1, clean.length - 1);
-    }
-    if (clean.toLowerCase().startsWith("bearer ")) {
+    String clean = token.toString().trim().replaceAll('"', '');
+    if (clean.toLowerCase().startsWith("bearer "))
       clean = clean.substring(7).trim();
-    }
     return clean;
   }
 }
