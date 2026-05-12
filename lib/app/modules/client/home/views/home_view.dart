@@ -180,25 +180,41 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
         SizedBox(height: 16.0),
-        SizedBox(
-          height: 160.0,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: controller.forYouCategories.length,
-            separatorBuilder: (context, index) => SizedBox(width: 16.0),
-            itemBuilder: (context, index) {
-              final cat = controller.forYouCategories[index];
-              return SizedBox(
-                width: 150.0,
-                child: _buildForYouCard(
-                  title: cat['title'],
-                  iconPath: cat['icon'],
-                  onTap: () {},
-                ),
-              );
-            },
-          ),
-        ),
+        Obx(() {
+          if (controller.isLoadingCategories.value) {
+            return const SizedBox(
+              height: 160.0,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (controller.forYouCategories.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return SizedBox(
+            height: 160.0,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: controller.forYouCategories.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 16.0),
+              itemBuilder: (context, index) {
+                final cat = controller.forYouCategories[index];
+                return SizedBox(
+                  width: 150.0,
+                  child: _buildForYouCard(
+                    title: cat['title'],
+                    iconPath: cat['icon'],
+                    onTap: () {
+                      Get.toNamed(Routes.SUB_CATEGORY, arguments: {
+                        'id': cat['id'],
+                        'title': cat['title'],
+                      });
+                    },
+                  ),
+                );
+              },
+            ),
+          );
+        }),
       ],
     );
   }
@@ -211,7 +227,7 @@ class HomeView extends GetView<HomeController> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
         decoration: BoxDecoration(
           color: AppColors.primary.withAlpha(10),
           borderRadius: BorderRadius.circular(16.0),
@@ -219,27 +235,36 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              iconPath,
-              height: 50.0,
-              width: 50.0,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.broken_image, color: Colors.grey),
+            Expanded(
+              child: iconPath.startsWith('http')
+                  ? Image.network(
+                      iconPath,
+                      height: 50.0,
+                      width: 50.0,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, color: Colors.grey, size: 30),
+                    )
+                  : Image.asset(
+                      iconPath,
+                      height: 50.0,
+                      width: 50.0,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, color: Colors.grey, size: 30),
+                    ),
             ),
-            SizedBox(height: 12.0),
-            Flexible(
-              child: Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textColor,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 12.0),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 13.0,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textColor,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -340,24 +365,34 @@ class HomeView extends GetView<HomeController> {
                 color: AppColors.textColor,
               ),
             ),
-            Text(
-              AppStrings.seeAll.tr,
-              style: GoogleFonts.poppins(
-                fontSize: 14.0,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
+            GestureDetector(
+              onTap: () {
+              },
+              child: Text(
+                AppStrings.seeAll.tr,
+                style: GoogleFonts.poppins(
+                  fontSize: 14.0,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
         ),
         SizedBox(height: 16.0),
-        Obx(
-          () => ListView.separated(
+        Obx(() {
+          if (controller.isLoadingArtisans.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (controller.recommendedArtisans.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return ListView.separated(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: controller.recommendedArtisans.length,
-            separatorBuilder: (context, index) => SizedBox(height: 16.0),
+            separatorBuilder: (context, index) => const SizedBox(height: 16.0),
             itemBuilder: (context, index) {
               final artisan = controller.recommendedArtisans[index];
               return ArtisanProfileCard(
@@ -370,12 +405,12 @@ class HomeView extends GetView<HomeController> {
                 pricePerHour: artisan['pricePerHour'],
                 distanceOrTime: artisan['distanceOrTime'],
                 onTap: () {
-                  Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
+                   Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
                 },
               );
             },
-          ),
-        ),
+          );
+        }),
       ],
     );
   }

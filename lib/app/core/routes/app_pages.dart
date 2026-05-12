@@ -16,7 +16,7 @@ import '../../modules/auth_clinet/verification/views/verification_view.dart';
 import '../../modules/auth_worker/auth_controller_worker/auth_worker_controller.dart';
 import '../../modules/auth_worker/forgot_password.dart';
 import '../../modules/auth_worker/reset_password.dart';
-import '../../modules/auth_worker/serives_detels.dart';
+import '../../modules/auth_worker/service_detels.dart';
 import '../../modules/auth_worker/sing_in.dart';
 import '../../modules/auth_worker/sing_up.dart';
 import '../../modules/client/profile/views/language.dart';
@@ -58,6 +58,8 @@ import '../../modules/support/views/feedback_view.dart';
 import '../../modules/support/views/privacy_policy_view.dart';
 import '../../modules/support/views/terms_of_service_view.dart';
 import '../../modules/support/controllers/support_controller.dart';
+import '../../modules/client/nearby_artisans/views/nearby_artisans_view.dart';
+import '../../modules/client/nearby_artisans/controllers/nearby_artisans_controller.dart';
 import '../../modules/client/sub_category/views/sub_category_view.dart';
 import '../../modules/client/sub_category/controllers/sub_category_controller.dart';
 import '../../modules/client/location/views/select_location_view.dart';
@@ -116,6 +118,13 @@ import '../../modules/worker/tracking/controllers/worker_tracking_controller.dar
 class AppPages {
   static final routes = [
     GetPage(name: Routes.SPLASH, page: () => const SplashView()),
+    GetPage(
+      name: Routes.NEARBY_ARTISANS,
+      page: () => const NearbyArtisansView(),
+      binding: BindingsBuilder(() {
+        Get.put(NearbyArtisansController());
+      }),
+    ),
     GetPage(name: Routes.ONBOARDING, page: () => const OnboardingView()),
     GetPage(
       name: Routes.LOGIN,
@@ -516,6 +525,8 @@ class AppPages {
       }),
     ),
 
+
+
     ///==============================================auth_worker=================================================
     GetPage(
       name: Routes.sing_in, 
@@ -533,7 +544,13 @@ class AppPages {
       }),
     ),
     GetPage(name: Routes.forgot_password, page: () => const ForgotPassword()),
-    GetPage(name: Routes.serives_detels, page: () => const SerivesDetels()),
+    GetPage(
+      name: Routes.serives_detels, 
+      page: () => const SerivesDetels(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<AuthWorkerController>(() => AuthWorkerController());
+      }),
+    ),
     GetPage(name: Routes.reset_password, page: () => const ResetPassword()),
 
     //==========================================worker=================================================================================================================

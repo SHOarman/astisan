@@ -12,6 +12,7 @@ abstract class Routes {
   static const POPULAR_SERVICES = '/popular-services';
   static const SELECT_LOCATION = '/select-location';
   static const NOTIFICATIONS = '/notifications';
+  static const NEARBY_ARTISANS = '/nearby-artisans';
   static const restverifcationemail="/restverifcationemail";
   
   static const FORGOT_PASSWORD = '/forgot-password';
@@ -65,6 +66,7 @@ abstract class Routes {
 
 
   static const String worker_deshbord_user = '/worker_deshbord_user';
+  static const String servicedetles="/servicedetles";
 
 
 

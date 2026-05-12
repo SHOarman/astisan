@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/static/app_colors.dart';
 
@@ -6,14 +6,14 @@ class FixedBottomActionBar extends StatelessWidget {
   final String? leadingText;
   final String? leadingValue;
   final String buttonText;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const FixedBottomActionBar({
     super.key,
     this.leadingText,
     this.leadingValue,
     required this.buttonText,
-    required this.onPressed,
+    this.onPressed,
   });
 
   @override

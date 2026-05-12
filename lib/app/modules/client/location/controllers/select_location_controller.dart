@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
-import '../../home/controllers/home_controller.dart';
+
+import '../../home/controllers/home_controller.dart' show HomeController;
 
 class SelectLocationController extends GetxController {
   // Observables for state

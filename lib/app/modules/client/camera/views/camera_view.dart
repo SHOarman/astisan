@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,8 +14,41 @@ class CameraView extends GetView<CameraController> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Black background imitating viewfinder
-            Positioned.fill(child: Container(color: const Color(0xFF111111))),
+            // Viewfinder placeholder
+            Positioned.fill(
+              child: Container(
+                color: const Color(0xFF111111),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.camera_alt, color: Colors.white.withOpacity(0.3), size: 64),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Opening Camera...',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Image Preview
+            Obx(() {
+              if (controller.isCaptured.value && controller.imagePath.value.isNotEmpty) {
+                return Positioned.fill(
+                  child: Image.file(
+                    File(controller.imagePath.value),
+                    fit: BoxFit.cover,
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
 
             // Top App Bar Controls
             Positioned(

@@ -65,7 +65,7 @@ class EditProfileController extends GetxController {
         fullNameController.text = data['full_name'] ?? '';
         emailController.text = data['email'] ?? '';
         phoneController.text = data['phone'] ?? '';
-        profileImageUrl.value = data['profile_picture'] ?? '';
+        profileImageUrl.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
 
         if (isWorker.value && data['artisan_profile'] != null) {
           final artisan = data['artisan_profile'];

@@ -168,7 +168,7 @@ class WorkerAccountView extends StatelessWidget {
                   if (prof.isEmpty) prof = "Artisan";
                   String rate = controller.serviceRate.value;
                   return Text(
-                    "$prof • \$$rate/hr",
+                    "$prof • \$$rate",
                     style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.8), fontSize: 13.0),
                   );
                 }),

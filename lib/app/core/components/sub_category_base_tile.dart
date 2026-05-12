@@ -22,11 +22,11 @@ class SubCategoryBaseTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: const Color(0xFFF3F7FA), // Light blueish-grey background
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: const Color(0xFFE0E0E0), width: 1.0), // Added border back as requested
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(5),
@@ -38,18 +38,31 @@ class SubCategoryBaseTile extends StatelessWidget {
         child: Row(
           children: [
             // Safe rendering of SVG Icon directly
-            Image.asset(
-              iconPath,
-              width: 50.0,
-              height: 50.0,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 50.0,
-                height: 50.0,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image, color: Colors.grey),
-              ),
-            ),
+            iconPath.startsWith('http')
+                ? Image.network(
+                    iconPath,
+                    width: 50.0,
+                    height: 50.0,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 50.0,
+                      height: 50.0,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  )
+                : Image.asset(
+                    iconPath,
+                    width: 50.0,
+                    height: 50.0,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 50.0,
+                      height: 50.0,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  ),
             SizedBox(width: 16.0),
             // Text Details
             Expanded(
@@ -64,15 +77,30 @@ class SubCategoryBaseTile extends StatelessWidget {
                       color: AppColors.textColor,
                     ),
                   ),
-                  SizedBox(height: 4.0),
-                  Text(
-                    description,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.greyText,
+                  if (description.trim().isNotEmpty) ...[
+                    const SizedBox(height: 4.0),
+                    Text(
+                      description,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87, // Changed to black as requested
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                  ] else ...[
+                    // For debugging: show this to see if the issue is data or UI
+                    const SizedBox(height: 4.0),
+                    Text(
+                      "Details available on booking", 
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF8A99A7).withOpacity(0.5),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

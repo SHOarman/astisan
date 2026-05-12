@@ -50,7 +50,7 @@ class ProfileController extends GetxController {
         userName.value = data['full_name'] ?? 'No Name';
         userEmail.value = data['email'] ?? 'No Email';
         userPhone.value = data['phone'] ?? 'No Phone';
-        userProfileImage.value = data['profile_picture'] ?? '';
+        userProfileImage.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
       } else {
         userName.value = 'Error Loading Profile';
       }

@@ -41,7 +41,7 @@ class PopularServicesController extends GetxController {
         popularServices.assignAll(dataList.map((e) => {
           'id': e['id'],
           'title': e['name'] ?? 'Service',
-          'image': e['image'] ?? '',
+          'image': ApiServices.formatImageUrl(e['image']?.toString()),
           'rating': double.tryParse(e['avg_rating'].toString()) ?? 0.0,
           'reviews': e['review_count'] ?? 0,
           'priceRange': '\$${e['price_range_min'] ?? '0'}-\$${e['price_range_max'] ?? '0'}',

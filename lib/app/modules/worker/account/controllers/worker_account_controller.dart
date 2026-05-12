@@ -48,7 +48,9 @@ class WorkerAccountController extends GetxController {
   void loadStoredData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     userName.value = prefs.getString('user_name') ?? userName.value;
-    profilePicture.value = prefs.getString('user_profile_pic') ?? '';
+    String storedPic = prefs.getString('user_profile_pic') ?? '';
+    profilePicture.value = ApiServices.formatImageUrl(storedPic);
+    print("DEBUG: Loaded stored profile pic: ${profilePicture.value}");
   }
 
   Future<void> fetchProfile() async {
@@ -74,12 +76,18 @@ class WorkerAccountController extends GetxController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print("DEBUG: Worker Profile Fetch Success: ${response.body}");
 
         userName.value = data['full_name']?.toString() ?? userName.value;
         userEmail.value = data['email']?.toString() ?? '';
         userPhone.value = data['phone']?.toString() ?? '';
-        profilePicture.value = data['profile_picture']?.toString() ?? '';
-
+        
+        String? picUrl = data['profile_picture']?.toString();
+        print("DEBUG: Raw Profile Pic from API: $picUrl");
+        
+        profilePicture.value = ApiServices.formatImageUrl(picUrl);
+        print("DEBUG: Formatted Profile Pic: ${profilePicture.value}");
+        
         await prefs.setString('user_name', userName.value);
         await prefs.setString('user_profile_pic', profilePicture.value);
 
@@ -103,9 +111,17 @@ class WorkerAccountController extends GetxController {
 
           if (artisan['skills'] != null) {
             if (artisan['skills'] is String) {
-              skills.assignAll(artisan['skills'].toString().split(',').map((e) => e.trim()).toList());
+              skills.assignAll(artisan['skills'].toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList());
             } else if (artisan['skills'] is List) {
-              skills.assignAll(List<String>.from(artisan['skills']));
+              skills.assignAll(List<String>.from(artisan['skills']).where((e) => e.isNotEmpty).toList());
+            }
+          }
+
+          if (artisan['service_areas'] != null) {
+            if (artisan['service_areas'] is String) {
+              serviceAreas.assignAll(artisan['service_areas'].toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList());
+            } else if (artisan['service_areas'] is List) {
+              serviceAreas.assignAll(List<String>.from(artisan['service_areas']).where((e) => e.isNotEmpty).toList());
             }
           }
 
@@ -140,20 +156,55 @@ class WorkerAccountController extends GetxController {
         List<dynamic> results = (data is List) ? data : (data['results'] ?? data['data'] ?? []);
 
         if (results.isNotEmpty) {
-          final first = results[0];
+          // Collect all service names to show in Skills & Services if skills list is empty
+          List<String> serviceNames = [];
           
-          // Store these for Edit Profile usage
+          for (var item in results) {
+            String name = '';
+            final details = item['service_details'];
+            if (details != null && details['name'] != null) {
+              name = details['name'].toString();
+            } else if (item['service_name'] != null) {
+              name = item['service_name'].toString();
+            }
+            if (name.isNotEmpty) serviceNames.add(name);
+          }
+
+          // If profile skills are empty, use service names as skills
+          if (skills.isEmpty) {
+            skills.assignAll(serviceNames);
+          }
+
+          final first = results[0];
           serviceId.value = first['service']?.toString() ?? '';
           registrationId.value = first['id']?.toString() ?? '';
 
-          if (profession.value == 'Artisan' || profession.value.isEmpty) {
-            final details = first['service_details'];
-            if (details != null && details['name'] != null) {
-              profession.value = details['name'].toString();
-            } else if (first['service_name'] != null) {
-              profession.value = first['service_name'].toString();
+          String bestName = '';
+          final details = first['service_details'];
+          if (details != null) {
+            String catName = details['category_name']?.toString() ?? '';
+            String servName = details['name']?.toString() ?? '';
+            if (catName.isNotEmpty && servName.isNotEmpty && servName.toLowerCase() != 'nothing') {
+              bestName = "$catName - $servName";
+            } else if (servName.isNotEmpty && servName.toLowerCase() != 'nothing') {
+              bestName = servName;
+            } else if (catName.isNotEmpty) {
+              bestName = catName;
             }
           }
+
+          if (bestName.isEmpty && serviceNames.isNotEmpty) {
+            bestName = serviceNames[0];
+          }
+
+          // Force update if current profession is a placeholder or generic
+          String currentProf = profession.value.toLowerCase().trim();
+          if (currentProf == 'artisan' || currentProf == 'nothing' || currentProf.isEmpty) {
+            if (bestName.isNotEmpty) {
+              profession.value = bestName;
+            }
+          }
+
           if (serviceRate.value == '0.00' || serviceRate.value == '0') {
              serviceRate.value = first['price_override']?.toString() ?? serviceRate.value;
           }

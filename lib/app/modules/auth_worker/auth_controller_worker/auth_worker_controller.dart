@@ -118,14 +118,27 @@ class AuthWorkerController extends GetxController {
   }
 
   List<dynamic> _extractResults(dynamic data) {
+    List<dynamic> results = [];
     if (data == null) return [];
-    if (data is List) return data;
-    if (data is Map) {
-      if (data.containsKey('results') && data['results'] is List)
-        return data['results'];
-      if (data.containsKey('data') && data['data'] is List) return data['data'];
+    if (data is List) {
+      results = data;
+    } else if (data is Map) {
+      if (data.containsKey('results') && data['results'] is List) {
+        results = data['results'];
+      } else if (data.containsKey('data') && data['data'] is List) {
+        results = data['data'];
+      }
     }
-    return [];
+
+    // Automatically format image URLs for all items in the list
+    return results.map((item) {
+      if (item is Map) {
+        if (item.containsKey('image') && item['image'] != null) {
+          item['image'] = ApiServices.formatImageUrl(item['image'].toString());
+        }
+      }
+      return item;
+    }).toList();
   }
 
   Future<void> fetchServices(String catId) async {
@@ -318,7 +331,7 @@ class AuthWorkerController extends GetxController {
         await prefs.setString('user_name', data['full_name'] ?? '');
         await prefs.setString(
           'user_profile_pic',
-          data['profile_picture'] ?? '',
+          ApiServices.formatImageUrl(data['profile_picture']?.toString()),
         );
       }
     } catch (e) {
@@ -332,20 +345,9 @@ class AuthWorkerController extends GetxController {
         _showErrorSnackBar('Terms', 'Agree to terms first');
         return;
       }
-      if (selectedServiceId.value.isEmpty) {
-        _showErrorSnackBar('Service', 'Select category & service');
-        return;
-      }
+      // Service validation removed from here as per request
+      // We will collect service details after account verification
 
-      double enteredRate = double.tryParse(rateController.text) ?? 0;
-      if (enteredRate < priceMin.value ||
-          (priceMax.value > 0 && enteredRate > priceMax.value)) {
-        _showErrorSnackBar(
-          'Price',
-          'Allowed: ${priceMin.value} to ${priceMax.value}',
-        );
-        return;
-      }
 
       Get.focusScope?.unfocus();
       isLoading.value = true;
@@ -373,8 +375,6 @@ class AuthWorkerController extends GetxController {
                 "email": emailController.text.trim(),
                 "phone": phoneController.text.trim(),
                 "password": passwordController.text,
-                "service_id": selectedServiceId.value,
-                "service_rate": rateController.text,
                 "role": "artisan",
               },
               'role': 'artisan',
@@ -388,6 +388,54 @@ class AuthWorkerController extends GetxController {
       } finally {
         isLoading.value = false;
       }
+    }
+  }
+
+  Future<void> saveServiceDetails() async {
+    if (selectedServiceId.value.isEmpty) {
+      _showErrorSnackBar('Error', 'Please select a service');
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String cleanToken = _cleanToken(token ?? "");
+      
+      print("DEBUG: Saving Service Profile...");
+      print("DEBUG: Token: $cleanToken");
+      print("DEBUG: Payload: service=${selectedServiceId.value}, price=${rateController.text}");
+
+      final response = await http.post(
+        Uri.parse(ApiServices.artisan_my_services),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $cleanToken',
+        },
+        body: json.encode({
+          "service": selectedServiceId.value,
+          "price_override": rateController.text,
+          "is_active": true
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      print("DEBUG: Save Response Status: ${response.statusCode}");
+      print("DEBUG: Save Response Body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.offAllNamed(Routes.DASHBOARD);
+        Get.snackbar('Success', 'Profile updated and visible to Admin');
+      } else {
+        final data = json.decode(response.body);
+        _showErrorSnackBar('Error', data['message'] ?? 'Failed to update profile (${response.statusCode})');
+      }
+    } catch (e) {
+      print("DEBUG: Save Error: $e");
+      _showErrorSnackBar('Error', 'Failed to update profile: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 

@@ -22,7 +22,7 @@ class BookingView extends GetView<BookingController> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          AppStrings.booking.tr,
+          'Booking Info',
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -293,18 +293,39 @@ class BookingView extends GetView<BookingController> {
           ),
           SizedBox(height: 16.0),
           Obx(
-            () => Column(
-              children: List.generate(controller.addresses.length, (index) {
-                final address = controller.addresses[index];
-                return AddressSelectionCard(
-                  title: address['title'] as String,
-                  address: address['address'] as String,
-                  isDefault: address['isDefault'] as bool,
-                  isSelected: controller.selectedAddressIndex.value == index,
-                  onTap: () => controller.selectedAddressIndex.value = index,
+            () {
+              if (controller.isLoadingAddresses.value) {
+                return const Center(child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(),
+                ));
+              }
+              
+              if (controller.addresses.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      'No saved addresses found. Please add one.',
+                      style: GoogleFonts.poppins(color: AppColors.greyText),
+                    ),
+                  ),
                 );
-              }),
-            ),
+              }
+
+              return Column(
+                children: List.generate(controller.addresses.length, (index) {
+                  final address = controller.addresses[index];
+                  return AddressSelectionCard(
+                    title: address['title'] as String,
+                    address: address['address'] as String,
+                    isDefault: address['isDefault'] as bool,
+                    isSelected: controller.selectedAddressIndex.value == index,
+                    onTap: () => controller.selectedAddressIndex.value = index,
+                  );
+                }),
+              );
+            },
           ),
           SizedBox(height: 8.0),
           // Add new address button dotted

@@ -1,7 +1,7 @@
 class ApiServices {
   ApiServices._();
 
-  static const String baseurl = "http://10.10.20.45";
+  static const String baseurl = "https://7b2k279j-80.aue.devtunnels.ms";
 
   // ========================== Auth - Client ==========================
   static const String client_sendotp = "$baseurl/api/user/client/register/initiate/";
@@ -105,6 +105,25 @@ class ApiServices {
   static const String my_feedbacks = "$baseurl/api/supports/feedback/my-feedbacks/";
 
   // ========================== AI Verification ==========================
+
   static const String ai_verification_base = "https://document-verification-ai-chatbot.onrender.com";
-  static const String ai_verify = "$ai_verification_base/api/verification/verify/";
+  static const String ai_verify = "$baseurl/api/verification/verify/";
+
+
+
+  static String formatImageUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    
+    String formattedUrl = url;
+    final localhostRegex = RegExp(r'https?://(localhost|127\.0\.0\.1)(:\d+)?');
+    
+    if (localhostRegex.hasMatch(formattedUrl)) {
+      formattedUrl = formattedUrl.replaceFirst(localhostRegex, baseurl);
+    } else if (!formattedUrl.startsWith('http')) {
+      String path = formattedUrl.startsWith('/') ? formattedUrl : '/$formattedUrl';
+      formattedUrl = "$baseurl$path";
+    }
+    
+    return formattedUrl;
+  }
 }

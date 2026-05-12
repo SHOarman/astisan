@@ -43,7 +43,7 @@ class WorkerHomeController extends GetxController {
         userName.value = data['full_name'] ?? '';
         userEmail.value = data['email'] ?? '';
         phoneNumber.value = data['phone'] ?? '';
-        profilePicture.value = data['profile_picture'] ?? '';
+        profilePicture.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
         
         final artisan = data['artisan_profile'];
         if (artisan != null) {

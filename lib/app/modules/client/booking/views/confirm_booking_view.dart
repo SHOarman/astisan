@@ -51,388 +51,222 @@ class ConfirmBookingView extends GetView<BookingController> {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppStrings.bookingSummary.tr,
-                    style: GoogleFonts.poppins(
-                      color: AppColors.textColor,
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.w700,
+              child: Obx(() {
+                final artisan = controller.selectedArtisan;
+                final address = controller.addresses.isNotEmpty 
+                    ? controller.addresses[controller.selectedAddressIndex.value] 
+                    : {'address': 'No address selected'};
+                final date = controller.dates[controller.selectedDateIndex.value];
+                final time = controller.selectedTime.value;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.bookingSummary.tr,
+                      style: GoogleFonts.poppins(
+                        color: AppColors.textColor,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Artisan Card
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: Image.asset(
-                            AppImages.homeSarahWilliams,
+                    const SizedBox(height: 16.0),
+                    // Service / Category Card (Replacing Artisan Card)
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
                             width: 50.0,
                             height: 50.0,
-                            fit: BoxFit.cover,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(20),
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            child: const Icon(Icons.category, color: AppColors.primary, size: 28.0),
                           ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(width: 16.0),
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  controller.serviceData['title'] ?? 'Service Selection',
+                                  style: GoogleFonts.poppins(
+                                    color: AppColors.textColor,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'Matching you with the best artisan',
+                                  style: GoogleFonts.poppins(
+                                    color: AppColors.greyText,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 4.0),
+                                Text(
+                                  'Price Range: \$${controller.serviceData['price_range_min'] ?? '0'} - \$${controller.serviceData['price_range_max'] ?? '0'}',
+                                  style: GoogleFonts.poppins(
+                                    color: AppColors.primary,
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    // Date
+                    _buildSummaryItem(
+                      icon: Icons.calendar_today_outlined,
+                      label: 'Date',
+                      value: '${date['day']}, ${date['month']} ${date['date']}',
+                    ),
+                    const SizedBox(height: 16.0),
+                    // Time
+                    _buildSummaryItem(
+                      icon: Icons.access_time,
+                      label: 'Time',
+                      value: '${time.hour}:${time.minute.toString().padLeft(2, '0')}',
+                    ),
+                    const SizedBox(height: 16.0),
+                    // Address
+                    _buildSummaryItem(
+                      icon: Icons.location_on_outlined,
+                      label: AppStrings.address.tr,
+                      value: address['address'],
+                    ),
+                    const SizedBox(height: 16.0),
+                    // Notes
+                    _buildSummaryItem(
+                      icon: Icons.description_outlined,
+                      label: AppStrings.notes.tr,
+                      value: controller.notesController.text.isEmpty
+                          ? 'No additional notes'
+                          : controller.notesController.text,
+                    ),
+                    const SizedBox(height: 32.0),
+
+                    // Cost Breakdown
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F5FA),
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(color: const Color(0xFFE2EBF5)),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildCostRow(
+                            AppStrings.serviceFee.tr, 
+                            '\$${controller.serviceData['price_range_min'] ?? '0'} - \$${controller.serviceData['price_range_max'] ?? '0'}'
+                          ),
+                          const SizedBox(height: 12.0),
+                          _buildCostRow(AppStrings.platformFee.tr, '\$5.00'),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12.0),
+                            child: Divider(color: Color(0xFFE2EBF5), thickness: 1.0),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'James Wilson',
+                                AppStrings.estimatedTotal.tr,
                                 style: GoogleFonts.poppins(
                                   color: AppColors.textColor,
                                   fontSize: 16.0,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                'Plumbing Expert',
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.greyText,
-                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              const SizedBox(height: 4.0),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: AppColors.ratingStar,
-                                    size: 14.0,
-                                  ),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    '4.9',
-                                    style: GoogleFonts.poppins(
-                                      color: AppColors.textColor,
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.check_circle_outline,
-                          color: AppColors.statusCompletedText,
-                          size: 24.0,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Date
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(20),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.calendar_today_outlined,
-                            color: AppColors.primary,
-                            size: 20.0,
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppStrings.dateTime.tr.split(' ')[0],
-                              style: GoogleFonts.poppins(
-                                color: AppColors.greyText,
-                                fontSize: 12.0,
-                              ),
-                            ),
-                            const SizedBox(height: 4.0),
-                            Text(
-                              'Tue, Apr 14',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.textColor,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Time
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(20),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.access_time,
-                            color: AppColors.primary,
-                            size: 20.0,
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Time',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.greyText,
-                                fontSize: 12.0,
-                              ),
-                            ),
-                            const SizedBox(height: 4.0),
-                            Text(
-                              '10:00 AM',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.textColor,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Address
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(20),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.location_on_outlined,
-                            color: AppColors.primary,
-                            size: 20.0,
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
                               Text(
-                                AppStrings.address.tr,
+                                '\$${(double.tryParse(controller.serviceData['price_range_min']?.toString() ?? '0') ?? 0) + 5.0} - \$${(double.tryParse(controller.serviceData['price_range_max']?.toString() ?? '0') ?? 0) + 5.0}',
                                 style: GoogleFonts.poppins(
-                                  color: AppColors.greyText,
-                                  fontSize: 12.0,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                '123 Main Street, Apt 4B, New York, ...',
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.textColor,
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.statusCompletedText,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Notes
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(20),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.description_outlined,
-                            color: AppColors.primary,
-                            size: 20.0,
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppStrings.notes.tr,
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.greyText,
-                                  fontSize: 12.0,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                controller.notesController.text.isEmpty
-                                    ? 'No additional notes'
-                                    : controller.notesController.text,
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.textColor,
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32.0),
-
-                  // Cost Breakdown
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: const Color(
-                        0xFFF0F5FA,
-                      ), // Subtle blueish background
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: const Color(0xFFE2EBF5)),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppStrings.serviceFee.tr ?? 'Service fee',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.greyText,
-                                fontSize: 14.0,
-                              ),
-                            ),
-                            Text(
-                              '\$65.00',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.textColor,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppStrings.platformFee.tr ?? 'Platform fee',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.greyText,
-                                fontSize: 14.0,
-                              ),
-                            ),
-                            Text(
-                              '\$5.00',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.textColor,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0),
-                          child: Divider(
-                            color: Color(0xFFE2EBF5),
-                            thickness: 1.0,
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppStrings.estimatedTotal.tr ?? 'Estimated Total',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.textColor,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              '\$70.00',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.statusCompletedText,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              }),
             ),
           ),
-          FixedBottomActionBar(
-            buttonText: AppStrings.confirmBooking.tr ?? 'Confirm Booking',
-            onPressed: () {
-              Get.toNamed(Routes.FINDING_ARTISAN, arguments: {
-                'skip_searching_state': true,
-              });
-            },
+          Obx(() => FixedBottomActionBar(
+            buttonText: controller.isLoadingAddresses.value ? 'Creating...' : (AppStrings.confirmBooking.tr ?? 'Confirm Booking'),
+            onPressed: controller.isLoadingAddresses.value ? null : () => controller.submitBooking(),
+          )),
+        ],
+      ),
+    );
+  }
+  Widget _buildPlaceholder() {
+    return Container(
+      width: 50.0,
+      height: 50.0,
+      color: AppColors.primary.withAlpha(20),
+      child: const Icon(Icons.person, color: AppColors.primary),
+    );
+  }
+
+  Widget _buildSummaryItem({required IconData icon, required String label, required String value}) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 20.0),
+          ),
+          const SizedBox(width: 16.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 12.0)),
+                const SizedBox(height: 4.0),
+                Text(value, style: GoogleFonts.poppins(color: AppColors.textColor, fontSize: 14.0, fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCostRow(String label, String amount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0)),
+        Text(amount, style: GoogleFonts.poppins(color: AppColors.textColor, fontSize: 14.0, fontWeight: FontWeight.w600)),
+      ],
     );
   }
 }

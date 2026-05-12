@@ -128,7 +128,7 @@ class EditProfileView extends GetView<EditProfileController> {
           const SizedBox(height: 24.0),
           _buildLabeledField("Experience (Years)", controller.experienceController, keyboardType: TextInputType.number),
           const SizedBox(height: 24.0),
-          _buildLabeledField("Hourly Rate ()", controller.rateController, keyboardType: TextInputType.number),
+          _buildLabeledField("Rate ()", controller.rateController, keyboardType: TextInputType.number),
           const SizedBox(height: 24.0),
           _buildLabeledField("Skills (comma separated)", controller.skillsController),
           const SizedBox(height: 24.0),

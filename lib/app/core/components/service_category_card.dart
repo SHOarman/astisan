@@ -22,30 +22,33 @@ class ServiceCategoryCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 10.0),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: AppColors.primary.withAlpha(10), // Matching Home Page 'For You' style
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(5),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              imagePath,
-              height: 50.0,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 50.0,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image, color: Colors.grey),
-              ),
-            ),
+            imagePath.startsWith('http')
+                ? Image.network(
+                    imagePath,
+                    height: 50.0,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 50.0,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  )
+                : Image.asset(
+                    imagePath,
+                    height: 50.0,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 50.0,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  ),
             SizedBox(height: 12.0),
             Text(
               title,

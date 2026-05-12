@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/components/service_category_card.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../controllers/services_controller.dart';
 
 class ServicesView extends GetView<ServicesController> {
@@ -53,27 +54,42 @@ class ServicesView extends GetView<ServicesController> {
               ),
               SizedBox(height: 24.0),
               Expanded(
-                child: Obx(() => GridView.builder(
-                  padding: EdgeInsets.only(bottom: 24.0),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16.0,
-                    mainAxisSpacing: 16.0,
-                    childAspectRatio: 1.0, // adjusted back to square for category cards
-                  ),
-                  itemCount: controller.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = controller.categories[index];
-                    return ServiceCategoryCard(
-                      title: category['title'],
-                      imagePath: category['icon'],
-                      onTap: () {
-                        // We will add Routes.SUB_CATEGORY to app_routes.dart later.
-                        Get.toNamed('/sub-category', arguments: category);
-                      },
+                child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (controller.categories.isEmpty) {
+                    return Center(
+                      child: Text(
+                        "No services found",
+                        style: GoogleFonts.poppins(color: AppColors.greyText),
+                      ),
                     );
-                  },
-                )),
+                  }
+                  return GridView.builder(
+                    padding: const EdgeInsets.only(bottom: 24.0),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16.0,
+                      mainAxisSpacing: 16.0,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemCount: controller.categories.length,
+                    itemBuilder: (context, index) {
+                      final category = controller.categories[index];
+                      return ServiceCategoryCard(
+                        title: category['title'],
+                        imagePath: category['icon'],
+                        onTap: () {
+                          Get.toNamed(Routes.SUB_CATEGORY, arguments: {
+                            'id': category['id'],
+                            'title': category['title'],
+                          });
+                        },
+                      );
+                    },
+                  );
+                }),
               ),
             ],
           ),

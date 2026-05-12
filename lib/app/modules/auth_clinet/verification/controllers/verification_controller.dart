@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/Services/api_services.dart';
 import '../../../../core/routes/app_routes.dart';
 
@@ -27,7 +28,7 @@ class VerificationController extends GetxController {
       // Handle different argument structures
       if (Get.arguments is Map) {
         role.value = Get.arguments['role'] ?? 'client';
-        
+
         if (role.value == 'artisan') {
           final data = Get.arguments['data'] ?? {};
           artisanData.value = data;
@@ -44,7 +45,9 @@ class VerificationController extends GetxController {
         }
       }
     }
-    print("Verification started for Role: ${role.value}, Email: ${email.value}");
+    print(
+      "Verification started for Role: ${role.value}, Email: ${email.value}",
+    );
     startTimer();
   }
 
@@ -81,8 +84,8 @@ class VerificationController extends GetxController {
           requestBody["referral_code"] = referralCode.value;
         }
 
-        final String url = role.value == 'artisan' 
-            ? ApiServices.artisan_sendotp 
+        final String url = role.value == 'artisan'
+            ? ApiServices.artisan_sendotp
             : ApiServices.client_sendotp;
 
         final response = await http.post(
@@ -116,18 +119,19 @@ class VerificationController extends GetxController {
       FocusManager.instance.primaryFocus?.unfocus();
       Get.focusScope?.unfocus();
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       isLoading.value = true;
 
       try {
         final Map<String, dynamic> requestBody = {
           "email": email.value,
           "otp": otpCode.value,
-          if (referralCode.value.isNotEmpty) "referral_code": referralCode.value,
+          if (referralCode.value.isNotEmpty)
+            "referral_code": referralCode.value,
         };
 
-        final String verifyUrl = role.value == 'artisan' 
-            ? ApiServices.artisan_reg 
+        final String verifyUrl = role.value == 'artisan'
+            ? ApiServices.artisan_reg
             : ApiServices.client_reg;
 
         print("Verifying [${role.value}] at $verifyUrl");
@@ -147,29 +151,54 @@ class VerificationController extends GetxController {
         print("Decoded Verify Data: $data");
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          // If Artisan, we need to set up their service AFTER account confirmation
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+
           if (role.value == 'artisan') {
             String? accessToken;
-            // Handle different token locations in response (including access_token at root)
             if (data['data'] != null && data['data'] is Map) {
-              accessToken = data['data']['access'] ?? data['data']['token'] ?? data['data']['access_token'];
+              accessToken =
+                  data['data']['access'] ??
+                  data['data']['token'] ??
+                  data['data']['access_token'];
             }
-            accessToken ??= data['access_token'] ?? data['access'] ?? data['token'] ?? (data['tokens'] != null ? data['tokens']['access'] : null);
-            
-            print("DEBUG: Extracted Token for Service Setup: $accessToken");
-            
-            if (accessToken != null && artisanData['service_id'] != null && artisanData['service_id'].toString().isNotEmpty) {
-              await _setupArtisanService(accessToken.toString().trim().replaceAll('"', ''));
-            } else {
-              print("DEBUG: Skipping service setup. Token or ServiceId missing. Token: $accessToken, ServiceId: ${artisanData['service_id']}");
+            accessToken ??=
+                data['access_token'] ??
+                data['access'] ??
+                data['token'] ??
+                (data['tokens'] != null ? data['tokens']['access'] : null);
+
+            if (accessToken != null) {
+              String cleanToken = accessToken.toString().trim().replaceAll(
+                '"',
+                '',
+              );
+              if (cleanToken.toLowerCase().startsWith("bearer "))
+                cleanToken = cleanToken.substring(7).trim();
+
+              await prefs.setString('token', cleanToken);
+              await prefs.setString('role', 'worker');
+
+              Get.snackbar(
+                'Success',
+                'Account verified! Please complete your service profile.',
+              );
+              await Future.delayed(const Duration(milliseconds: 1000));
+              Get.offAllNamed(Routes.serives_detels);
+              return;
             }
           }
 
-          Get.snackbar('Success', data['message'] ?? 'Verification successful!');
+          Get.snackbar(
+            'Success',
+            data['message'] ?? 'Verification successful!',
+          );
           await Future.delayed(const Duration(milliseconds: 1000));
           Get.offAllNamed(Routes.sing_in);
         } else {
-          Get.snackbar('Error', data['message'] ?? 'Invalid OTP, please try again.');
+          Get.snackbar(
+            'Error',
+            data['message'] ?? 'Invalid OTP, please try again.',
+          );
         }
       } catch (e) {
         print("Verify Exception: $e");
@@ -179,34 +208,6 @@ class VerificationController extends GetxController {
       }
     } else {
       Get.snackbar('Invalid Code', 'Please enter a 6-digit verification code.');
-    }
-  }
-
-  Future<void> _setupArtisanService(String token) async {
-    try {
-      String cleanToken = token;
-      if (cleanToken.toLowerCase().startsWith("bearer ")) cleanToken = cleanToken.substring(7).trim();
-
-      print("DEBUG: Hitting Service Setup API: ${ApiServices.artisan_my_services}");
-      print("DEBUG: Payload: service=${artisanData['service_id']}, rate=${artisanData['service_rate']}");
-
-      final response = await http.post(
-        Uri.parse(ApiServices.artisan_my_services),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $cleanToken',
-        },
-        body: json.encode({
-          "service": artisanData['service_id'],
-          "price_override": artisanData['service_rate'],
-          "is_active": true
-        }),
-      ).timeout(const Duration(seconds: 15));
-
-      print("DEBUG: Service Setup Response (${response.statusCode}): ${response.body}");
-    } catch (e) {
-      print("DEBUG: Service Setup Exception: $e");
     }
   }
 }

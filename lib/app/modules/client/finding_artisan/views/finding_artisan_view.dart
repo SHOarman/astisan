@@ -43,23 +43,23 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: Icon(Icons.close, color: AppColors.white),
+            icon: const Icon(Icons.close, color: AppColors.white),
             onPressed: () => Get.back(),
           ),
         ],
       ),
       body: Column(
         children: [
-          SizedBox(height: 20.0),
+          const SizedBox(height: 20.0),
           _buildRadarAnimation(),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 width: 8.0,
                 height: 8.0,
-                margin: EdgeInsets.symmetric(horizontal: 4.0),
+                margin: const EdgeInsets.symmetric(horizontal: 4.0),
                 decoration: const BoxDecoration(
                   color: AppColors.white,
                   shape: BoxShape.circle,
@@ -68,7 +68,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               Container(
                 width: 8.0,
                 height: 8.0,
-                margin: EdgeInsets.symmetric(horizontal: 4.0),
+                margin: const EdgeInsets.symmetric(horizontal: 4.0),
                 decoration: BoxDecoration(
                   color: AppColors.white.withAlpha(100),
                   shape: BoxShape.circle,
@@ -77,7 +77,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               Container(
                 width: 8.0,
                 height: 8.0,
-                margin: EdgeInsets.symmetric(horizontal: 4.0),
+                margin: const EdgeInsets.symmetric(horizontal: 4.0),
                 decoration: BoxDecoration(
                   color: AppColors.white.withAlpha(100),
                   shape: BoxShape.circle,
@@ -85,7 +85,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               ),
             ],
           ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           Text(
             AppStrings.findingBestArtisan.tr,
             style: GoogleFonts.poppins(
@@ -94,7 +94,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: 8.0),
+          const SizedBox(height: 8.0),
           Text(
             AppStrings.checkingAvailability.tr,
             style: GoogleFonts.poppins(
@@ -102,21 +102,23 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               fontSize: 14.0,
             ),
           ),
-          SizedBox(height: 32.0),
+          const SizedBox(height: 32.0),
           Expanded(
             child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               children: [
                 _buildSearchStepNode(
                   AppStrings.searchingNearby.tr,
                   isCompleted: true,
+                  index: '1',
                 ),
                 _buildSearchStepNode(
                   AppStrings.checkingAvailability.tr,
                   isActive: true,
+                  index: '2',
                 ),
-                _buildSearchStepNode(AppStrings.matchingRequirements.tr),
-                _buildSearchStepNode(AppStrings.artisanFoundConfirming.tr),
+                _buildSearchStepNode(AppStrings.matchingRequirements.tr, index: '3'),
+                _buildSearchStepNode(AppStrings.artisanFoundConfirming.tr, index: '4'),
               ],
             ),
           ),
@@ -132,7 +134,6 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Simulated Radar Rings
           Container(
             width: 240.0,
             height: 240.0,
@@ -166,12 +167,11 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
               ),
             ),
           ),
-          // Center Location Pin
           Container(
             width: 50.0,
             height: 50.0,
             decoration: BoxDecoration(
-              color: AppColors.timelineActive, // Green pin bg in image
+              color: AppColors.timelineActive,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -181,9 +181,8 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                 ),
               ],
             ),
-            child: Icon(Icons.location_on, color: AppColors.white, size: 24.0),
+            child: const Icon(Icons.location_on, color: AppColors.white, size: 24.0),
           ),
-          // Floating simulated avatars
           Positioned(
             top: 20.0,
             left: MediaQuery.of(Get.context!).size.width * 0.3,
@@ -213,10 +212,11 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
   }
 
   Widget _buildSearchStepNode(
-    String text, {
-    bool isCompleted = false,
-    bool isActive = false,
-  }) {
+      String text, {
+        bool isCompleted = false,
+        bool isActive = false,
+        required String index,
+      }) {
     Color bgColor = AppColors.white.withAlpha(10);
     Color borderColor = Colors.transparent;
     Widget leadingWidget = Container(
@@ -228,7 +228,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
       ),
       child: Center(
         child: Text(
-          '3', // Placeholder for index if needed, design shows 3, 4 for uncompleted
+          index,
           style: TextStyle(
             color: AppColors.white.withAlpha(100),
             fontSize: 10.0,
@@ -247,7 +247,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
           color: AppColors.timelineActive,
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.check, color: AppColors.white, size: 14.0),
+        child: const Icon(Icons.check, color: AppColors.white, size: 14.0),
       );
     } else if (isActive) {
       bgColor = AppColors.white.withAlpha(15);
@@ -273,8 +273,8 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.0),
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      margin: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(16.0),
@@ -283,7 +283,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
       child: Row(
         children: [
           leadingWidget,
-          SizedBox(width: 16.0),
+          const SizedBox(width: 16.0),
           Text(
             text,
             style: GoogleFonts.poppins(
@@ -320,7 +320,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: Icon(Icons.close, color: AppColors.textColor),
+            icon: const Icon(Icons.close, color: AppColors.textColor),
             onPressed: () => Get.back(),
           ),
         ],
@@ -328,136 +328,132 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
       body: MapPlaceholder(
         child: Stack(
           children: [
-            // Center pin simulating map avatar
             Center(
-              child: Container(
-                width: 60.0,
-                height: 60.0,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withAlpha(50),
-                      blurRadius: 15,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30.0),
-                  child: Image.asset(
-                    AppImages.placeholderAvatar,
-                    fit: BoxFit.cover,
+              child: Obx(() {
+                final artisan = controller.foundArtisan.value;
+                return Container(
+                  width: 60.0,
+                  height: 60.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withAlpha(50),
+                        blurRadius: 15,
+                      ),
+                    ],
                   ),
-                ),
-              ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: artisan != null && artisan['avatar'] != null && artisan['avatar'].isNotEmpty
+                        ? Image.network(artisan['avatar'], fit: BoxFit.cover, errorBuilder: (c, e, s) => Image.asset(AppImages.placeholderAvatar))
+                        : Image.asset(AppImages.placeholderAvatar, fit: BoxFit.cover),
+                  ),
+                );
+              }),
             ),
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
-              child: ArtisanBottomSheetCard(
-                headerWidget: Center(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.timelineActive.withAlpha(20),
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.check,
-                          color: AppColors.timelineActive,
-                          size: 16.0,
-                        ),
-                        SizedBox(width: 8.0),
-                        Text(
-                          'Artisan Found!',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.timelineActive,
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w600,
+              child: Obx(() {
+                final artisan = controller.foundArtisan.value;
+                return ArtisanBottomSheetCard(
+                  headerWidget: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.timelineActive.withAlpha(20),
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check, color: AppColors.timelineActive, size: 16.0),
+                          const SizedBox(width: 8.0),
+                          Text(
+                            artisan != null ? 'Artisan Found!' : 'No Artisan Nearby',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.timelineActive,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                avatarPath: AppImages.homeSarahWilliams,
-                name: 'Marcus Johnson',
-                details: 'Plumber · 1.2 km | Rating ⭐ 4.9',
-                ratingValue: '', // Handled inline above
-                actionWidget: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: controller.trackArtisan,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          AppStrings.viewbokking.tr,
-                          style: GoogleFonts.poppins(
-                            color: AppColors.white,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12.0),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => CustomDialog(
-                              title: "Cancel this order?",
-                              subtitle: "You can't undo this later",
-                              primaryButtonText: "Confirm",
-                              secondaryButtonText: "Cancel",
-                              onPrimaryPressed: () {
-                                print("Order Cancelled");
-                                Navigator.pop(context);
-                              },
-                              onSecondaryPressed: () => Navigator.pop(context),
+                  avatarPath: artisan != null && artisan['avatar'] != null && artisan['avatar'].isNotEmpty
+                      ? artisan['avatar']
+                      : AppImages.homeSarahWilliams,
+                  name: artisan != null ? artisan['name'] : 'Searching...',
+                  details: artisan != null
+                      ? '${artisan['role']} \u00B7 ${artisan['distance']} | Rating \u2B50 ${artisan['rating']}'
+                      : 'Checking availability',
+                  ratingValue: '',
+                  actionWidget: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: artisan != null ? controller.trackArtisan : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          side: BorderSide(
-                            color: AppColors.greyText.withAlpha(50),
+                            elevation: 0,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel \u2715',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.greyText,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500,
+                          child: Text(
+                            AppStrings.viewbokking.tr,
+                            style: GoogleFonts.poppins(
+                              color: AppColors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                      const SizedBox(height: 12.0),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => CustomDialog(
+                                title: "Cancel this order?",
+                                subtitle: "You can't undo this later",
+                                primaryButtonText: "Confirm",
+                                secondaryButtonText: "Cancel",
+                                onPrimaryPressed: () => Navigator.pop(context),
+                                onSecondaryPressed: () => Navigator.pop(context),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            side: BorderSide(color: AppColors.greyText.withAlpha(50)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel \u2715',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.greyText,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ),
           ],
         ),

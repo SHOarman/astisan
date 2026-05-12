@@ -28,7 +28,7 @@ class SingUp extends GetView<AuthWorkerController> {
                 const SizedBox(height: 30.0),
                 _buildPersonalSection(),
                 const SizedBox(height: 30.0),
-                _buildServiceSection(),
+                // _buildServiceSection() - Moved to post-registration step
                 const SizedBox(height: 24.0),
                 _buildTermsSection(),
                 const SizedBox(height: 24.0),
@@ -109,69 +109,8 @@ class SingUp extends GetView<AuthWorkerController> {
     );
   }
 
-  Widget _buildServiceSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle("Service Details"),
+  // _buildServiceSection() removed from registration flow as per request
 
-        Obx(() => controller.isCategoriesLoading.value
-            ? const LinearProgressIndicator()
-            : _buildDropdown(
-          label: "Select Category",
-          value: controller.selectedCategoryId.value.isEmpty ? null : controller.selectedCategoryId.value,
-          items: controller.categories.map((c) => DropdownMenuItem<String>(
-              value: c['id'].toString(),
-              child: Text(c['name'], style: GoogleFonts.poppins(fontSize: 14))
-          )).toList(),
-          onChanged: controller.onCategoryChanged,
-        )
-        ),
-
-        const SizedBox(height: 16.0),
-
-        Obx(() => controller.isServicesLoading.value
-            ? const LinearProgressIndicator()
-            : _buildDropdown(
-          label: "Select Service",
-          value: controller.selectedServiceId.value.isEmpty ? null : controller.selectedServiceId.value,
-          items: controller.services.map((s) => DropdownMenuItem<String>(
-              value: s['id'].toString(),
-              child: Text(s['name'], style: GoogleFonts.poppins(fontSize: 14))
-          )).toList(),
-          onChanged: controller.onServiceChanged,
-        )
-        ),
-
-        const SizedBox(height: 16.0),
-
-        Obx(() => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomTextField(
-              labelText: "Service Rate",
-              hintText: "Enter your rate",
-              controller: controller.rateController,
-              keyboardType: TextInputType.number,
-              validator: (v) => v == null || v.isEmpty ? 'Enter rate' : null,
-            ),
-            if (controller.priceMin.value > 0)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-                child: Text(
-                  "Allowed range: ${controller.priceMin.value} to ${controller.priceMax.value}",
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-          ],
-        )),
-      ],
-    );
-  }
 
   Widget _sectionTitle(String title) {
     return Padding(

@@ -70,5 +70,9 @@
 	<string>This app needs access to location when open to show your current address on the home screen.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to location when in the background to keep your address updated.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to take photos of the service issues.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to upload photos of the service issues.</string>
 </dict>
 </plist>
