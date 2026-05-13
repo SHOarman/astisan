@@ -13,6 +13,8 @@ class ArtisanProfileCard extends StatelessWidget {
   final int reviews;
   final String pricePerHour;
   final String distanceOrTime;
+  final int? jobsDone;
+  final bool isOnline;
   final VoidCallback onTap;
 
   const ArtisanProfileCard({
@@ -25,6 +27,8 @@ class ArtisanProfileCard extends StatelessWidget {
     required this.reviews,
     required this.pricePerHour,
     required this.distanceOrTime,
+    this.jobsDone,
+    this.isOnline = true,
     required this.onTap,
   });
 
@@ -78,7 +82,7 @@ class ArtisanProfileCard extends StatelessWidget {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50), // Online Green
+                      color: isOnline ? const Color(0xFF4CAF50) : const Color(0xFF9E9E9E),
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.white, width: 2),
                     ),
@@ -161,6 +165,18 @@ class ArtisanProfileCard extends StatelessWidget {
                           color: AppColors.greyText,
                         ),
                       ),
+                      if (jobsDone != null) ...[
+                        const SizedBox(width: 12),
+                        const Icon(Icons.check_circle_outline, color: AppColors.greyText, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$jobsDone jobs',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.0,
+                            color: AppColors.greyText,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

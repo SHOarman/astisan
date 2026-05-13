@@ -115,7 +115,7 @@ class ConfirmBookingView extends GetView<BookingController> {
                                 ),
                                 const SizedBox(height: 4.0),
                                 Text(
-                                  'Price Range: \$${controller.serviceData['price_range_min'] ?? '0'} - \$${controller.serviceData['price_range_max'] ?? '0'}',
+                                  'Price Range: ${controller.serviceFeeString}',
                                   style: GoogleFonts.poppins(
                                     color: AppColors.primary,
                                     fontSize: 13.0,
@@ -172,10 +172,10 @@ class ConfirmBookingView extends GetView<BookingController> {
                         children: [
                           _buildCostRow(
                             AppStrings.serviceFee.tr, 
-                            '\$${controller.serviceData['price_range_min'] ?? '0'} - \$${controller.serviceData['price_range_max'] ?? '0'}'
+                            controller.serviceFeeString
                           ),
                           const SizedBox(height: 12.0),
-                          _buildCostRow(AppStrings.platformFee.tr, '\$5.00'),
+                          _buildCostRow(AppStrings.platformFee.tr, controller.platformFeeString),
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 12.0),
                             child: Divider(color: Color(0xFFE2EBF5), thickness: 1.0),
@@ -192,7 +192,7 @@ class ConfirmBookingView extends GetView<BookingController> {
                                 ),
                               ),
                               Text(
-                                '\$${(double.tryParse(controller.serviceData['price_range_min']?.toString() ?? '0') ?? 0) + 5.0} - \$${(double.tryParse(controller.serviceData['price_range_max']?.toString() ?? '0') ?? 0) + 5.0}',
+                                controller.estimatedTotalString,
                                 style: GoogleFonts.poppins(
                                   color: AppColors.statusCompletedText,
                                   fontSize: 16.0,
@@ -209,10 +209,16 @@ class ConfirmBookingView extends GetView<BookingController> {
               }),
             ),
           ),
-          Obx(() => FixedBottomActionBar(
-            buttonText: controller.isLoadingAddresses.value ? 'Creating...' : (AppStrings.confirmBooking.tr ?? 'Confirm Booking'),
-            onPressed: controller.isLoadingAddresses.value ? null : () => controller.submitBooking(),
-          )),
+          FixedBottomActionBar(
+            buttonText: AppStrings.confirmBooking.tr ?? 'Confirm Booking',
+            onPressed: () {
+              Get.toNamed(Routes.FINDING_ARTISAN, arguments: {
+                'service': controller.serviceData.value,
+                'artisan': controller.selectedArtisan.value,
+                'image': controller.capturedImagePath.value,
+              });
+            },
+          ),
         ],
       ),
     );

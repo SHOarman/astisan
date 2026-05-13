@@ -19,6 +19,8 @@ import '../../modules/auth_worker/reset_password.dart';
 import '../../modules/auth_worker/service_detels.dart';
 import '../../modules/auth_worker/sing_in.dart';
 import '../../modules/auth_worker/sing_up.dart';
+import '../../modules/client/home/controllers/home_controller.dart';
+import '../../modules/client/profile/controllers/profile_controller.dart';
 import '../../modules/client/profile/views/language.dart';
 import '../../modules/client/tracking/views/tracking_screen.dart';
 import '../../modules/splash/views/splash_view.dart';
@@ -28,6 +30,7 @@ import '../../modules/role_selection/controllers/role_selection_controller.dart'
 import '../../modules/dashboard/views/dashboard_view.dart';
 import '../../modules/dashboard/controllers/dashboard_controller.dart';
 import '../../modules/client/service_details/views/service_details_view.dart';
+import '../../modules/client/service_details/views/artisan_profile_view.dart';
 import '../../modules/client/service_details/controllers/service_details_controller.dart';
 import '../../modules/client/services/views/services_view.dart';
 import '../../modules/client/services/controllers/services_controller.dart';
@@ -184,6 +187,8 @@ class AppPages {
       page: () => const DashboardView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<DashboardController>(() => DashboardController());
+        Get.lazyPut<ProfileController>(() => ProfileController());
+        Get.lazyPut<HomeController>(() => HomeController());
       }),
     ),
     GetPage(
@@ -212,6 +217,13 @@ class AppPages {
     GetPage(
       name: Routes.SERVICE_DETAILS,
       page: () => const ServiceDetailsView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<ServiceDetailsController>(() => ServiceDetailsController());
+      }),
+    ),
+    GetPage(
+      name: Routes.ARTISAN_PROFILE,
+      page: () => const ArtisanProfileView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<ServiceDetailsController>(() => ServiceDetailsController());
       }),

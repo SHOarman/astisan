@@ -402,8 +402,10 @@ class HomeView extends GetView<HomeController> {
                 isVerified: artisan['isVerified'],
                 rating: artisan['rating'],
                 reviews: artisan['reviews'],
-                pricePerHour: artisan['pricePerHour'],
+                pricePerHour: artisan['price'],
                 distanceOrTime: artisan['distanceOrTime'],
+                jobsDone: artisan['jobsDone'],
+                isOnline: artisan['isOnline'] ?? true,
                 onTap: () {
                    Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
                 },

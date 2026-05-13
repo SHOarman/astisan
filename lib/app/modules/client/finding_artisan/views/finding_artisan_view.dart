@@ -389,15 +389,16 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                       : AppImages.homeSarahWilliams,
                   name: artisan != null ? artisan['name'] : 'Searching...',
                   details: artisan != null
-                      ? '${artisan['role']} \u00B7 ${artisan['distance']} | Rating \u2B50 ${artisan['rating']}'
+                      ? '${artisan['role']} \u00B7 ${artisan['distance']}'
                       : 'Checking availability',
-                  ratingValue: '',
+                  ratingText: 'Rating',
+                  ratingValue: artisan != null ? artisan['rating'].toString() : '0.0',
                   actionWidget: Column(
                     children: [
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: artisan != null ? controller.trackArtisan : null,
+                        child: Obx(() => ElevatedButton(
+                          onPressed: (artisan != null && !controller.isSubmitting.value) ? controller.trackArtisan : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -406,15 +407,21 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                             ),
                             elevation: 0,
                           ),
-                          child: Text(
-                            AppStrings.viewbokking.tr,
-                            style: GoogleFonts.poppins(
-                              color: AppColors.white,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                          child: controller.isSubmitting.value 
+                            ? const SizedBox(
+                                height: 20, 
+                                width: 20, 
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                              )
+                            : Text(
+                                AppStrings.viewbokking.tr,
+                                style: GoogleFonts.poppins(
+                                  color: AppColors.white,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                        )),
                       ),
                       const SizedBox(height: 12.0),
                       SizedBox(

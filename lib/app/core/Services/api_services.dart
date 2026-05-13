@@ -46,6 +46,7 @@ class ApiServices {
   static const String services_categories = "$baseurl/api/services/client/categories/";
   static const String category_services = "$baseurl/api/services/client/categories/"; // + {id}/services/
   static const String popular_services = "$baseurl/api/services/client/services/popular/";
+  static const String recommended_artisans = "$baseurl/api/services/client/services/recommended-artisans/";
 
   // ========================== Bookings - Client ==========================
   static const String client_create_booking = "$baseurl/api/bookings/client/";

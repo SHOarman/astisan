@@ -13,15 +13,27 @@ class BookingController extends GetxController {
   final selectedArtisan = <String, dynamic>{}.obs;
 
   // Date & Time
-  final dates = [
-    {'day': 'Mon', 'date': '6', 'month': 'Apr'},
-    {'day': 'Tue', 'date': '7', 'month': 'Apr'},
-    {'day': 'Wed', 'date': '8', 'month': 'Apr'},
-    {'day': 'Thu', 'date': '9', 'month': 'Apr'},
-    {'day': 'Fri', 'date': '10', 'month': 'Apr'},
-    {'day': 'Sat', 'date': '11', 'month': 'Apr'},
-  ];
-  final selectedDateIndex = 4.obs; // Fri 10 Apr selected in image
+  final dates = <Map<String, String>>[].obs;
+  final selectedDateIndex = 0.obs;
+
+  void _generateDates() {
+    final now = DateTime.now();
+    final List<Map<String, String>> generatedDates = [];
+    final List<String> weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    final List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (int i = 0; i < 7; i++) {
+      final date = now.add(Duration(days: i));
+      generatedDates.add({
+        'day': weekdays[date.weekday % 7],
+        'date': date.day.toString(),
+        'month': months[date.month - 1],
+        'year': date.year.toString(),
+        'fullDate': "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+      });
+    }
+    dates.assignAll(generatedDates);
+  }
 
   final times = [
     '8:00 AM',
@@ -104,6 +116,7 @@ class BookingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _generateDates();
     fetchSavedAddresses();
     if (Get.arguments != null && Get.arguments is Map) {
       source.value = Get.arguments['source'] ?? '';
@@ -115,6 +128,36 @@ class BookingController extends GetxController {
     notesController.addListener(() {
       notesLength.value = notesController.text.length;
     });
+  }
+
+  // Cost calculations
+  double get _minServiceFee => double.tryParse(serviceData['price_range_min']?.toString() ?? '0') ?? 0;
+  double get _maxServiceFee => double.tryParse(serviceData['price_range_max']?.toString() ?? '0') ?? 0;
+
+  double get platformFeeMin => _minServiceFee * 0.05;
+  double get platformFeeMax => _maxServiceFee * 0.05;
+
+  String get platformFeeString {
+    if (platformFeeMin == platformFeeMax) {
+      return '\$${platformFeeMin.toStringAsFixed(2)}';
+    }
+    return '\$${platformFeeMin.toStringAsFixed(2)} - \$${platformFeeMax.toStringAsFixed(2)}';
+  }
+
+  String get serviceFeeString {
+    if (_minServiceFee == _maxServiceFee) {
+      return '\$${_minServiceFee.toStringAsFixed(2)}';
+    }
+    return '\$${_minServiceFee.toStringAsFixed(2)} - \$${_maxServiceFee.toStringAsFixed(2)}';
+  }
+
+  String get estimatedTotalString {
+    final min = _minServiceFee + platformFeeMin;
+    final max = _maxServiceFee + platformFeeMax;
+    if (min == max) {
+      return '\$${min.toStringAsFixed(1)}';
+    }
+    return '\$${min.toStringAsFixed(1)} - \$${max.toStringAsFixed(1)}';
   }
 
   @override
@@ -157,9 +200,7 @@ class BookingController extends GetxController {
       final date = dates[selectedDateIndex.value];
       
       // Formatting date: YYYY-MM-DD
-      // Note: In real app, convert "Apr 14" to "2026-04-14"
-      // Using a fallback for now
-      String formattedDate = "2026-05-12"; 
+      String formattedDate = date['fullDate'] ?? "2026-05-12"; 
       
       // Formatting time: HH:MM:SS
       String formattedTime = "${selectedTime.value.hour.toString().padLeft(2, '0')}:${selectedTime.value.minute.toString().padLeft(2, '0')}:00";
@@ -187,10 +228,10 @@ class BookingController extends GetxController {
 
       if (response.statusCode == 201) {
         final decoded = json.decode(response.body);
-        Get.offNamed(Routes.FINDING_ARTISAN, arguments: {
+        Get.offNamed(Routes.SUCCESS, arguments: {
           'service': serviceData.value,
           'booking': decoded,
-          'image': capturedImagePath.value,
+          'artisan': selectedArtisan.value,
         });
       } else {
         Get.snackbar("Error", "Failed to create booking: ${response.body}",

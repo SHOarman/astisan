@@ -21,6 +21,7 @@ abstract class Routes {
   static const SUCCESS = '/success';
   static const DASHBOARD = '/dashboard';
   static const SERVICE_DETAILS = '/service-details';
+  static const ARTISAN_PROFILE = '/artisan-profile';
   static const BOOKING = '/booking';
   static const CAMERA = '/camera';
   static const CONFIRM_BOOKING = '/confirm-booking';

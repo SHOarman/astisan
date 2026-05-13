@@ -83,7 +83,7 @@ class NearbyArtisansView extends GetView<NearbyArtisansController> {
   Widget _buildArtisanCard(Map<String, dynamic> artisan) {
     return GestureDetector(
       onTap: () {
-        Get.toNamed(Routes.BOOKING, arguments: {
+        Get.toNamed(Routes.SERVICE_DETAILS, arguments: {
           'service': controller.serviceData.value,
           'artisan': artisan,
           'source': 'nearby_artisans',

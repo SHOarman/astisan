@@ -44,50 +44,39 @@ class SubCategoryController extends GetxController {
     isLoading.value = true;
     try {
       String url = "${ApiServices.category_services}$categoryId/services/";
-      print("DEBUG: Fetching services for category $categoryId from $url");
       
       final response = await http.get(
         Uri.parse(url),
         headers: {'Accept': 'application/json'},
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
-        List<dynamic> dataList = [];
-        
-        if (decodedData is List) {
-          dataList = decodedData;
-        } else if (decodedData is Map) {
-          dataList = decodedData['results'] ?? [];
-        }
-
-          if (dataList.isNotEmpty) {
-            print("DEBUG: API Service Data Keys: ${dataList[0].keys}");
-            print("DEBUG: API Service Sample Data: ${dataList[0]}");
-          }
+        List<dynamic> dataList = (decodedData is List) ? decodedData : (decodedData['results'] ?? []);
 
         services.assignAll(dataList.map((e) {
           String iconUrl = e['icon']?.toString() ?? e['image']?.toString() ?? '';
-          String desc = e['description']?.toString() ?? e['about']?.toString() ?? '';
-          
-          print("DEBUG: Service Mapping -> Name: ${e['name']}, Icon: $iconUrl, Desc: $desc");
-          
           return {
             'id': e['id'],
             'title': e['name'] ?? 'Service',
-            'description': desc,
+            'description': e['description']?.toString() ?? '',
             'image': ApiServices.formatImageUrl(iconUrl),
-            'rating': double.tryParse(e['avg_rating']?.toString() ?? '0') ?? 0.0,
+            'rating': double.tryParse(e['avg_rating']?.toString() ?? '0.0') ?? 0.0,
             'reviews': e['review_count'] ?? 0,
             'price_range_min': e['price_range_min'],
             'price_range_max': e['price_range_max'],
           };
         }).toList());
-        
-        print("DEBUG: Successfully loaded ${services.length} services");
+      } else if (response.statusCode == 504) {
+        Get.snackbar("Server Timeout", "The server is taking too long to respond. Please try again.",
+            snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
       print("Error fetching sub-category services: $e");
+      if (e.toString().contains("TimeoutException")) {
+        Get.snackbar("Connection Timeout", "Please check your internet connection and try again.",
+            snackPosition: SnackPosition.BOTTOM);
+      }
     } finally {
       isLoading.value = false;
     }

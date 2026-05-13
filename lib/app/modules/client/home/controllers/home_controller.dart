@@ -40,7 +40,7 @@ class HomeController extends GetxController {
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
@@ -74,7 +74,7 @@ class HomeController extends GetxController {
       final response = await http.get(
         Uri.parse(ApiServices.services_categories),
         headers: {'Accept': 'application/json'},
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
@@ -108,29 +108,20 @@ class HomeController extends GetxController {
   final isLoadingArtisans = false.obs;
 
   Future<void> fetchRecommendedArtisans() async {
-    if (popularServices.isEmpty) {
-      await fetchPopularServices();
-    }
-
-    if (popularServices.isEmpty) {
-      _useDummyArtisans();
-      return;
-    }
-
     isLoadingArtisans.value = true;
     try {
-      final String firstServiceId = popularServices.first['id'].toString();
       final pos = locationController.currentPosition.value;
       
-      String url = "${ApiServices.baseurl}/api/services/client/services/$firstServiceId/nearby-artisans/";
-      Map<String, String> queryParams = {'radius_km': '10'};
+      Map<String, String> queryParams = {
+        'radius_km': '5',
+      };
       
       if (pos != null) {
         queryParams['lat'] = pos.latitude.toString();
         queryParams['lng'] = pos.longitude.toString();
       }
 
-      final uri = Uri.parse(url).replace(queryParameters: queryParams);
+      final uri = Uri.parse("${ApiServices.baseurl}/api/services/client/services/recommended-artisans/").replace(queryParameters: queryParams);
       
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
@@ -142,31 +133,44 @@ class HomeController extends GetxController {
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
         List<dynamic> dataList = [];
-        if (decodedData is List) {
-          dataList = decodedData;
-        } else if (decodedData is Map) {
+        if (decodedData is Map) {
           dataList = decodedData['results'] ?? [];
+        } else if (decodedData is List) {
+          dataList = decodedData;
         }
 
         if (dataList.isNotEmpty) {
-          recommendedArtisans.assignAll(dataList.take(5).map((e) {
-            final profile = e['artisan_profile'] ?? {};
+          // Client-side sorting: Nearest first, then highest rating
+          dataList.sort((a, b) {
+            final double distA = double.tryParse(a['distance_km']?.toString() ?? '999') ?? 999;
+            final double distB = double.tryParse(b['distance_km']?.toString() ?? '999') ?? 999;
+            int distComp = distA.compareTo(distB);
+            if (distComp != 0) return distComp;
+
+            final double ratA = double.tryParse(a['avg_rating']?.toString() ?? '0') ?? 0;
+            final double ratB = double.tryParse(b['avg_rating']?.toString() ?? '0') ?? 0;
+            return ratB.compareTo(ratA); // Higher rating first
+          });
+
+          recommendedArtisans.assignAll(dataList.map((e) {
             final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
             return {
-              'id': e['id'],
+              'id': e['artisan_id'],
               'name': e['full_name'] ?? 'Artisan',
-              'role': profile['occupation'] ?? popularServices.first['title'],
+              'role': e['occupation'] ?? 'Specialist',
               'avatar': ApiServices.formatImageUrl(e['profile_picture']?.toString()),
-              'isVerified': profile['is_verified'] ?? true,
-              'rating': double.tryParse(profile['average_rating']?.toString() ?? '0') ?? 0.0,
-              'reviews': profile['total_reviews'] ?? 0,
-              'pricePerHour': profile['hourly_rate']?.toString() ?? '25',
-              'distanceOrTime': dist < 1.5 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
+              'isVerified': e['is_verified'] ?? true,
+              'isOnline': e['is_online'] ?? true,
+              'rating': double.tryParse(e['avg_rating']?.toString() ?? '0') ?? 0.0,
+              'reviews': e['review_count'] ?? 0,
+              'jobsDone': e['total_jobs_done'] ?? 0,
+              'price': e['effective_price']?.toString() ?? '0',
+              'distanceOrTime': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
             };
           }).toList());
           return;
@@ -176,9 +180,6 @@ class HomeController extends GetxController {
       print("Error fetching recommended artisans: $e");
     } finally {
       isLoadingArtisans.value = false;
-      if (recommendedArtisans.isEmpty) {
-        _useDummyArtisans();
-      }
     }
   }
 

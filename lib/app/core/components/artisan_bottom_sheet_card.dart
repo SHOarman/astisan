@@ -59,12 +59,25 @@ class ArtisanBottomSheetCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12.0),
-                    child: Image.asset(
-                      avatarPath,
-                      width: 56.0,
-                      height: 56.0,
-                      fit: BoxFit.cover,
-                    ),
+                    child: avatarPath.startsWith('http')
+                        ? Image.network(
+                            avatarPath,
+                            width: 56.0,
+                            height: 56.0,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Image.asset(
+                              'assets/images/placeholder_avatar.png',
+                              width: 56.0,
+                              height: 56.0,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset(
+                            avatarPath,
+                            width: 56.0,
+                            height: 56.0,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   if (isOnline)
                     Positioned(
