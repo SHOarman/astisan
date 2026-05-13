@@ -1,3 +1,4 @@
+import 'package:artisan/app/core/Services/api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/routes/app_routes.dart';
@@ -14,7 +15,7 @@ class TrackingScreen extends GetView<TrackingController> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
-      body: SingleChildScrollView(
+      body: Obx(() => SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Column(
           children: [
@@ -28,8 +29,8 @@ class TrackingScreen extends GetView<TrackingController> {
             const SizedBox(height: 24),
           ],
         ),
-      ),
-      bottomNavigationBar: _buildBottomButtons(),
+      )),
+      bottomNavigationBar: Obx(() => _buildBottomButtons()),
     );
   }
 
@@ -103,7 +104,13 @@ class TrackingScreen extends GetView<TrackingController> {
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage(controller.artisanImageUrl),
+          backgroundColor: Colors.grey.shade200,
+          backgroundImage: controller.artisanImageUrl.value.isNotEmpty
+              ? NetworkImage(ApiServices.formatImageUrl(controller.artisanImageUrl.value))
+              : null,
+          child: controller.artisanImageUrl.value.isEmpty 
+              ? const Icon(Icons.person, color: Colors.grey) 
+              : null,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -111,7 +118,7 @@ class TrackingScreen extends GetView<TrackingController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                controller.artisanName,
+                controller.artisanName.value,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -123,7 +130,7 @@ class TrackingScreen extends GetView<TrackingController> {
                   const Icon(Icons.star, color: Colors.orange, size: 14),
                   const SizedBox(width: 4),
                   Text(
-                    "${controller.rating} · ${controller.profession}",
+                    "${controller.rating.value} · ${controller.profession.value}",
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                   ),
                 ],
@@ -131,19 +138,20 @@ class TrackingScreen extends GetView<TrackingController> {
             ],
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.chat_bubble_outline,
-              color: Color(0xFF34608D),
+        if (controller.isStatusAtLeast('confirmed'))
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
             ),
-            onPressed: () => controller.goToChat(),
+            child: IconButton(
+              icon: const Icon(
+                Icons.chat_bubble_outline,
+                color: Color(0xFF34608D),
+              ),
+              onPressed: () => controller.goToChat(),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -161,7 +169,7 @@ class TrackingScreen extends GetView<TrackingController> {
                 width: 110,
                 height: 110,
                 child: CircularProgressIndicator(
-                  value: controller.progressPercent,
+                  value: controller.progressPercent.value,
                   strokeWidth: 8,
                   backgroundColor: Colors.grey.shade200,
                   valueColor: const AlwaysStoppedAnimation<Color>(
@@ -175,7 +183,7 @@ class TrackingScreen extends GetView<TrackingController> {
                   const Icon(Icons.build_outlined, color: Color(0xFF34608D)),
                   const SizedBox(height: 4),
                   Text(
-                    "${controller.elapsedMinutes} min",
+                    "${controller.elapsedMinutes.value} min",
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
@@ -187,13 +195,13 @@ class TrackingScreen extends GetView<TrackingController> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            "Service In Progress",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Text(
+            controller.status.value == 'completed' ? "Service Completed" : "Service In Progress",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 6),
           Text(
-            "Started at ${controller.jobStartTime} · ${controller.elapsedMinutes} min elapsed",
+            "Started at ${controller.jobStartTime.value} · ${controller.elapsedMinutes.value} min elapsed",
             style: const TextStyle(color: Colors.grey, fontSize: 13),
           ),
           const SizedBox(height: 8),
@@ -215,32 +223,36 @@ class TrackingScreen extends GetView<TrackingController> {
           const SizedBox(height: 20),
           _buildTimelineStep(
             isLast: false,
-            isCompleted: true,
+            isCompleted: controller.isStatusAtLeast('confirmed'),
+            isCurrent: controller.status.value == 'confirmed',
             iconData: Icons.check,
-            iconBgColor: const Color(0xFF57A783),
+            iconBgColor: controller.isStatusAtLeast('confirmed') ? const Color(0xFF57A783) : Colors.grey.shade200,
             title: "Booking Confirmed",
-            subtitle: "Your booking has been accepted",
-            time: "09:45 AM",
+            subtitle: controller.isStatusAtLeast('confirmed') ? "Your booking has been accepted" : "Waiting for confirmation",
+            time: controller.confirmationTime.value,
           ),
           _buildTimelineStep(
             isLast: false,
-            isCompleted: true,
-            iconData: Icons.check,
-            iconBgColor: const Color(0xFF57A783),
+            isCompleted: controller.isStatusAtLeast('on_way'),
+            isCurrent: controller.status.value == 'on_way',
+            iconData: Icons.local_shipping_outlined,
+            iconBgColor: controller.isStatusAtLeast('on_way') ? const Color(0xFF57A783) : Colors.grey.shade200,
             title: "On the Way",
             subtitle: "Artisan is heading to your location",
-            time: "10:00 AM",
+            time: controller.onWayTime.value,
+            isFaded: !controller.isStatusAtLeast('on_way'),
           ),
           _buildTimelineStep(
             isLast: false,
-            isCompleted: false,
-            isCurrent: true,
+            isCompleted: controller.isStatusAtLeast('working'),
+            isCurrent: controller.status.value == 'working',
             iconData: Icons.build,
-            iconBgColor: const Color(0xFF34608D),
+            iconBgColor: controller.isStatusAtLeast('working') ? const Color(0xFF34608D) : Colors.grey.shade200,
             title: "Working",
             subtitle: "Service in progress at your location",
-            time: "10:18 AM",
-            extraWidget: Row(
+            time: controller.workingTime.value,
+            isFaded: !controller.isStatusAtLeast('working'),
+            extraWidget: controller.status.value == 'working' ? Row(
               children: [
                 _buildDot(),
                 _buildDot(),
@@ -255,18 +267,18 @@ class TrackingScreen extends GetView<TrackingController> {
                   ),
                 ),
               ],
-            ),
+            ) : null,
           ),
           _buildTimelineStep(
             isLast: true,
-            isCompleted: false,
+            isCompleted: controller.isStatusAtLeast('completed'),
             iconData: Icons.celebration,
-            iconBgColor: Colors.grey.shade100,
-            iconColor: Colors.grey.shade500,
+            iconBgColor: controller.isStatusAtLeast('completed') ? const Color(0xFF57A783) : Colors.grey.shade100,
+            iconColor: controller.isStatusAtLeast('completed') ? Colors.white : Colors.grey.shade500,
             title: "Completed",
             subtitle: "Service has been completed",
-            time: "Pending",
-            isFaded: true,
+            time: controller.completedTime.value,
+            isFaded: !controller.isStatusAtLeast('completed'),
           ),
         ],
       ),
@@ -381,13 +393,13 @@ class TrackingScreen extends GetView<TrackingController> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 16),
-          _buildDetailRow("Service", controller.serviceName),
+          _buildDetailRow("Service", controller.serviceName.value),
           const Divider(height: 24, color: Color(0xFFEEEEEE)),
-          _buildDetailRow("Location", controller.location),
+          _buildDetailRow("Location", controller.location.value),
           const Divider(height: 24, color: Color(0xFFEEEEEE)),
-          _buildDetailRow("Estimated Cost", controller.estimatedCost),
+          _buildDetailRow("Estimated Cost", controller.estimatedCost.value),
           const Divider(height: 24, color: Color(0xFFEEEEEE)),
-          _buildDetailRow("Job Start", controller.jobStartTime),
+          _buildDetailRow("Job Start", controller.jobStartTime.value),
         ],
       ),
     );
@@ -410,8 +422,10 @@ class TrackingScreen extends GetView<TrackingController> {
     );
   }
 
-  // --- BOTTOM BUTTONS (UPDATED AS PER IMAGE_758FF5.PNG) ---
+  // --- BOTTOM BUTTONS ---
   Widget _buildBottomButtons() {
+    final bool canTrack = controller.isStatusAtLeast('on_way') && controller.status.value != 'completed';
+    
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -423,18 +437,41 @@ class TrackingScreen extends GetView<TrackingController> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: canTrack ? () {
                   Get.toNamed(Routes.TRACKING);
-                },
+                } : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4A7EAF),
+                  backgroundColor: canTrack ? const Color(0xFF4A7EAF) : Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  "Track Artisan",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: canTrack ? Colors.white : Colors.grey,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: controller.status.value == 'completed' ? () => controller.viewCompletionWork() : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: controller.status.value == 'completed' ? const Color(0xFF4A7EAF) : const Color(0xFFBDC3D1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 0,
                 ),
                 child: const Text(
-                  "Track Artisan",
+                  "View Completion work",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -447,21 +484,20 @@ class TrackingScreen extends GetView<TrackingController> {
             SizedBox(
               width: double.infinity,
               height: 52,
-              child: ElevatedButton(
-                onPressed: () => controller.viewCompletionWork(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBDC3D1),
+              child: OutlinedButton(
+                onPressed: () => Get.offAllNamed(Routes.BOOKING),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.redAccent),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 0,
                 ),
                 child: const Text(
-                  "View Completion work",
+                  "Cancel Booking",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.redAccent,
                   ),
                 ),
               ),

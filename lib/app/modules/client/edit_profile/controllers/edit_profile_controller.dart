@@ -24,7 +24,7 @@ class EditProfileController extends GetxController {
   final rateController = TextEditingController();
   final serviceId = ''.obs;
   final registrationId = ''.obs;
-  
+
   final isLoading = false.obs;
   final isWorker = false.obs;
   final profileImage = Rx<File?>(null);
@@ -49,83 +49,121 @@ class EditProfileController extends GetxController {
         return;
       }
 
-      final String cleanToken = token.trim().replaceAll('"', '');
-      final String url = isWorker.value ? ApiServices.artisan_profile : ApiServices.client_profile;
+      final String cleanToken = token.toString().trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final String endpoint = isWorker.value ? ApiServices.artisan_profile : ApiServices.client_profile;
       
+      print("DEBUG: EditProfile fetching from $endpoint (isWorker: ${isWorker.value})");
       final response = await http.get(
-        Uri.parse(url),
+        Uri.parse(endpoint),
         headers: {
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
-      );
+      ).timeout(const Duration(seconds: 15));
+
+      print("DEBUG: EditProfile Fetch Status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        fullNameController.text = data['full_name'] ?? '';
-        emailController.text = data['email'] ?? '';
-        phoneController.text = data['phone'] ?? '';
-        profileImageUrl.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+        _populateFields(data);
+        if (isWorker.value) await _fetchWorkerServices(cleanToken);
+      } else if (response.statusCode == 403) {
+        print("DEBUG: 403 Forbidden in EditProfile. Trying alternative role...");
+        final String altUrl = isWorker.value ? ApiServices.client_profile : ApiServices.artisan_profile;
+        final altResponse = await http.get(
+          Uri.parse(altUrl),
+          headers: {'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
+        ).timeout(const Duration(seconds: 15));
 
-        if (isWorker.value && data['artisan_profile'] != null) {
-          final artisan = data['artisan_profile'];
-          occupationController.text = artisan['occupation'] ?? '';
-          bioController.text = artisan['bio'] ?? '';
-          experienceController.text = artisan['years_of_experience']?.toString() ?? '0';
-          rateController.text = artisan['hourly_rate']?.toString() ?? '0.00';
+        if (altResponse.statusCode == 200) {
+          final String altRole = isWorker.value ? 'client' : 'worker';
+          print("DEBUG: Auto-corrected role to $altRole");
+          await prefs.setString('role', altRole);
+          isWorker.value = (altRole == 'worker' || altRole == 'artisan');
           
-          if (artisan['skills'] != null) {
-            if (artisan['skills'] is List) {
-              skillsController.text = (artisan['skills'] as List).join(', ');
-            } else {
-              skillsController.text = artisan['skills'].toString();
-            }
-          }
-
-          if (artisan['service_areas'] != null) {
-            if (artisan['service_areas'] is List) {
-              areasController.text = (artisan['service_areas'] as List).join(', ');
-            } else {
-              areasController.text = artisan['service_areas'].toString();
-            }
-          }
-
-          if (Get.isRegistered<WorkerAccountController>()) {
-            final workerCtrl = Get.find<WorkerAccountController>();
-            serviceId.value = workerCtrl.serviceId.value;
-            registrationId.value = workerCtrl.registrationId.value;
-            if (workerCtrl.serviceRate.value != '0.00') {
-              rateController.text = workerCtrl.serviceRate.value;
-            }
-          }
+          final data = json.decode(altResponse.body);
+          _populateFields(data);
+          if (isWorker.value) await _fetchWorkerServices(cleanToken);
+          Get.snackbar('Role Synced', 'Your account role was updated to $altRole');
+        } else {
+          Get.snackbar('Access Denied', 'Your account does not have permissions for this section.', backgroundColor: Colors.red, colorText: Colors.white);
         }
-      }
-
-      // If we are a worker and still don't have serviceId or the actual rate, fetch it
-      if (isWorker.value && serviceId.value.isEmpty) {
-        final servicesResponse = await http.get(
-          Uri.parse(ApiServices.artisan_my_services),
-          headers: {
-            'Authorization': 'Bearer $cleanToken',
-            'Accept': 'application/json',
-          },
-        ).timeout(const Duration(seconds: 10));
-
-        if (servicesResponse.statusCode == 200) {
-          final servicesData = json.decode(servicesResponse.body);
-          if (servicesData['results'] != null && (servicesData['results'] as List).isNotEmpty) {
-            final firstService = servicesData['results'][0];
-            registrationId.value = firstService['id']?.toString() ?? '';
-            serviceId.value = firstService['service']?.toString() ?? '';
-            rateController.text = firstService['price_override']?.toString() ?? 
-                                 firstService['effective_price']?.toString() ?? rateController.text;
-          }
-        }
+      } else if (response.statusCode == 401) {
+        Get.snackbar('Session Expired', 'Please login again', backgroundColor: Colors.red, colorText: Colors.white);
+      } else {
+        Get.snackbar('Error', 'Failed to load profile (${response.statusCode})', backgroundColor: Colors.orange, colorText: Colors.white);
       }
     } catch (e) {
       print("Error fetching profile: $e");
+      Get.snackbar('Error', 'Failed to fetch profile: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void _populateFields(dynamic data) {
+    fullNameController.text = data['full_name']?.toString() ?? '';
+    emailController.text = data['email']?.toString() ?? '';
+    phoneController.text = data['phone']?.toString() ?? '';
+    profileImageUrl.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+
+    if (isWorker.value && data['artisan_profile'] != null) {
+      final artisan = data['artisan_profile'];
+      occupationController.text = artisan['occupation']?.toString() ?? '';
+      bioController.text = artisan['bio']?.toString() ?? '';
+      experienceController.text = artisan['years_of_experience']?.toString() ?? '0';
+      rateController.text = artisan['hourly_rate']?.toString() ?? '0.00';
+      
+      if (artisan['skills'] != null) {
+        if (artisan['skills'] is List) {
+          skillsController.text = (artisan['skills'] as List).join(', ');
+        } else {
+          skillsController.text = artisan['skills'].toString();
+        }
+      }
+
+      if (artisan['service_areas'] != null) {
+        if (artisan['service_areas'] is List) {
+          areasController.text = (artisan['service_areas'] as List).join(', ');
+        } else {
+          areasController.text = artisan['service_areas'].toString();
+        }
+      }
+
+      if (Get.isRegistered<WorkerAccountController>()) {
+        final workerCtrl = Get.find<WorkerAccountController>();
+        serviceId.value = workerCtrl.serviceId.value;
+        registrationId.value = workerCtrl.registrationId.value;
+        if (workerCtrl.serviceRate.value != '0.00' && workerCtrl.serviceRate.value.isNotEmpty) {
+          rateController.text = workerCtrl.serviceRate.value;
+        }
+      }
+    }
+  }
+
+  Future<void> _fetchWorkerServices(String cleanToken) async {
+    try {
+      final servicesResponse = await http.get(
+        Uri.parse(ApiServices.artisan_my_services),
+        headers: {
+          'Authorization': 'Bearer $cleanToken',
+          'Accept': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (servicesResponse.statusCode == 200) {
+        final servicesData = json.decode(servicesResponse.body);
+        final List results = (servicesData is List) ? servicesData : (servicesData['results'] ?? []);
+        if (results.isNotEmpty) {
+          final firstService = results[0];
+          registrationId.value = firstService['id']?.toString() ?? '';
+          serviceId.value = firstService['service']?.toString() ?? '';
+          rateController.text = firstService['price_override']?.toString() ?? 
+                               firstService['effective_price']?.toString() ?? rateController.text;
+        }
+      }
+    } catch (e) {
+      print("Error fetching worker services: $e");
     }
   }
 
@@ -141,9 +179,11 @@ class EditProfileController extends GetxController {
       }
 
       final String cleanToken = token.trim().replaceAll('"', '');
-      final String url = isWorker.value ? ApiServices.artisan_profile : ApiServices.client_profile;
+      final String url = isWorker.value
+          ? ApiServices.artisan_profile
+          : ApiServices.client_profile;
       var request = http.MultipartRequest('PATCH', Uri.parse(url));
-      
+
       request.headers.addAll({
         'Authorization': 'Bearer $cleanToken',
         'Accept': 'application/json',
@@ -158,17 +198,20 @@ class EditProfileController extends GetxController {
       if (isWorker.value) {
         request.fields['occupation'] = occupationController.text.trim();
         request.fields['bio'] = bioController.text.trim();
-        request.fields['years_of_experience'] = experienceController.text.trim();
+        request.fields['years_of_experience'] = experienceController.text
+            .trim();
         request.fields['hourly_rate'] = rateController.text.trim();
-        
+
         if (serviceId.value.isNotEmpty) {
           try {
-            final String rateUpdateUrl = registrationId.value.isNotEmpty 
+            final String rateUpdateUrl = registrationId.value.isNotEmpty
                 ? "${ApiServices.artisan_my_services}${registrationId.value}/"
                 : ApiServices.artisan_my_services;
-            final String method = registrationId.value.isNotEmpty ? 'PATCH' : 'POST';
-            
-            final rateResponse = await (method == 'PATCH' 
+            final String method = registrationId.value.isNotEmpty
+                ? 'PATCH'
+                : 'POST';
+
+            final rateResponse = await (method == 'PATCH'
                 ? http.patch(
                     Uri.parse(rateUpdateUrl),
                     headers: {
@@ -176,7 +219,9 @@ class EditProfileController extends GetxController {
                       'Content-Type': 'application/json',
                       'Accept': 'application/json',
                     },
-                    body: json.encode({'price_override': rateController.text.trim()}),
+                    body: json.encode({
+                      'price_override': rateController.text.trim(),
+                    }),
                   )
                 : http.post(
                     Uri.parse(rateUpdateUrl),
@@ -191,29 +236,43 @@ class EditProfileController extends GetxController {
                       'is_active': true,
                     }),
                   ));
-            print("Service Rate Update [$method] Status: ${rateResponse.statusCode}");
+            print(
+              "Service Rate Update [$method] Status: ${rateResponse.statusCode}",
+            );
           } catch (e) {
             print("Failed to update specific service rate: $e");
           }
         }
-        
-        List<String> skillsList = skillsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+        List<String> skillsList = skillsController.text
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
         for (var skill in skillsList) {
           request.files.add(http.MultipartFile.fromString('skills', skill));
         }
-        
-        List<String> areasList = areasController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+        List<String> areasList = areasController.text
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
         for (var area in areasList) {
-          request.files.add(http.MultipartFile.fromString('service_areas', area));
+          request.files.add(
+            http.MultipartFile.fromString('service_areas', area),
+          );
         }
       }
 
       if (profileImage.value != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'profile_picture',
-          profileImage.value!.path,
-          contentType: MediaType('image', 'jpeg'),
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'profile_picture',
+            profileImage.value!.path,
+            contentType: MediaType('image', 'jpeg'),
+          ),
+        );
       }
 
       var streamedResponse = await request.send();
@@ -221,37 +280,57 @@ class EditProfileController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar('Success', 'Profile updated successfully');
-        
+
         if (Get.isRegistered<ProfileController>()) {
-          Get.find<ProfileController>().fetchProfile();
+          final profileCtrl = Get.find<ProfileController>();
+          profileCtrl.userName.value = fullNameController.text.trim();
+          profileCtrl.userEmail.value = emailController.text.trim();
+          if (profileImage.value != null) {
+            profileCtrl.userProfileImage.value = profileImage.value!.path;
+          }
+          profileCtrl.fetchProfile();
         }
-        
+
         if (Get.isRegistered<WorkerAccountController>()) {
           final workerCtrl = Get.find<WorkerAccountController>();
-          workerCtrl.serviceRate.value = rateController.text.trim();
+
+          // Manual immediate updates
           workerCtrl.userName.value = fullNameController.text.trim();
-          
-          // Only update profession if it's not the generic 'Artisan'
+          workerCtrl.userEmail.value = emailController.text.trim();
+          workerCtrl.userPhone.value = phoneController.text.trim();
+          workerCtrl.serviceRate.value = rateController.text.trim();
+          workerCtrl.bio.value = bioController.text.trim();
+          workerCtrl.experienceYears.value = experienceController.text.trim();
+
           String newOcc = occupationController.text.trim();
           if (newOcc.isNotEmpty && newOcc.toLowerCase() != 'artisan') {
             workerCtrl.profession.value = newOcc;
           }
-          
-          Future.delayed(const Duration(seconds: 1), () {
-            if (Get.isRegistered<WorkerAccountController>()) {
-              Get.find<WorkerAccountController>().fetchProfile();
-            }
-          });
+
+          // If a new local image was picked, show it immediately
+          if (profileImage.value != null) {
+            workerCtrl.profilePicture.value = profileImage.value!.path;
+          }
+
+          // Still fetch fresh data from server to sync everything else (like verification status)
+          workerCtrl.fetchProfile();
         }
 
         if (Get.isRegistered<WorkerHomeController>()) {
-          Get.find<WorkerHomeController>().fetchCurrentStatus();
+          final homeCtrl = Get.find<WorkerHomeController>();
+          homeCtrl.userName.value = fullNameController.text.trim();
+          if (profileImage.value != null) {
+            homeCtrl.profilePicture.value = profileImage.value!.path;
+          }
+          homeCtrl.fetchCurrentStatus();
         }
-        
+
         Get.back();
-        Get.offAllNamed(Routes.DASHBOARD);
       } else {
-        Get.snackbar('Error', 'Failed to update profile: ${response.statusCode}');
+        Get.snackbar(
+          'Error',
+          'Failed to update profile: ${response.statusCode}',
+        );
       }
     } catch (e) {
       print("Error updating profile: $e");

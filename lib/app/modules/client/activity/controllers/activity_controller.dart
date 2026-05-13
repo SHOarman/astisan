@@ -1,67 +1,96 @@
+import 'dart:convert';
 import 'package:get/get.dart';
-import '../../../../core/constants/static/app_strings.dart';
-import 'package:artisan/app/core/constants/static/app_images.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/Services/api_services.dart';
 
 class ActivityController extends GetxController {
-  final filters = [
-    AppStrings.upcoming.tr,
-    AppStrings.completed.tr,
-    AppStrings.cancelled.tr,
-    AppStrings.rejected.tr,
-  ].obs;
+  final isLoading = false.obs;
+  final bookings = <Map<String, dynamic>>[].obs;
+  
+  // Lists for each status category
+  final upcomingBookings = <Map<String, dynamic>>[].obs;
+  final confirmedBookings = <Map<String, dynamic>>[].obs;
+  final completedBookings = <Map<String, dynamic>>[].obs;
+  final cancelledBookings = <Map<String, dynamic>>[].obs;
 
-  final selectedFilter = AppStrings.all.tr.obs;
-
-  final orders = <Map<String, dynamic>>[
-    {
-      'title': 'Pipe Repair',
-      'artisanName': 'James Wilson',
-      'date': 'March 28, 2026',
-      'price': '\$85',
-      'status': AppStrings.completed.tr,
-      'image': AppImages.homePipeLeak,
-      'avatar': AppImages.homeMarcusJohnson,
-    },
-    {
-      'title': 'Full House Cleaning',
-      'artisanName': 'Sarah Ahmed',
-      'date': 'March 15, 2026',
-      'price': '\$160',
-      'status': AppStrings.completed.tr,
-      'image': AppImages.homeDeepCleaning,
-      'avatar': AppImages.homeSarahWilliams,
-    },
-    {
-      'title': 'Electrical Installation',
-      'artisanName': 'Mike Chen',
-      'date': 'Feb 20, 2026',
-      'price': '\$120',
-      'status': AppStrings.cancelled.tr,
-      'image': AppImages.homeElectricalWiring,
-      'avatar': AppImages.homeDanielCarter,
-    },
-    {
-      'title': 'Garden Maintenance',
-      'artisanName': 'Linda Park',
-      'date': 'Feb 5, 2026',
-      'price': '\$75',
-      'status': AppStrings.completed.tr,
-      'image': AppImages.popPipeLeak,
-      'avatar': AppImages.placeholderAvatar,
-    },
-  ].obs;
-
-  List<Map<String, dynamic>> get filteredOrders {
-    if (selectedFilter.value == AppStrings.all.tr) return orders;
-    return orders.where((order) => order['status'] == selectedFilter.value).toList();
+  @override
+  void onInit() {
+    super.onInit();
+    fetchAllBookings();
   }
 
-  void changeFilter(String filter) {
-    selectedFilter.value = filter;
+  Future<void> fetchAllBookings() async {
+    isLoading.value = true;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      if (token != null) token = token.trim().replaceAll('"', '');
+
+      final response = await http.get(
+        Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
+        headers: {
+          'Accept': 'application/json',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final decodedData = json.decode(response.body);
+        List<dynamic> results = [];
+        if (decodedData is Map) {
+          results = decodedData['results'] ?? [];
+        } else if (decodedData is List) {
+          results = decodedData;
+        }
+
+        final List<Map<String, dynamic>> resultsList = results.cast<Map<String, dynamic>>().toList();
+        
+        // Sort by ID descending to show newest first
+        resultsList.sort((a, b) {
+          int idA = int.tryParse(a['id']?.toString() ?? "0") ?? 0;
+          int idB = int.tryParse(b['id']?.toString() ?? "0") ?? 0;
+          return idB.compareTo(idA);
+        });
+
+        bookings.assignAll(resultsList);
+        _categorizeBookings();
+      }
+    } catch (e) {
+      print("Error fetching bookings: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  int getFilterCount(String filter) {
-    if (filter == AppStrings.all.tr) return 0;
-    return orders.where((order) => order['status'] == filter).length;
+  void _categorizeBookings() {
+    upcomingBookings.clear();
+    confirmedBookings.clear();
+    completedBookings.clear();
+    cancelledBookings.clear();
+
+    for (var booking in bookings) {
+      final String status = (booking['status'] ?? '').toString().toLowerCase();
+      
+      if (status == 'requested') {
+        upcomingBookings.add(booking);
+      } else if (['confirmed', 'on_way', 'arrived', 'working'].contains(status)) {
+        confirmedBookings.add(booking);
+      } else if (status == 'completed') {
+        completedBookings.add(booking);
+      } else if (status == 'cancelled' || status == 'rejected') {
+        cancelledBookings.add(booking);
+      }
+    }
+  }
+
+  int getCount(String category) {
+    switch (category.toLowerCase()) {
+      case 'upcoming': return upcomingBookings.length;
+      case 'confirmed': return confirmedBookings.length;
+      case 'completed': return completedBookings.length;
+      case 'cancelled': return cancelledBookings.length;
+      default: return 0;
+    }
   }
 }

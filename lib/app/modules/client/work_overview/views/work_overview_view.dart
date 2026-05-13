@@ -7,6 +7,7 @@ import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/components/cost_breakdown_card.dart';
 import '../../../../core/components/photo_thumbnail_tile.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../controllers/work_overview_controller.dart';
 
 class WorkOverviewView extends GetView<WorkOverviewController> {
@@ -353,7 +354,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: controller.goToPay,
+          onPressed: () => Get.toNamed(Routes.BOOKING),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             padding: EdgeInsets.symmetric(vertical: 16.0),
@@ -364,7 +365,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
             elevation: 0,
           ),
           child: Text(
-            AppStrings.goToPay.tr,
+            "Back to Home",
             style: GoogleFonts.poppins(
               color: AppColors.white,
               fontSize: 16.0,

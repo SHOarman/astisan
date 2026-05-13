@@ -52,7 +52,16 @@ class AuthWorkerController extends GetxController {
   Future<void> fetchCategories() async {
     isCategoriesLoading.value = true;
     try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String cleanToken = _cleanToken(token ?? "");
+
       await Future.delayed(const Duration(milliseconds: 300));
+
+      final Map<String, String> headers = {
+        'Accept': 'application/json',
+        if (cleanToken.isNotEmpty) 'Authorization': 'Bearer $cleanToken',
+      };
 
       // Attempt 1: With Trailing Slash (Standard)
       String url1 = ApiServices.services_categories;
@@ -60,7 +69,7 @@ class AuthWorkerController extends GetxController {
 
       print("DEBUG: Category Fetch Attempt 1: $url1");
       final resp1 = await http
-          .get(Uri.parse(url1), headers: {'Accept': 'application/json'})
+          .get(Uri.parse(url1), headers: headers)
           .timeout(const Duration(seconds: 10));
       print("DEBUG: Attempt 1 Status: ${resp1.statusCode}");
 
@@ -78,7 +87,7 @@ class AuthWorkerController extends GetxController {
       String url2 = url1.substring(0, url1.length - 1);
       print("DEBUG: Category Fetch Attempt 2: $url2");
       final resp2 = await http
-          .get(Uri.parse(url2), headers: {'Accept': 'application/json'})
+          .get(Uri.parse(url2), headers: headers)
           .timeout(const Duration(seconds: 10));
       print("DEBUG: Attempt 2 Status: ${resp2.statusCode}");
 
@@ -95,7 +104,7 @@ class AuthWorkerController extends GetxController {
       String artisanUrl = ApiServices.artisan_service_categories;
       print("DEBUG: Category Fetch Attempt 3 (Artisan): $artisanUrl");
       final resp3 = await http
-          .get(Uri.parse(artisanUrl), headers: {'Accept': 'application/json'})
+          .get(Uri.parse(artisanUrl), headers: headers)
           .timeout(const Duration(seconds: 10));
 
       if (resp3.statusCode == 200) {
@@ -145,6 +154,15 @@ class AuthWorkerController extends GetxController {
     isServicesLoading.value = true;
     services.clear(); // Clear old data to show we are loading fresh
     try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String cleanToken = _cleanToken(token ?? "");
+
+      final Map<String, String> headers = {
+        'Accept': 'application/json',
+        if (cleanToken.isNotEmpty) 'Authorization': 'Bearer $cleanToken',
+      };
+
       // 1. Try Artisan Catalogue Primary (Filtered by Category)
       String artisanUrl = ApiServices.artisan_service_catalogue;
       if (artisanUrl.endsWith('/'))
@@ -153,7 +171,7 @@ class AuthWorkerController extends GetxController {
 
       print("DEBUG: Fetching services from Artisan API: $artisanUrl");
       final response = await http
-          .get(Uri.parse(artisanUrl), headers: {'Accept': 'application/json'})
+          .get(Uri.parse(artisanUrl), headers: headers)
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
@@ -175,7 +193,7 @@ class AuthWorkerController extends GetxController {
 
       print("DEBUG: Trying fallback Client API: $clientUrl");
       final clientResponse = await http
-          .get(Uri.parse(clientUrl), headers: {'Accept': 'application/json'})
+          .get(Uri.parse(clientUrl), headers: headers)
           .timeout(const Duration(seconds: 10));
 
       if (clientResponse.statusCode == 200) {

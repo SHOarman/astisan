@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -82,10 +83,15 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         image: controller.profilePicture.value.isNotEmpty
-                            ? DecorationImage(
-                                image: NetworkImage(controller.profilePicture.value),
-                                fit: BoxFit.cover,
-                              )
+                            ? (controller.profilePicture.value.startsWith('http')
+                                ? DecorationImage(
+                                    image: NetworkImage(controller.profilePicture.value),
+                                    fit: BoxFit.cover,
+                                  )
+                                : DecorationImage(
+                                    image: FileImage(File(controller.profilePicture.value)),
+                                    fit: BoxFit.cover,
+                                  ))
                             : const DecorationImage(
                                 image: AssetImage(AppImages.homeMarcusJohnson),
                                 fit: BoxFit.cover,

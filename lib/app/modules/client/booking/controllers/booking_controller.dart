@@ -19,8 +19,29 @@ class BookingController extends GetxController {
   void _generateDates() {
     final now = DateTime.now();
     final List<Map<String, String>> generatedDates = [];
-    final List<String> weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    final List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final List<String> weekdays = [
+      'Sun',
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+    ];
+    final List<String> months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
 
     for (int i = 0; i < 7; i++) {
       final date = now.add(Duration(days: i));
@@ -29,7 +50,8 @@ class BookingController extends GetxController {
         'date': date.day.toString(),
         'month': months[date.month - 1],
         'year': date.year.toString(),
-        'fullDate': "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+        'fullDate':
+            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
       });
     }
     dates.assignAll(generatedDates);
@@ -68,25 +90,37 @@ class BookingController extends GetxController {
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
         List<dynamic> dataList = [];
-        
+
         if (decodedData is List) {
           dataList = decodedData;
         } else if (decodedData is Map) {
-          dataList = decodedData['results'] ?? decodedData['data'] ?? decodedData['addresses'] ?? [];
+          dataList =
+              decodedData['results'] ??
+              decodedData['data'] ??
+              decodedData['addresses'] ??
+              [];
         }
 
-        addresses.assignAll(dataList.map((e) => {
-          'id': e['id'],
-          'title': (e['label'] == 'other' || e['label'] == null) 
-              ? (e['custom_label'] ?? 'Address') 
-              : e['label'].toString().capitalizeFirst,
-          'address': e['address_line'] ?? 'No address line',
-          'isDefault': e['is_default'] ?? false,
-          'raw': e,
-        }).toList());
-        
+        addresses.assignAll(
+          dataList
+              .map(
+                (e) => {
+                  'id': e['id'],
+                  'title': (e['label'] == 'other' || e['label'] == null)
+                      ? (e['custom_label'] ?? 'Address')
+                      : e['label'].toString().capitalizeFirst,
+                  'address': e['address_line'] ?? 'No address line',
+                  'isDefault': e['is_default'] ?? false,
+                  'raw': e,
+                },
+              )
+              .toList(),
+        );
+
         // Auto-select default address
-        final defaultIdx = addresses.indexWhere((element) => element['isDefault'] == true);
+        final defaultIdx = addresses.indexWhere(
+          (element) => element['isDefault'] == true,
+        );
         if (defaultIdx != -1) {
           selectedAddressIndex.value = defaultIdx;
         }
@@ -101,10 +135,10 @@ class BookingController extends GetxController {
   // Notes
   final notesController = TextEditingController();
   final notesLength = 0.obs;
-  
+
   // Navigation source
   final source = ''.obs;
-  
+
   final quickNotes = [
     '+ Urgent repair',
     '+ Bring materials',
@@ -124,15 +158,17 @@ class BookingController extends GetxController {
       selectedArtisan.value = Get.arguments['artisan'] ?? {};
       capturedImagePath.value = Get.arguments['image'] ?? '';
     }
-    
+
     notesController.addListener(() {
       notesLength.value = notesController.text.length;
     });
   }
 
   // Cost calculations
-  double get _minServiceFee => double.tryParse(serviceData['price_range_min']?.toString() ?? '0') ?? 0;
-  double get _maxServiceFee => double.tryParse(serviceData['price_range_max']?.toString() ?? '0') ?? 0;
+  double get _minServiceFee =>
+      double.tryParse(serviceData['price_range_min']?.toString() ?? '0') ?? 0;
+  double get _maxServiceFee =>
+      double.tryParse(serviceData['price_range_max']?.toString() ?? '0') ?? 0;
 
   double get platformFeeMin => _minServiceFee * 0.05;
   double get platformFeeMax => _maxServiceFee * 0.05;
@@ -171,9 +207,7 @@ class BookingController extends GetxController {
     if (currentStep.value < 3) {
       currentStep.value++;
     } else if (currentStep.value == 3) {
-      Get.toNamed(Routes.CAMERA, arguments: {
-        'service': serviceData.value,
-      });
+      Get.toNamed(Routes.CAMERA, arguments: {'service': serviceData.value});
     }
   }
 
@@ -198,15 +232,17 @@ class BookingController extends GetxController {
       // Fields
       final selectedAddress = addresses[selectedAddressIndex.value];
       final date = dates[selectedDateIndex.value];
-      
+
       // Formatting date: YYYY-MM-DD
-      String formattedDate = date['fullDate'] ?? "2026-05-12"; 
-      
+      String formattedDate = date['fullDate'] ?? "2026-05-12";
+
       // Formatting time: HH:MM:SS
-      String formattedTime = "${selectedTime.value.hour.toString().padLeft(2, '0')}:${selectedTime.value.minute.toString().padLeft(2, '0')}:00";
+      String formattedTime =
+          "${selectedTime.value.hour.toString().padLeft(2, '0')}:${selectedTime.value.minute.toString().padLeft(2, '0')}:00";
 
       request.fields['service'] = serviceData['id']?.toString() ?? '';
-      request.fields['service_address'] = selectedAddress['id']?.toString() ?? '';
+      request.fields['service_address'] =
+          selectedAddress['id']?.toString() ?? '';
       request.fields['artisan'] = selectedArtisan['id']?.toString() ?? '';
       request.fields['scheduled_date'] = formattedDate;
       request.fields['scheduled_time'] = formattedTime;
@@ -228,19 +264,30 @@ class BookingController extends GetxController {
 
       if (response.statusCode == 201) {
         final decoded = json.decode(response.body);
-        Get.offNamed(Routes.SUCCESS, arguments: {
-          'service': serviceData.value,
-          'booking': decoded,
-          'artisan': selectedArtisan.value,
-        });
+        Get.offNamed(
+          Routes.SUCCESS,
+          arguments: {
+            'service': serviceData.value,
+            'booking': decoded,
+            'artisan': selectedArtisan.value,
+          },
+        );
       } else {
-        Get.snackbar("Error", "Failed to create booking: ${response.body}",
-          backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          "Error",
+          "Failed to create booking: ${response.body}",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       print("Error submitting booking: $e");
-      Get.snackbar("Error", "An unexpected error occurred.",
-        backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        "An unexpected error occurred.",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoadingAddresses.value = false;
     }
@@ -265,4 +312,3 @@ class BookingController extends GetxController {
     }
   }
 }
-

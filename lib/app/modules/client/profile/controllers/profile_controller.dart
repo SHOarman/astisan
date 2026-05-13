@@ -15,9 +15,9 @@ class ProfileController extends GetxController {
   final userProfileImage = ''.obs;
 
   final stats = {
-    'bookings': 4,
-    'reviews': 3,
-    'rating': 4.8,
+    'bookings': 0,
+    'reviews': 0,
+    'rating': 0.0,
   }.obs;
 
   final menuItems = [
@@ -105,16 +105,21 @@ class ProfileController extends GetxController {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
+      final String? role = prefs.getString('role');
 
       if (token == null || token.isEmpty) {
         userName.value = 'Not Logged In';
         return;
       }
 
+      final String cleanToken = token.trim().replaceAll('"', '');
+      final bool isWorker = (role != 'client');
+      final String endpoint = isWorker ? ApiServices.artisan_profile : ApiServices.client_profile;
+
       final response = await http.get(
-        Uri.parse(ApiServices.client_profile),
+        Uri.parse(endpoint),
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
       ).timeout(const Duration(seconds: 30));
@@ -125,8 +130,35 @@ class ProfileController extends GetxController {
         userEmail.value = data['email'] ?? 'No Email';
         userPhone.value = data['phone'] ?? 'No Phone';
         userProfileImage.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+
+        if (isWorker && data['artisan_profile'] != null) {
+          final artisan = data['artisan_profile'];
+          stats['bookings'] = artisan['total_jobs_done'] ?? 0;
+          stats['reviews'] = 0;
+          stats['rating'] = double.tryParse(artisan['average_rating']?.toString() ?? '0.0') ?? 0.0;
+        }
+      } else if (response.statusCode == 403) {
+        final String alternativeUrl = isWorker ? ApiServices.client_profile : ApiServices.artisan_profile;
+        final altResponse = await http.get(
+          Uri.parse(alternativeUrl),
+          headers: {'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
+        ).timeout(const Duration(seconds: 15));
+
+        if (altResponse.statusCode == 200) {
+          final altRole = isWorker ? 'client' : 'worker';
+          prefs.setString('role', altRole);
+
+          final data = json.decode(altResponse.body);
+          userName.value = data['full_name'] ?? 'No Name';
+          userEmail.value = data['email'] ?? 'No Email';
+          userPhone.value = data['phone'] ?? 'No Phone';
+          userProfileImage.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+        } else {
+          userName.value = 'Permission Denied (403)';
+          Get.snackbar('Access Denied', 'Your account does not have permission for this role.', backgroundColor: Colors.orange, colorText: Colors.white);
+        }
       } else {
-        userName.value = 'Error Loading Profile';
+        userName.value = 'Error ${response.statusCode}';
       }
     } catch (e) {
       userName.value = 'Error Loading Profile';

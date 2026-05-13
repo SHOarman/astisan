@@ -11,6 +11,7 @@ import '../../../../core/components/artisan_profile_card.dart';
 import '../controllers/home_controller.dart';
 
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/components/artisan_home_card.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -367,6 +368,7 @@ class HomeView extends GetView<HomeController> {
             ),
             GestureDetector(
               onTap: () {
+                // Get.toNamed(Routes.NEARBY_ARTISANS);
               },
               child: Text(
                 AppStrings.seeAll.tr,
@@ -382,35 +384,38 @@ class HomeView extends GetView<HomeController> {
         SizedBox(height: 16.0),
         Obx(() {
           if (controller.isLoadingArtisans.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const SizedBox(
+              height: 220,
+              child: Center(child: CircularProgressIndicator()),
+            );
           }
           if (controller.recommendedArtisans.isEmpty) {
             return const SizedBox.shrink();
           }
-          return ListView.separated(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.recommendedArtisans.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16.0),
-            itemBuilder: (context, index) {
-              final artisan = controller.recommendedArtisans[index];
-              return ArtisanProfileCard(
-                name: artisan['name'],
-                role: artisan['role'],
-                avatarPath: artisan['avatar'],
-                isVerified: artisan['isVerified'],
-                rating: artisan['rating'],
-                reviews: artisan['reviews'],
-                pricePerHour: artisan['price'],
-                distanceOrTime: artisan['distanceOrTime'],
-                jobsDone: artisan['jobsDone'],
-                isOnline: artisan['isOnline'] ?? true,
-                onTap: () {
-                   Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
-                },
-              );
-            },
+          return SizedBox(
+            height: 220,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: controller.recommendedArtisans.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 16.0),
+              itemBuilder: (context, index) {
+                final artisan = controller.recommendedArtisans[index];
+                return ArtisanHomeCard(
+                  name: artisan['name'],
+                  role: artisan['role'],
+                  avatarPath: artisan['avatar'],
+                  isVerified: artisan['isVerified'],
+                  rating: artisan['rating'],
+                  reviews: artisan['reviews'],
+                  pricePerHour: artisan['price'],
+                  distanceOrTime: artisan['distanceOrTime'],
+                  isOnline: artisan['isOnline'] ?? true,
+                  onTap: () {
+                     Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
+                  },
+                );
+              },
+            ),
           );
         }),
       ],

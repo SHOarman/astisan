@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/Services/api_services.dart';
+import '../../../../core/global_controllers/role_controller.dart';
 import '../../../../core/routes/app_routes.dart';
 
 class LoginController extends GetxController {
@@ -39,7 +40,7 @@ class LoginController extends GetxController {
       try {
         final Map<String, dynamic> requestBody = {
           "email": emailController.text.trim(),
-          "password": passwordController.text,
+          "password": passwordController.text.trim(),
         };
 
         print("Login URL: ${ApiServices.client_login}");
@@ -85,13 +86,18 @@ class LoginController extends GetxController {
             print("WARNING: Login successful but NO TOKEN found in response keys");
             Get.snackbar('Warning', 'Login success, but session token missing');
           } else {
-            print("Extracted Token: $token");
+            String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+            print("Extracted Clean Token: $cleanToken");
             final SharedPreferences prefs = await SharedPreferences.getInstance();
-            bool saved = await prefs.setString('token', token);
-            print("Token saved to SharedPreferences: $saved");
+            await prefs.setString('token', cleanToken);
+            await prefs.setString('role', 'client');
             
-            String? savedToken = prefs.getString('token');
-            print("Verification - Saved Token in Prefs: $savedToken");
+            // Sync RoleController
+            if (Get.isRegistered<RoleController>()) {
+              Get.find<RoleController>().setRole('client');
+            }
+            
+            print("Token and Role saved to SharedPreferences");
           }
 
           Get.snackbar('Success', 'Login Successful');

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomBookingCard extends StatelessWidget {
   final String imageUrl;
+  final String artisanAvatar;
   final String title;
   final String providerName;
   final String date;
@@ -12,17 +14,13 @@ class CustomBookingCard extends StatelessWidget {
   final Color statusTextColor;
   final Color amountColor;
 
-  final String rateButtonText;
-  final String rebookButtonText;
   final String viewDetailsButtonText;
-
-  final VoidCallback? onRateTap;
-  final VoidCallback? onRebookTap;
   final VoidCallback? onViewDetailsTap;
 
   const CustomBookingCard({
     super.key,
     required this.imageUrl,
+    this.artisanAvatar = "",
     required this.title,
     required this.providerName,
     required this.date,
@@ -31,11 +29,7 @@ class CustomBookingCard extends StatelessWidget {
     this.statusBgColor = const Color(0xFFE8F5E9),
     this.statusTextColor = const Color(0xFF4CAF50),
     this.amountColor = const Color(0xFF4CAF50),
-    this.rateButtonText = "Rate",
-    this.rebookButtonText = "Rebook",
     this.viewDetailsButtonText = "View Details",
-    this.onRateTap,
-    this.onRebookTap,
     this.onViewDetailsTap,
   });
 
@@ -45,31 +39,47 @@ class CustomBookingCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: imageUrl.startsWith('http')
-                    ? Image.network(
-                        imageUrl,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      )
-                    : Image.asset(
-                        imageUrl,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
+              // Image with Avatar Overlay
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _buildImage(imageUrl, 90, 90),
+                  ),
+                  if (artisanAvatar.isNotEmpty)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: _buildImage(artisanAvatar, 24, 24),
+                        ),
                       ),
+                    ),
+                ],
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,37 +90,63 @@ class CustomBookingCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                              color: const Color(0xFF1A1D1E),
+                            ),
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: statusBgColor,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               CircleAvatar(radius: 3, backgroundColor: statusTextColor),
-                              const SizedBox(width: 5),
+                              const SizedBox(width: 6),
                               Text(
                                 statusText,
-                                style: TextStyle(color: statusTextColor, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.poppins(
+                                  color: statusTextColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                    Text("by $providerName", style: TextStyle(color: Colors.grey.shade600)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 4),
+                    Text(
+                      "by $providerName",
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey.shade500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(date, style: TextStyle(color: Colors.grey.shade400)),
+                        Text(
+                          date,
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                        ),
                         Text(
                           amount,
-                          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold, fontSize: 18),
+                          style: GoogleFonts.poppins(
+                            color: amountColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                          ),
                         ),
                       ],
                     ),
@@ -119,48 +155,26 @@ class CustomBookingCard extends StatelessWidget {
               ),
             ],
           ),
-
-          if (onRateTap != null || onRebookTap != null) ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (onRateTap != null)
-                  Expanded(
-                    child: _buildOutlineButton(
-                      label: rateButtonText,
-                      icon: Icons.star,
-                      iconColor: Colors.orange,
-                      onTap: onRateTap,
-                    ),
-                  ),
-                if (onRateTap != null && onRebookTap != null) const SizedBox(width: 12),
-                if (onRebookTap != null)
-                  Expanded(
-                    child: _buildOutlineButton(
-                      label: rebookButtonText,
-                      icon: Icons.refresh,
-                      iconColor: Colors.blue.shade700,
-                      onTap: onRebookTap,
-                    ),
-                  ),
-              ],
-            ),
-          ],
-
           if (onViewDetailsTap != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE3F2FD),
-                  foregroundColor: const Color(0xFF1565C0),
+                  backgroundColor: const Color(0xFFEBF2FA),
+                  foregroundColor: const Color(0xFF2E5B8E),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: onViewDetailsTap,
-                child: Text(viewDetailsButtonText, style: const TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(
+                  viewDetailsButtonText,
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
               ),
             ),
           ],
@@ -169,24 +183,39 @@ class CustomBookingCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOutlineButton({required String label, required IconData icon, required Color iconColor, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 18),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(color: Color(0xFF5C6BC0), fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
-    );
+  Widget _buildImage(String url, double w, double h) {
+    if (url.isEmpty) {
+      return Container(
+        width: w,
+        height: h,
+        color: const Color(0xFFEBF2FA),
+        child: Icon(Icons.person, color: const Color(0xFF2E5B8E), size: w * 0.4),
+      );
+    }
+    return url.startsWith('http')
+        ? Image.network(
+            url,
+            width: w,
+            height: h,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: w,
+              height: h,
+              color: const Color(0xFFEBF2FA),
+              child: Icon(Icons.person, color: const Color(0xFF2E5B8E), size: w * 0.4),
+            ),
+          )
+        : Image.asset(
+            url,
+            width: w,
+            height: h,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: w,
+              height: h,
+              color: const Color(0xFFEBF2FA),
+              child: Icon(Icons.person, color: const Color(0xFF2E5B8E), size: w * 0.4),
+            ),
+          );
   }
 }

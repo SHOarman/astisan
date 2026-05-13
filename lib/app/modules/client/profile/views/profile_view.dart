@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -39,8 +40,6 @@ class ProfileView extends GetView<ProfileController> {
                   _buildHeaderActions(),
                   _buildUserInfo(),
                   const SizedBox(height: 24.0),
-                  _buildStatsSection(),
-                  const SizedBox(height: 24.0),
 
                   // White Card Section (raised)
                   Container(
@@ -48,10 +47,15 @@ class ProfileView extends GetView<ProfileController> {
                     constraints: BoxConstraints(minHeight: Get.height * 0.6),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(40.0)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(40.0),
+                      ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 32.0,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -99,7 +103,11 @@ class ProfileView extends GetView<ProfileController> {
                 color: AppColors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12.0),
               ),
-              child: const Icon(Icons.edit_outlined, color: AppColors.white, size: 22.0),
+              child: const Icon(
+                Icons.edit_outlined,
+                color: AppColors.white,
+                size: 22.0,
+              ),
             ),
           ),
         ],
@@ -110,77 +118,82 @@ class ProfileView extends GetView<ProfileController> {
   Widget _buildUserInfo() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Obx(() => Row(
-        children: [
-          Container(
-            width: 80.0,
-            height: 80.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(color: AppColors.white.withOpacity(0.5), width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20.0),
-              child: controller.userProfileImage.value.isNotEmpty && controller.userProfileImage.value.startsWith('http')
-                  ? Image.network(
-                controller.userProfileImage.value,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover),
-              )
-                  : Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover),
-            ),
-          ),
-          const SizedBox(width: 20.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  controller.userName.value.isEmpty ? "User Name" : controller.userName.value,
-                  style: GoogleFonts.poppins(
-                    color: AppColors.white,
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.w700,
-                  ),
+      child: Obx(
+        () => Row(
+          children: [
+            Container(
+              width: 80.0,
+              height: 80.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                border: Border.all(
+                  color: AppColors.white.withOpacity(0.5),
+                  width: 1,
                 ),
-                Text(
-                  controller.userEmail.value,
-                  style: GoogleFonts.poppins(
-                    color: AppColors.white.withOpacity(0.7),
-                    fontSize: 14.0,
-                  ),
-                ),
-              ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20.0),
+                child: Obx(() {
+                  final imagePath = controller.userProfileImage.value;
+                  if (imagePath.isEmpty) {
+                    return Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover);
+                  }
+                  if (imagePath.startsWith('http')) {
+                    return Image.network(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover),
+                    );
+                  } else if (imagePath.contains('/') || imagePath.contains('\\')) {
+                    return Image.file(
+                      File(imagePath),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover),
+                    );
+                  }
+                  return Image.asset(AppImages.homeMarcusJohnson, fit: BoxFit.cover);
+                }),
+              ),
             ),
-          ),
-        ],
-      )),
+            const SizedBox(width: 20.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    controller.userName.value.isEmpty
+                        ? "User Name"
+                        : controller.userName.value,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.white,
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    controller.userEmail.value,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.white.withOpacity(0.7),
+                      fontSize: 14.0,
+                    ),
+                  ),
+                  if (controller.userPhone.value.isNotEmpty && controller.userPhone.value != '...')
+                    Text(
+                      controller.userPhone.value,
+                      style: GoogleFonts.poppins(
+                        color: AppColors.white.withOpacity(0.7),
+                        fontSize: 14.0,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildStatsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Obx(() {
-        final stats = controller.stats;
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStatItem((stats['bookings'] ?? 0).toString(), AppStrings.bookings.tr),
-              _buildStatItem((stats['reviews'] ?? 0).toString(), AppStrings.reviews.tr),
-              _buildStatItem('${stats['rating'] ?? 0.0} ★', 'Rating'),
-            ],
-          ),
-        );
-      }),
-    );
-  }
 
   Widget _buildMenuCard() {
     return Container(
@@ -203,7 +216,8 @@ class ProfileView extends GetView<ProfileController> {
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemCount: items.length,
-          separatorBuilder: (_, __) => Divider(color: Colors.grey.withOpacity(0.08), height: 1.0),
+          separatorBuilder: (_, __) =>
+              Divider(color: Colors.grey.withOpacity(0.08), height: 1.0),
           itemBuilder: (context, index) {
             final item = items[index];
             return ProfileMenuTile(
@@ -211,7 +225,8 @@ class ProfileView extends GetView<ProfileController> {
               subtitle: item['subtitle']?.toString(),
               icon: item['icon'],
               iconBgColor: (item['color'] as Color?) ?? AppColors.primary,
-              onTap: () => controller.navigateTo(item['title']?.toString() ?? ''),
+              onTap: () =>
+                  controller.navigateTo(item['title']?.toString() ?? ''),
             );
           },
         );
@@ -249,7 +264,12 @@ class ProfileView extends GetView<ProfileController> {
   Widget _buildRecentBookingsList() {
     return Obx(() {
       if (controller.recentBookings.isEmpty) {
-        return Center(child: Text("No recent bookings", style: GoogleFonts.poppins(color: AppColors.greyText)));
+        return Center(
+          child: Text(
+            "No recent bookings",
+            style: GoogleFonts.poppins(color: AppColors.greyText),
+          ),
+        );
       }
       return Column(
         children: controller.recentBookings.map((order) {
@@ -285,19 +305,44 @@ class ProfileView extends GetView<ProfileController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(order['title'] ?? 'Service',
-                    style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700, color: AppColors.textColor)),
-                Text(order['date'] ?? '', style: GoogleFonts.poppins(fontSize: 13.0, color: AppColors.greyText)),
+                Text(
+                  order['title'] ?? 'Service',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textColor,
+                  ),
+                ),
+                Text(
+                  order['date'] ?? '',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.0,
+                    color: AppColors.greyText,
+                  ),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(order['price'] ?? '',
-                  style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w800, color: AppColors.primary)),
+              Text(
+                order['price'] ?? '',
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text('Completed', style: GoogleFonts.poppins(fontSize: 11.0, color: Colors.green, fontWeight: FontWeight.w600)),
+              Text(
+                'Completed',
+                style: GoogleFonts.poppins(
+                  fontSize: 11.0,
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ],
@@ -305,19 +350,17 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildStatItem(String value, String label) {
-    return Column(
-      children: [
-        Text(value, style: GoogleFonts.poppins(color: AppColors.white, fontSize: 20.0, fontWeight: FontWeight.w700)),
-        Text(label, style: GoogleFonts.poppins(color: AppColors.white.withOpacity(0.6), fontSize: 12.0)),
-      ],
-    );
-  }
 
   Widget _renderBookingIcon(dynamic iconData) {
     if (iconData is String) {
       if (iconData.endsWith('.svg')) {
-        return SvgPicture.asset(iconData, colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn));
+        return SvgPicture.asset(
+          iconData,
+          colorFilter: const ColorFilter.mode(
+            AppColors.primary,
+            BlendMode.srcIn,
+          ),
+        );
       }
       return Image.asset(iconData);
     }
@@ -329,7 +372,9 @@ class ProfileView extends GetView<ProfileController> {
       width: double.infinity,
       child: TextButton(
         onPressed: controller.signOut,
-        style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -337,7 +382,11 @@ class ProfileView extends GetView<ProfileController> {
             const SizedBox(width: 12.0),
             Text(
               'Sign Out',
-              style: GoogleFonts.poppins(color: const Color(0xFFF87171), fontSize: 17.0, fontWeight: FontWeight.w700),
+              style: GoogleFonts.poppins(
+                color: const Color(0xFFF87171),
+                fontSize: 17.0,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),

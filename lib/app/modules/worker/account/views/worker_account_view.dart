@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -121,7 +122,9 @@ class WorkerAccountView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   image: DecorationImage(
                     image: controller.profilePicture.value.isNotEmpty
-                        ? NetworkImage(controller.profilePicture.value) as ImageProvider
+                        ? (controller.profilePicture.value.startsWith('http')
+                            ? NetworkImage(controller.profilePicture.value)
+                            : FileImage(File(controller.profilePicture.value))) as ImageProvider
                         : const AssetImage(AppImages.homeMarcusJohnson),
                     fit: BoxFit.cover,
                   ),

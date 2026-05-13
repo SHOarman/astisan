@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/Services/api_services.dart';
+import '../../../../core/global_controllers/role_controller.dart';
 import '../../../../core/routes/app_routes.dart';
 
 class VerificationController extends GetxController {
@@ -177,6 +178,9 @@ class VerificationController extends GetxController {
 
               await prefs.setString('token', cleanToken);
               await prefs.setString('role', 'worker');
+              if (Get.isRegistered<RoleController>()) {
+                Get.find<RoleController>().setRole('worker');
+              }
 
               Get.snackbar(
                 'Success',

@@ -13,4 +13,3 @@ class RoleController extends GetxController {
   bool get isClient => currentRole.value == 'client';
   bool get isWorker => currentRole.value == 'worker';
 }
-

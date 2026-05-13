@@ -6,6 +6,7 @@ import '../constants/static/app_strings.dart';
 
 class RequestCard extends StatelessWidget {
   final String clientName;
+  final String? clientPictureUrl;
   final String serviceTitle;
   final String address;
   final String distance;
@@ -20,6 +21,7 @@ class RequestCard extends StatelessWidget {
   const RequestCard({
     super.key,
     required this.clientName,
+    this.clientPictureUrl,
     required this.serviceTitle,
     required this.address,
     required this.distance,
@@ -115,7 +117,17 @@ class RequestCard extends StatelessWidget {
                           color: const Color(0xFFF0F5FA),
                           borderRadius: BorderRadius.circular(14.0),
                         ),
-                        child: const Icon(Icons.person_outline, color: Colors.grey, size: 28),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14.0),
+                          child: clientPictureUrl != null && clientPictureUrl!.isNotEmpty
+                              ? Image.network(
+                                  clientPictureUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => 
+                                      const Icon(Icons.person_outline, color: Colors.grey, size: 28),
+                                )
+                              : const Icon(Icons.person_outline, color: Colors.grey, size: 28),
+                        ),
                       ),
                       const SizedBox(width: 12.0),
                       Expanded(
