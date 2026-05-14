@@ -95,42 +95,100 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
 
   Widget _buildClientInfo() {
     return Container(
-      margin: const EdgeInsets.all(20.0),
-      child: Row(
+      margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(() => CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.grey[200],
-            backgroundImage: controller.clientImage.value.isNotEmpty
-                ? NetworkImage(controller.clientImage.value)
-                : null,
-            child: controller.clientImage.value.isEmpty
-                ? const Icon(Icons.person, color: Colors.grey)
-                : null,
-          )),
-          const SizedBox(width: 16.0),
-          Expanded(
-            child: Column(
+          Row(
+            children: [
+              Obx(() => CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: controller.clientImage.value.isNotEmpty
+                    ? NetworkImage(controller.clientImage.value)
+                    : null,
+                child: controller.clientImage.value.isEmpty
+                    ? const Icon(Icons.person, color: Colors.grey)
+                    : null,
+              )),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Obx(() => Text(
+                      controller.clientName.value,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColor,
+                      ),
+                    )),
+                    Obx(() => Text(
+                      controller.clientAddress.value,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.0,
+                        color: AppColors.greyText,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: controller.chatClient,
+                icon: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFF1F4F8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+          Obx(() {
+            if (controller.clientBio.value.isEmpty || controller.clientBio.value == "No bio available") {
+              return const SizedBox.shrink();
+            }
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(() => Text(
-                  controller.clientName.value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textColor,
-                  ),
-                )),
-                Obx(() => Text(
-                  controller.clientAddress.value,
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                  child: Divider(height: 1),
+                ),
+                Text(
+                  "About Client",
                   style: GoogleFonts.poppins(
                     fontSize: 14.0,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textColor,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  controller.clientBio.value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.0,
                     color: AppColors.greyText,
                   ),
-                )),
+                ),
               ],
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
@@ -145,7 +203,11 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
           const SizedBox(height: 12.0),
           Obx(() => _buildDetailRow("Payment", "\$${controller.paymentAmount.value.toStringAsFixed(2)}", valueColor: const Color(0xFF4CAF50), isBold: true)),
           const SizedBox(height: 12.0),
-          Obx(() => _buildDetailRow("Booking ID", controller.bookingId.value, isBold: true, isID: true)),
+          Obx(() {
+            final id = controller.displayBookingId.value;
+            final displayId = id.isNotEmpty ? (id.startsWith('#') ? id : '#$id') : 'N/A';
+            return _buildDetailRow("Booking ID", displayId, isBold: true, isID: true);
+          }),
         ],
       ),
     );

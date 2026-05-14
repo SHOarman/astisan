@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -59,15 +58,16 @@ class IncomingRequestsController extends GetxController {
     }
   }
 
-  Future<void> acceptRequest(String id) async {
-    await _updateBookingStatus(id, 'confirmed');
+  Future<void> acceptRequest(Map<String, dynamic> req) async {
+    await _updateBookingStatus(req, 'confirmed');
   }
 
-  Future<void> declineRequest(String id) async {
-    await _updateBookingStatus(id, 'cancelled');
+  Future<void> declineRequest(Map<String, dynamic> req) async {
+    await _updateBookingStatus(req, 'cancelled');
   }
 
-  Future<void> _updateBookingStatus(String id, String status) async {
+  Future<void> _updateBookingStatus(Map<String, dynamic> req, String status) async {
+    final String id = req['id']?.toString() ?? '';
     isLoading.value = true;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -109,9 +109,13 @@ class IncomingRequestsController extends GetxController {
         await fetchRequests();
 
         if (status == 'confirmed') {
-          Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: {'bookingId': id});
+          Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: {
+            'bookingId': id,
+            'initialData': req,
+          });
         }
-      } else {
+      }
+ else {
         print("ERROR: Status update failed. Response: ${response.body}");
         Get.snackbar('Error', 'Update failed (${response.statusCode}): ${response.body}');
       }

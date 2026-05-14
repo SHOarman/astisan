@@ -13,12 +13,14 @@ import '../views/start_work_dialog.dart';
 class WorkerJobDetailsController extends GetxController {
   final isLoading = false.obs;
   final bookingId = "".obs;
+  final displayBookingId = "".obs;
 
   // Client Info
   final clientName = "Loading...".obs;
   final clientAddress = "".obs;
   final clientRating = 0.0.obs;
   final clientImage = "".obs;
+  final clientBio = "No bio available".obs;
 
   // Service Info
   final serviceName = "".obs;
@@ -38,6 +40,18 @@ class WorkerJobDetailsController extends GetxController {
     final args = Get.arguments;
     if (args != null && args['bookingId'] != null) {
       bookingId.value = args['bookingId'];
+      
+      // Load initial data if provided to show UI immediately
+      if (args['initialData'] != null) {
+        final data = args['initialData'];
+        clientName.value = data['client_name'] ?? clientName.value;
+        clientImage.value = ApiServices.formatImageUrl(data['client_picture']?.toString());
+        serviceName.value = data['service_name'] ?? serviceName.value;
+        clientAddress.value = data['full_address'] ?? clientAddress.value;
+        paymentAmount.value = double.tryParse(data['base_price']?.toString() ?? '0.0') ?? 0.0;
+        displayBookingId.value = data['booking_id'] ?? displayBookingId.value;
+      }
+      
       fetchJobDetails();
     }
   }
@@ -65,14 +79,18 @@ class WorkerJobDetailsController extends GetxController {
           clientName.value = client['full_name'] ?? 'Client';
           clientRating.value = double.tryParse(client['avg_rating']?.toString() ?? '0.0') ?? 0.0;
           clientImage.value = ApiServices.formatImageUrl(client['profile_picture']);
+          clientBio.value = client['bio'] ?? client['about'] ?? "No bio available";
         }
         clientAddress.value = data['full_address'] ?? '';
         serviceName.value = data['service_name'] ?? '';
         paymentAmount.value = double.tryParse(data['total_amount']?.toString() ?? '0.0') ?? 0.0;
+        displayBookingId.value = data['booking_id'] ?? '';
         
         String date = data['scheduled_date'] ?? '';
         String time = data['scheduled_time'] ?? '';
-        scheduledTime.value = "$date $time".trim();
+        
+        // Simple formatting, can be improved based on exact requirements
+        scheduledTime.value = "$date at ${time.split('.').first}";
         
         clientNotes.value = data['additional_notes'] ?? 'No notes provided';
         

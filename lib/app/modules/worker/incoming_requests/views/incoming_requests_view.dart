@@ -132,8 +132,8 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                         time: "5 min",
                         price: price,
                         tag: "NORMAL",
-                        onAccept: () => controller.acceptRequest(bookingId),
-                        onDecline: () => controller.declineRequest(bookingId),
+                        onAccept: () => controller.acceptRequest(req),
+                        onDecline: () => controller.declineRequest(req),
                         onCall: () {},
                         onChat: () => Get.toNamed(Routes.CHAT, arguments: {'bookingId': bookingId}),
                       );

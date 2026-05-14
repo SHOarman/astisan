@@ -54,6 +54,7 @@ abstract class Routes {
   static const TERMS_OF_SERVICE = '/terms-of-service';
   static const FAQS = '/faqs';
   static const FEEDBACK = '/feedback';
+  static const WORKER_ORDER_HISTORY = '/worker-order-history';
   
   static const WORKER_ACCOUNT_SETTINGS = '/worker-account-settings';
   static const WORKER_SAVED_ADDRESSES = '/worker-saved-addresses';

@@ -117,6 +117,8 @@ import '../../modules/worker/account/views/performance_view.dart';
 import '../../modules/worker/account/controllers/performance_controller.dart';
 import '../../modules/worker/tracking/views/worker_tracking_view.dart';
 import '../../modules/worker/tracking/controllers/worker_tracking_controller.dart';
+import '../../modules/worker/booking_history/views/worker_booking_history_view.dart';
+import '../../modules/worker/booking_history/controllers/worker_booking_history_controller.dart';
 
 class AppPages {
   static final routes = [
@@ -534,6 +536,13 @@ class AppPages {
       page: () => const WorkerTrackingView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<WorkerTrackingController>(() => WorkerTrackingController());
+      }),
+    ),
+    GetPage(
+      name: Routes.WORKER_ORDER_HISTORY,
+      page: () => const WorkerBookingHistoryView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<WorkerBookingHistoryController>(() => WorkerBookingHistoryController());
       }),
     ),
 
