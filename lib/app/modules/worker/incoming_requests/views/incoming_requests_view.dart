@@ -117,7 +117,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                     itemBuilder: (context, index) {
                       final req = controller.requests[index];
                       // API Field Mapping
-                      final String bookingId = req['booking_id']?.toString() ?? '';
+                      final String bookingId = req['id']?.toString() ?? '';
                       final String clientName = req['client_name'] ?? 'Client';
                       final String? clientPicture = ApiServices.formatImageUrl(req['client_picture']?.toString());
                       final String serviceTitle = req['service_name'] ?? 'Service';
@@ -128,10 +128,10 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                         clientPictureUrl: clientPicture,
                         serviceTitle: serviceTitle,
                         address: address,
-                        distance: "1.2 km", // Placeholder as not in API yet
-                        time: "5 min",      // Placeholder
+                        distance: "1.2 km",
+                        time: "5 min",
                         price: price,
-                        tag: "NORMAL",      // Placeholder
+                        tag: "NORMAL",
                         onAccept: () => controller.acceptRequest(bookingId),
                         onDecline: () => controller.declineRequest(bookingId),
                         onCall: () {},

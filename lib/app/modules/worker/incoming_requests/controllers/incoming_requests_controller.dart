@@ -10,7 +10,7 @@ import '../../../../core/routes/app_routes.dart';
 class IncomingRequestsController extends GetxController {
   final requests = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
-  final isVerified = true.obs; // Default true to prevent flicker
+  final isVerified = true.obs;
 
   @override
   void onInit() {
@@ -25,7 +25,7 @@ class IncomingRequestsController extends GetxController {
       final String? token = prefs.getString('token');
       if (token == null || token.isEmpty) return;
 
-      final String cleanToken = token.toString().trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
 
       final response = await http.get(
         Uri.parse(ApiServices.artisan_incoming_bookings),
@@ -38,10 +38,9 @@ class IncomingRequestsController extends GetxController {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> results = (data is List) ? data : (data['results'] ?? []);
-        
         requests.assignAll(results.map((e) => e as Map<String, dynamic>).toList());
 
-        // Also fetch verification status
+        // Update verification status
         final profileResponse = await http.get(
           Uri.parse(ApiServices.artisan_profile),
           headers: {'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
@@ -54,52 +53,73 @@ class IncomingRequestsController extends GetxController {
         }
       }
     } catch (e) {
-      print("Error fetching incoming requests: $e");
+      print("Error fetching requests: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> acceptRequest(String bookingId) async {
-    await _updateBookingStatus(bookingId, 'confirmed');
+  Future<void> acceptRequest(String id) async {
+    await _updateBookingStatus(id, 'confirmed');
   }
 
-  Future<void> declineRequest(String bookingId) async {
-    await _updateBookingStatus(bookingId, 'cancelled');
+  Future<void> declineRequest(String id) async {
+    await _updateBookingStatus(id, 'cancelled');
   }
 
-  Future<void> _updateBookingStatus(String bookingId, String status) async {
+  Future<void> _updateBookingStatus(String id, String status) async {
+    isLoading.value = true;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
       if (token == null || token.isEmpty) return;
-      final String cleanToken = token.toString().trim().replaceAll('"', '').replaceAll('Bearer ', '');
 
-      // The status update URL usually includes the booking ID
-      final String url = "${ApiServices.artisan_update_status}$bookingId/status/";
-      
-      final response = await http.patch(
+      final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final String url = "${ApiServices.artisan_update_status}$id/status/";
+
+      final Map<String, dynamic> payload = {
+        'new_status': status,
+        'note': ''
+      };
+
+      print("DEBUG: Status Update Request");
+      print("DEBUG: URL: $url");
+      print("DEBUG: Payload: $payload");
+
+      final response = await http.post(
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $cleanToken',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({'status': status}),
-      );
+        body: json.encode(payload),
+      ).timeout(const Duration(seconds: 15));
+
+      print("DEBUG: Status Update Response Code: ${response.statusCode}");
+      print("DEBUG: Status Update Response Body: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Booking $status successfully');
-        fetchRequests(); // Refresh list
+        Get.snackbar(
+          'Success',
+          'Booking ${status == 'confirmed' ? 'Accepted' : 'Declined'} successfully',
+          snackPosition: SnackPosition.BOTTOM
+        );
+
+        await fetchRequests();
+
         if (status == 'confirmed') {
-           Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: {'bookingId': bookingId});
+          Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: {'bookingId': id});
         }
       } else {
-        Get.snackbar('Error', 'Failed to update status: ${response.statusCode}');
+        print("ERROR: Status update failed. Response: ${response.body}");
+        Get.snackbar('Error', 'Update failed (${response.statusCode}): ${response.body}');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Connection failed');
+      print("Error in status update: $e");
+      Get.snackbar('Error', 'Connection error or timeout');
+    } finally {
+      isLoading.value = false;
     }
   }
 }
-
