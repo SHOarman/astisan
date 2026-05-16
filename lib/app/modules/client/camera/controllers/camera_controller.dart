@@ -41,8 +41,16 @@ class CameraController extends GetxController {
 
   void proceedToNext() {
     try {
-      // Navigate to Confirm Booking summary page
-      Get.toNamed(Routes.CONFIRM_BOOKING, arguments: {
+      if (Get.isRegistered<BookingController>()) {
+        final bc = Get.find<BookingController>();
+        if (bc.selectedArtisan.isNotEmpty) {
+          bc.currentStep.value = 5;
+          Get.back();
+          return;
+        }
+      }
+      
+      Get.toNamed(Routes.FINDING_ARTISAN, arguments: {
         'service': Get.arguments != null ? Get.arguments['service'] : {},
         'image': imagePath.value,
       });

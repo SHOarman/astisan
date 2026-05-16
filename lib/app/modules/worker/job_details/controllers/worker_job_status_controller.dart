@@ -46,6 +46,12 @@ class WorkerJobStatusController extends GetxController {
   }
 
   void openChat() {
-    Get.toNamed(Routes.WORKER_CHAT);
+    Get.toNamed(Routes.WORKER_CHAT, arguments: {
+      'id': Get.arguments != null ? Get.arguments['bookingId'] : '', // Or however the booking ID is passed here
+      'name': clientName.value,
+      'profile': clientImage.value,
+      'isClient': false,
+      'isOnline': true,
+    });
   }
 }

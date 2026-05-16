@@ -49,6 +49,8 @@ dependencies:
   geocoding: ^4.0.0
   image_picker: ^1.2.2
   http_parser: ^4.1.2
+  web_socket_channel: ^3.0.3
+  http: ^1.6.0
 
 
 dev_dependencies:

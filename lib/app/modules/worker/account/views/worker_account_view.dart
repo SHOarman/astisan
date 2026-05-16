@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../controllers/worker_account_controller.dart';
 
 class WorkerAccountView extends StatelessWidget {
@@ -88,7 +89,7 @@ class WorkerAccountView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "My Profile",
+            AppStrings.myProfile.tr,
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 22.0, fontWeight: FontWeight.w700),
           ),
           GestureDetector(
@@ -162,13 +163,13 @@ class WorkerAccountView extends StatelessWidget {
                 Obx(() => _buildStatusBadge(controller.verificationStatus.value)),
                 const SizedBox(height: 8),
                 Obx(() => Text(
-                  "${controller.experienceYears.value} years experience",
+                  "${controller.experienceYears.value} ${AppStrings.yearsExperience.tr}",
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.w600),
                 )),
                 const SizedBox(height: 4),
                 Obx(() {
                   String prof = controller.profession.value.trim();
-                  if (prof.isEmpty) prof = "Artisan";
+                  if (prof.isEmpty) prof = AppStrings.artisan.tr;
                   String rate = controller.serviceRate.value;
                   return Text(
                     "$prof • \$$rate",
@@ -196,17 +197,17 @@ class WorkerAccountView extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'verified':
         badgeColor = AppColors.onlineGreen;
-        label = "VERIFIED ARTISAN";
+        label = AppStrings.verifiedArtisan.tr;
         icon = Icons.verified_user_rounded;
         break;
       case 'pending':
         badgeColor = Colors.orange;
-        label = "VERIFICATION PENDING";
+        label = AppStrings.verificationPending.tr;
         icon = Icons.hourglass_top_rounded;
         break;
       default:
         badgeColor = Colors.grey.shade400;
-        label = "UNVERIFIED ARTISAN";
+        label = AppStrings.unverifiedArtisan.tr;
         icon = Icons.info_outline_rounded;
     }
 
@@ -242,9 +243,9 @@ class WorkerAccountView extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Obx(() => _buildStatColumn("${controller.jobsDone.value}", "Jobs Done")),
-            Obx(() => _buildStatColumn("${controller.rating.value} ★", "Rating")),
-            Obx(() => _buildStatColumn("\$${controller.earnings.value}", "Earnings")),
+            Obx(() => _buildStatColumn("${controller.jobsDone.value}", AppStrings.jobsDoneStatus.tr)),
+            Obx(() => _buildStatColumn("${controller.rating.value} ★", AppStrings.avgRating.tr)),
+            Obx(() => _buildStatColumn("\$${controller.earnings.value}", AppStrings.earnings.tr)),
           ],
         ),
       ),
@@ -271,7 +272,7 @@ class WorkerAccountView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Skills & Services", style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700, color: AppColors.textColor)),
+          Text(AppStrings.skillsServices.tr, style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700, color: AppColors.textColor)),
           const SizedBox(height: 12.0),
           Obx(() => Wrap(
             spacing: 8.0,
@@ -311,7 +312,7 @@ class WorkerAccountView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("About Me", style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700, color: AppColors.textColor)),
+            Text(AppStrings.aboutMe.tr, style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700, color: AppColors.textColor)),
             const SizedBox(height: 12.0),
             Text(
               controller.bio.value,
@@ -332,12 +333,12 @@ class WorkerAccountView extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildMenuTile(Icons.language, "Language", "English, French", onTap: () => Get.toNamed(Routes.language)),
-          _buildMenuTile(Icons.badge_outlined, "Account Verification", "Verified by passport", trailing: _buildVerifiedPill(), onTap: () => Get.toNamed(Routes.WORKER_VERIFICATION)),
-          _buildMenuTile(Icons.assignment_outlined, "Booking History", "Upcoming, Completed, Cancel", onTap: () => Get.toNamed(Routes.WORKER_ORDER_HISTORY)),
-          _buildMenuTile(Icons.settings_outlined, "Account Settings", "Payment, availability, zones", onTap: () => Get.toNamed(Routes.WORKER_ACCOUNT_SETTINGS)),
-          _buildMenuTile(Icons.security, "Security", "Password secured", onTap: () => Get.toNamed(Routes.SECURITY)),
-          _buildMenuTile(Icons.help_outline_rounded, "Help & Support", "Get assistance", showDivider: false, onTap: () => Get.toNamed(Routes.HELP_SUPPORT)),
+          _buildMenuTile(Icons.language, AppStrings.language.tr, "English, French", onTap: () => Get.toNamed(Routes.language)),
+          _buildMenuTile(Icons.badge_outlined, AppStrings.accountVerification.tr, "Verified by passport", trailing: _buildVerifiedPill(), onTap: () => Get.toNamed(Routes.WORKER_VERIFICATION)),
+          _buildMenuTile(Icons.assignment_outlined, AppStrings.orderHistory.tr, "Upcoming, Completed, Cancel", onTap: () => Get.toNamed(Routes.WORKER_ORDER_HISTORY)),
+          _buildMenuTile(Icons.settings_outlined, AppStrings.accountSettings.tr, "Payment, availability, zones", onTap: () => Get.toNamed(Routes.WORKER_ACCOUNT_SETTINGS)),
+          _buildMenuTile(Icons.security, AppStrings.security.tr, "Password secured", onTap: () => Get.toNamed(Routes.SECURITY)),
+          _buildMenuTile(Icons.help_outline_rounded, AppStrings.helpSupport.tr, "Get assistance", showDivider: false, onTap: () => Get.toNamed(Routes.HELP_SUPPORT)),
         ],
       ),
     );
@@ -368,7 +369,7 @@ class WorkerAccountView extends StatelessWidget {
       children: [
         const Icon(Icons.check_circle_rounded, color: Color(0xFF5C86CE), size: 16),
         const SizedBox(width: 4),
-        Text("Verified", style: GoogleFonts.poppins(color: const Color(0xFF5C86CE), fontSize: 13.0, fontWeight: FontWeight.w600)),
+        Text(AppStrings.verified.tr, style: GoogleFonts.poppins(color: const Color(0xFF5C86CE), fontSize: 13.0, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -383,7 +384,7 @@ class WorkerAccountView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Service Area", style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700)),
+            Text(AppStrings.serviceArea.tr, style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12.0),
             Wrap(
               spacing: 8.0,
@@ -417,7 +418,7 @@ class WorkerAccountView extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: controller.signOut,
         icon: const Icon(Icons.logout_rounded),
-        label: const Text("Sign Out"),
+        label: Text(AppStrings.signOut.tr),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFFFEBEE),
           foregroundColor: AppColors.urgentRed,
@@ -429,4 +430,4 @@ class WorkerAccountView extends StatelessWidget {
       ),
     );
   }
-}
+}

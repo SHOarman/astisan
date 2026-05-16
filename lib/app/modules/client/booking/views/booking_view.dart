@@ -42,7 +42,7 @@ class BookingView extends GetView<BookingController> {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0),
             child: Obx(
-              () => CustomStepper(currentStep: controller.currentStep.value),
+                  () => CustomStepper(currentStep: controller.currentStep.value),
             ),
           ),
           Expanded(
@@ -54,15 +54,17 @@ class BookingView extends GetView<BookingController> {
                   return _buildAddressStep();
                 case 3:
                   return _buildNotesStep();
+                case 5:
+                  return _buildConfirmStep();
                 default:
                   return const SizedBox.shrink();
               }
             }),
           ),
-          FixedBottomActionBar(
-            buttonText: AppStrings.continueBtn.tr,
+          Obx(() => FixedBottomActionBar(
+            buttonText: controller.currentStep.value == 5 ? AppStrings.confirm.tr : AppStrings.continueBtn.tr,
             onPressed: controller.nextStep,
-          ),
+          )),
         ],
       ),
     );
@@ -106,7 +108,7 @@ class BookingView extends GetView<BookingController> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Obx(
-                    () => Row(
+                        () => Row(
                       children: List.generate(controller.dates.length, (index) {
                         final date = controller.dates[index];
                         return SelectableDateCard(
@@ -114,9 +116,9 @@ class BookingView extends GetView<BookingController> {
                           date: date['date']!,
                           month: date['month']!,
                           isSelected:
-                              controller.selectedDateIndex.value == index,
+                          controller.selectedDateIndex.value == index,
                           onTap: () =>
-                              controller.selectedDateIndex.value = index,
+                          controller.selectedDateIndex.value = index,
                         );
                       }),
                     ),
@@ -175,10 +177,8 @@ class BookingView extends GetView<BookingController> {
                       },
                     ),
                   ),
-
                 ),
                 SizedBox(height: 16.0),
-                
               ],
             ),
           ),
@@ -211,7 +211,6 @@ class BookingView extends GetView<BookingController> {
             ),
             child: Stack(
               children: [
-                // Lines to simulate map streets
                 Positioned.fill(child: CustomPaint(painter: MapLinesPainter())),
                 Center(
                   child: Column(
@@ -293,14 +292,14 @@ class BookingView extends GetView<BookingController> {
           ),
           SizedBox(height: 16.0),
           Obx(
-            () {
+                () {
               if (controller.isLoadingAddresses.value) {
                 return const Center(child: Padding(
                   padding: EdgeInsets.all(20.0),
                   child: CircularProgressIndicator(),
                 ));
               }
-              
+
               if (controller.addresses.isEmpty) {
                 return Center(
                   child: Padding(
@@ -328,7 +327,6 @@ class BookingView extends GetView<BookingController> {
             },
           ),
           SizedBox(height: 8.0),
-          // Add new address button dotted
           Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(vertical: 16.0),
@@ -414,13 +412,13 @@ class BookingView extends GetView<BookingController> {
               maxLength: 500,
               decoration: InputDecoration(
                 hintText:
-                    'Describe your issue, specific requirements, or any other details that would help the artisan...',
+                'Describe your issue, specific requirements, or any other details that would help the artisan...',
                 hintStyle: GoogleFonts.poppins(
                   color: AppColors.greyText,
                   fontSize: 14.0,
                 ),
                 border: InputBorder.none,
-                counterText: '', // hide default counter
+                counterText: '',
               ),
               style: GoogleFonts.poppins(
                 color: AppColors.textColor,
@@ -432,7 +430,7 @@ class BookingView extends GetView<BookingController> {
           Align(
             alignment: Alignment.centerRight,
             child: Obx(
-              () => Text(
+                  () => Text(
                 '${controller.notesLength}/500 characters',
                 style: GoogleFonts.poppins(
                   color: AppColors.greyText,
@@ -457,39 +455,224 @@ class BookingView extends GetView<BookingController> {
             children: controller.quickNotes
                 .map(
                   (note) => GestureDetector(
-                    onTap: () => controller.addQuickNote(note),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 8.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(20.0),
-                        border: Border.all(
-                          color: AppColors.primary.withAlpha(50),
-                        ),
-                      ),
-                      child: Text(
-                        note,
-                        style: GoogleFonts.poppins(
-                          color: AppColors.primary,
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                onTap: () => controller.addQuickNote(note),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(20),
+                    borderRadius: BorderRadius.circular(20.0),
+                    border: Border.all(
+                      color: AppColors.primary.withAlpha(50),
                     ),
                   ),
-                )
+                  child: Text(
+                    note,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.primary,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            )
                 .toList(),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildConfirmStep() {
+    final artisan = controller.selectedArtisan;
+    final date = controller.dates[controller.selectedDateIndex.value];
+
+    final time = controller.selectedTime.value;
+    final ampm = time.hour >= 12 ? 'PM' : 'AM';
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final timeStr = '$hour:$minute $ampm';
+
+    final address = controller.addresses.isNotEmpty
+        ? controller.addresses[controller.selectedAddressIndex.value]['address']
+        : 'No address selected';
+
+    final notes = controller.notesController.text.isEmpty
+        ? 'No additional notes'
+        : controller.notesController.text;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Booking Summary',
+            style: GoogleFonts.poppins(
+              color: AppColors.textColor,
+              fontSize: 18.0,
+              fontWeight:
+              FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: 16.0),
+          if (artisan.isNotEmpty)
+            Container(
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(16.0),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30.0,
+                    backgroundImage: (artisan['avatar'] != null && artisan['avatar'].toString().isNotEmpty)
+                        ? NetworkImage(artisan['avatar'])
+                        : (artisan['profile_picture'] != null && artisan['profile_picture'].toString().isNotEmpty)
+                        ? NetworkImage(artisan['profile_picture'])
+                        : const AssetImage('assets/images/placeholder_avatar.png') as ImageProvider,
+                  ),
+                  SizedBox(width: 16.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          artisan['name'] ?? artisan['full_name'] ?? 'Artisan',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.textColor,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          artisan['role'] ?? artisan['occupation'] ?? 'Professional',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.greyText,
+                            fontSize: 14.0,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.star, color: AppColors.ratingStar, size: 16.0),
+                            SizedBox(width: 4.0),
+                            Text(
+                              '${artisan['rating'] ?? '0.0'}',
+                              style: GoogleFonts.poppins(
+                                color: AppColors.textColor,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (artisan.isNotEmpty) SizedBox(height: 16.0),
+          _buildSummaryCard(Icons.calendar_today_outlined, 'Date', '${date['day']}, ${date['month']} ${date['date']}'),
+          SizedBox(height: 12.0),
+          _buildSummaryCard(Icons.access_time, 'Time', timeStr),
+          SizedBox(height: 12.0),
+          _buildSummaryCard(Icons.location_on_outlined, 'Address', address),
+          SizedBox(height: 12.0),
+          _buildSummaryCard(Icons.note_alt_outlined, 'Notes', notes),
+          SizedBox(height: 24.0),
+          Container(
+            padding: EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(10),
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: Column(
+              children: [
+                _buildPriceRow('Service fee', controller.serviceFeeString),
+                SizedBox(height: 8.0),
+                _buildPriceRow('Platform fee', controller.platformFeeString),
+                Divider(height: 24.0, color: AppColors.border),
+                _buildPriceRow('Estimated Total', controller.estimatedTotalString, isTotal: true),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(IconData icon, String title, String value) {
+    return Container(
+      padding: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.primary, size: 24.0),
+          SizedBox(width: 16.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.greyText,
+                    fontSize: 12.0,
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.textColor,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, String value, {bool isTotal = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: isTotal ? AppColors.textColor : AppColors.greyText,
+            fontSize: isTotal ? 16.0 : 14.0,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w400,
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            color: isTotal ? AppColors.primary : AppColors.textColor,
+            fontSize: isTotal ? 16.0 : 14.0,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-// Simple painters for custom shapes
 class DashedBorderPainter extends CustomPainter {
   final Color color;
   DashedBorderPainter({required this.color});
@@ -509,8 +692,6 @@ class DashedBorderPainter extends CustomPainter {
       ),
     );
 
-    // Simplistic dash effect representation using pathMetrics (often requires external libs, but we can draw basic rects)
-    // For exact dashed border, usually package 'dotted_border' is used. I'll just draw a solid border fallback if strict dash is tough in pure canvas, but here is a simple line dash.
     Path dashPath = Path();
     var metrics = path.computeMetrics();
     for (var m in metrics) {

@@ -1,6 +1,7 @@
 import 'package:artisan/app/core/Services/api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/components/custom_dialog.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../controllers/tracking_controller.dart';
 
@@ -481,26 +482,54 @@ class TrackingScreen extends GetView<TrackingController> {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: OutlinedButton(
-                onPressed: () => Get.offAllNamed(Routes.BOOKING),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.redAccent),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Builder(
+              builder: (context) {
+                final bool canCancel = controller.status.value == 'requested' || controller.status.value == 'pending' || controller.status.value.isEmpty;
+                return SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: canCancel ? () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => CustomDialog(
+                          title: "Cancel Booking?",
+                          subtitle: "Are you sure you want to cancel this booking?",
+                          primaryButtonText: "Confirm",
+                          secondaryButtonText: "Go Back",
+                          onPrimaryPressed: () {
+                            Navigator.pop(context); // Close dialog
+                            Get.snackbar(
+                              "Cancelled",
+                              "Booking cancelled successfully",
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                              margin: const EdgeInsets.all(16),
+                            );
+                            Get.offAllNamed(Routes.ORDER_HISTORY); // Go to home
+                          },
+                          onSecondaryPressed: () => Navigator.pop(context),
+                        ),
+                      );
+                    } : null,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: canCancel ? Colors.redAccent : Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      "Cancel Booking",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: canCancel ? Colors.redAccent : Colors.grey.shade400,
+                      ),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  "Cancel Booking",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent,
-                  ),
-                ),
-              ),
+                );
+              }
             ),
           ],
         ),

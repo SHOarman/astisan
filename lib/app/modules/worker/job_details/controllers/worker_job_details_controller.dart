@@ -207,7 +207,15 @@ class WorkerJobDetailsController extends GetxController {
     // Logic for URL launcher or Phone call
   }
 
-  void chatClient() => Get.toNamed(Routes.CHAT, arguments: {'bookingId': bookingId.value});
+  void chatClient() {
+    final chatId = displayBookingId.value.isNotEmpty ? displayBookingId.value : bookingId.value;
+    Get.toNamed('/worker-chat', arguments: {
+        'id': chatId,
+        'name': clientName.value, // ক্লায়েন্টের নাম
+        'profile': clientImage.value,
+        'isClient': false, // কারণ এটি Worker সাইড
+      });
+  }
 
   void iveArrived() {
     updateStatus("arrived");
@@ -234,5 +242,53 @@ class WorkerJobDetailsController extends GetxController {
     updateStatus("cancelled");
     Get.back();
     Get.back();
+  }
+}
+
+class ChatMessageModel {
+  final String id;
+  final String content;
+  final DateTime timestamp;
+  final Sender sender;
+  final bool isRead;
+
+  ChatMessageModel({required this.id, required this.content, required this.timestamp, required this.sender, this.isRead = false});
+
+  factory ChatMessageModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return ChatMessageModel(id: "", content: "", timestamp: DateTime.now(), sender: Sender(id: "", fullName: "", profilePicture: ""));
+    }
+    return ChatMessageModel(
+      id: json['id']?.toString() ?? "",
+      content: json['content']?.toString() ?? "",
+      timestamp: json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now(),
+      sender: json['sender'] != null 
+          ? Sender.fromJson(json['sender'] as Map<String, dynamic>?)
+          : Sender(
+              id: json['sender_id']?.toString() ?? "",
+              fullName: json['sender_name']?.toString() ?? "",
+              profilePicture: ApiServices.formatImageUrl(json['sender_picture']?.toString())
+            ),
+      isRead: json['is_read'] == true || json['is_read'] == 'true',
+    );
+  }
+}
+
+class Sender {
+  final String id;
+  final String fullName;
+  final String profilePicture;
+
+  Sender({required this.id, required this.fullName, required this.profilePicture});
+
+  factory Sender.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return Sender(id: "", fullName: "", profilePicture: "");
+    }
+    return Sender(
+      id: json['id']?.toString() ?? "",
+      fullName: json['full_name']?.toString() ?? "",
+      profilePicture: ApiServices.formatImageUrl(json['profile_picture']?.toString()),
+    );
   }
 }

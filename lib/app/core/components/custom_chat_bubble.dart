@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/static/app_colors.dart';
 import '../constants/static/app_images.dart';
@@ -89,7 +89,7 @@ class CustomChatBubble extends StatelessWidget {
                     if (isMe) ...[
                       SizedBox(width: 4.0),
                       Icon(
-                        Icons.done_all,
+                        isRead ? Icons.done_all : Icons.check,
                         color: isRead ? AppColors.statusCompletedText : AppColors.greyText,
                         size: 14.0,
                       ),

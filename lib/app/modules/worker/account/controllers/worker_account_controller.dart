@@ -18,7 +18,6 @@ class WorkerAccountController extends GetxController {
   final isVerified = false.obs;
   final verificationStatus = 'unverified'.obs;
   
-  // Missing fields restored
   final serviceId = ''.obs;
   final registrationId = ''.obs;
   

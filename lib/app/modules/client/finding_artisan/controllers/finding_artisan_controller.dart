@@ -103,9 +103,9 @@ class FindingArtisanController extends GetxController {
             'role': profile['occupation'] ?? service?['title'] ?? 'Professional',
             'avatar': ApiServices.formatImageUrl(best['profile_picture']?.toString()),
             'distance': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
-            'rating': profile['average_rating']?.toString() ?? '4.7',
-            'reviews': profile['total_reviews'] ?? 0,
-            'price': profile['hourly_rate']?.toString() ?? '25',
+            'rating': best['avg_rating']?.toString() ?? profile['average_rating']?.toString() ?? '0.0',
+            'reviews': best['review_count'] ?? profile['total_reviews'] ?? 0,
+            'price': best['effective_price']?.toString() ?? profile['hourly_rate']?.toString() ?? '25',
           };
           return true;
         }

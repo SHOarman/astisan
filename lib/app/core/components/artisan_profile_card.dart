@@ -155,16 +155,7 @@ class ArtisanProfileCard extends StatelessWidget {
                           color: AppColors.greyText,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.access_time, color: AppColors.greyText, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        distanceOrTime,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.0,
-                          color: AppColors.greyText,
-                        ),
-                      ),
+
                       if (jobsDone != null) ...[
                         const SizedBox(width: 12),
                         const Icon(Icons.check_circle_outline, color: AppColors.greyText, size: 14),
@@ -196,7 +187,7 @@ class ArtisanProfileCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '/hr',
+                  distanceOrTime,
                   style: GoogleFonts.poppins(
                     fontSize: 12.0,
                     color: AppColors.greyText,

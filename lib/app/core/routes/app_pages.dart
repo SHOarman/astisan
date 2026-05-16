@@ -255,9 +255,9 @@ class AppPages {
     ),
     GetPage(
       name: Routes.CHAT,
-      page: () => const ChatView(),
+      page: () => const ClientChatView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<ChatController>(() => ChatController());
+        Get.lazyPut<UniversalChatController>(() => UniversalChatController());
       }),
     ),
     GetPage(
@@ -355,7 +355,7 @@ class AppPages {
       name: Routes.WORKER_CHAT,
       page: () => const WorkerChatView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<WorkerChatController>(() => WorkerChatController());
+        Get.lazyPut<UniversalChatController>(() => UniversalChatController());
       }),
     ),
     GetPage(

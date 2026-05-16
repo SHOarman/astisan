@@ -17,20 +17,20 @@ class NearbyArtisansController extends GetxController {
     super.onInit();
     if (Get.arguments != null) {
       serviceData.value = Map<String, dynamic>.from(Get.arguments['service'] ?? {});
-      fetchNearbyArtisans();
     }
+    fetchNearbyArtisans();
   }
 
   String get serviceName => serviceData['title'] ?? 'Service';
   String get serviceId => serviceData['id']?.toString() ?? '';
 
   Future<void> fetchNearbyArtisans() async {
-    if (serviceId.isEmpty) return;
-    
     isLoading.value = true;
     try {
       final pos = locationController.currentPosition.value;
-      String url = "${ApiServices.baseurl}/api/services/client/services/$serviceId/nearby-artisans/";
+      String url = serviceId.isEmpty 
+          ? "${ApiServices.baseurl}/api/services/client/services/recommended-artisans/"
+          : "${ApiServices.baseurl}/api/services/client/services/$serviceId/nearby-artisans/";
       
       // Add location parameters for 5km radius filtering
       Map<String, String> queryParams = {
@@ -72,23 +72,36 @@ class NearbyArtisansController extends GetxController {
         // Filter and map: Only show verified artisans as requested
         final mappedArtisans = dataList.where((e) {
           final profile = e['artisan_profile'];
-          if (profile == null) return false;
-          // Return true only if verified
-          return profile['is_verified'] == true || profile['verification_status'] == 'verified';
+          final isVerifiedRoot = e['is_verified'] == true;
+          if (profile == null) return isVerifiedRoot;
+          return isVerifiedRoot || profile['is_verified'] == true || profile['verification_status'] == 'verified';
         }).map((e) {
           final profile = e['artisan_profile'] ?? {};
           final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
           
+          String? extractedServiceId;
+          if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
+            extractedServiceId = e['services'][0]['service']?.toString() ?? e['services'][0]['id']?.toString();
+          }
+          if (extractedServiceId == null && profile['services'] != null && profile['services'] is List && profile['services'].isNotEmpty) {
+            extractedServiceId = profile['services'][0]['service']?.toString() ?? profile['services'][0]['id']?.toString();
+          }
+
           return {
-            'id': e['id'],
+            'id': e['id'] ?? e['artisan_id'],
+            'service_id': extractedServiceId,
             'full_name': e['full_name'] ?? 'Artisan',
             'profile_picture': ApiServices.formatImageUrl(e['profile_picture']?.toString()),
-            'occupation': profile['occupation'] ?? serviceName,
-            'rating': double.tryParse(profile['average_rating']?.toString() ?? '0') ?? 0.0,
-            'review_count': profile['total_reviews'] ?? 0,
-            'distance': dist < 1.5 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
-            'hourly_rate': profile['hourly_rate']?.toString() ?? '0.00',
-            'is_verified': profile['is_verified'] ?? false,
+            'occupation': profile['occupation'] ?? e['occupation'] ?? serviceName,
+            'rating': double.tryParse(profile['average_rating']?.toString() ?? e['avg_rating']?.toString() ?? '0') ?? 0.0,
+            'review_count': profile['total_reviews'] ?? e['review_count'] ?? 0,
+            'distance': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
+            'hourly_rate': _getValidPrice(e, profile),
+            'is_verified': true,
+            'bio': profile['bio'] ?? e['bio'],
+            'experience': profile['experience_years'] ?? profile['years_of_experience'] ?? profile['experience'] ?? e['experience'],
+            'skills': profile['skills'] ?? e['skills'],
+            'service_areas': profile['service_areas'] ?? e['service_areas'],
           };
         }).toList();
 
@@ -100,5 +113,38 @@ class NearbyArtisansController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  String _getValidPrice(Map<String, dynamic> e, Map<String, dynamic> profile) {
+    String? servicePrice;
+    if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
+      servicePrice = e['services'][0]['price']?.toString();
+    }
+    if (servicePrice == null && profile['services'] != null && profile['services'] is List && profile['services'].isNotEmpty) {
+      servicePrice = profile['services'][0]['price']?.toString();
+    }
+
+    final possibleValues = [
+      servicePrice,
+      e['effective_price'],
+      e['price_override'],
+      e['hourly_rate'],
+      e['base_price'],
+      profile['effective_price'],
+      profile['price_override'],
+      profile['hourly_rate'],
+      profile['base_price'],
+      profile['effective_price'],
+    ];
+
+    for (var val in possibleValues) {
+      if (val != null) {
+        String strVal = val.toString().trim();
+        if (strVal.isNotEmpty && strVal != '0' && strVal != '0.0' && strVal != '0.00') {
+          return strVal;
+        }
+      }
+    }
+    return '0';
   }
 }

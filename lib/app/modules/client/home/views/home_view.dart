@@ -76,7 +76,7 @@ class HomeView extends GetView<HomeController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               InkWell(
-                onTap: () => Get.toNamed(Routes.SELECT_LOCATION),
+                onTap: null, // Location is fetched automatically
                 child: Row(
                   children: [
                     Icon(Icons.location_on, color: AppColors.white, size: 24.0),
@@ -368,7 +368,7 @@ class HomeView extends GetView<HomeController> {
             ),
             GestureDetector(
               onTap: () {
-                // Get.toNamed(Routes.NEARBY_ARTISANS);
+                Get.toNamed(Routes.NEARBY_ARTISANS);
               },
               child: Text(
                 AppStrings.seeAll.tr,
@@ -392,30 +392,29 @@ class HomeView extends GetView<HomeController> {
           if (controller.recommendedArtisans.isEmpty) {
             return const SizedBox.shrink();
           }
-          return SizedBox(
-            height: 220,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: controller.recommendedArtisans.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 16.0),
-              itemBuilder: (context, index) {
-                final artisan = controller.recommendedArtisans[index];
-                return ArtisanHomeCard(
-                  name: artisan['name'],
-                  role: artisan['role'],
-                  avatarPath: artisan['avatar'],
-                  isVerified: artisan['isVerified'],
-                  rating: artisan['rating'],
-                  reviews: artisan['reviews'],
-                  pricePerHour: artisan['price'],
-                  distanceOrTime: artisan['distanceOrTime'],
-                  isOnline: artisan['isOnline'] ?? true,
-                  onTap: () {
-                     Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
-                  },
-                );
-              },
-            ),
+          final artisans = controller.recommendedArtisans.take(3).toList();
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: artisans.length,
+            itemBuilder: (context, index) {
+              final artisan = artisans[index];
+              return ArtisanProfileCard(
+                name: artisan['name'],
+                role: artisan['role'],
+                avatarPath: artisan['avatar'],
+                isVerified: artisan['isVerified'] == true,
+                rating: artisan['rating'],
+                reviews: artisan['reviews'],
+                pricePerHour: artisan['price']?.toString() ?? '25',
+                distanceOrTime: artisan['distanceOrTime'] ?? 'Nearby',
+                isOnline: artisan['isOnline'] ?? true,
+                onTap: () {
+                   Get.toNamed(Routes.SERVICE_DETAILS, arguments: artisan);
+                },
+              );
+            },
           );
         }),
       ],

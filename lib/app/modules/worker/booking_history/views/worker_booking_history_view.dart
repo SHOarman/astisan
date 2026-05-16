@@ -87,12 +87,20 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
   }
 
   Widget _buildBookingCard(dynamic booking, String statusLabel, Color statusBg, Color statusColor) {
-    final client = booking['client'] ?? {};
-    final clientName = client['full_name'] ?? "Client";
-    final clientImage = ApiServices.formatImageUrl(client['profile_picture']);
+    final client = booking['client'] is Map ? booking['client'] : {};
+    
+    // Support both nested 'client' object and flat fields
+    final clientName = booking['client_name'] ?? client['full_name'] ?? client['name'] ?? "Client";
+    
+    final rawImage = booking['client_profile_picture'] ?? booking['client_picture'] ?? client['profile_picture'] ?? "";
+    final clientImage = ApiServices.formatImageUrl(rawImage.toString());
+    
     final serviceName = booking['service_name'] ?? "Service";
-    final price = booking['total_amount']?.toString() ?? "0.0";
-    final date = booking['scheduled_date'] ?? "";
+    
+    // Support both total_amount and price fields
+    final price = booking['total_amount']?.toString() ?? booking['price']?.toString() ?? "0.0";
+    
+    final date = booking['scheduled_date'] ?? booking['created_at']?.split('T')[0] ?? "";
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

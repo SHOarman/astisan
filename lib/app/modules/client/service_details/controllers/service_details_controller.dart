@@ -15,6 +15,11 @@ class ServiceDetailsController extends GetxController {
 
   final topArtisans = <Map<String, dynamic>>[].obs;
   final isLoadingTopArtisans = false.obs;
+  final isArtisanSpecificFlow = false.obs;
+  final artisanBio = ''.obs;
+  final artisanExperience = ''.obs;
+  final artisanSkills = <String>[].obs;
+  final artisanServiceAreas = <String>[].obs;
 
   // UI-te render korar jonno list-ti eikhane thaka dorkar
   final whatsIncluded = [
@@ -54,8 +59,10 @@ class ServiceDetailsController extends GetxController {
       if (args.containsKey('service') || args.containsKey('artisan')) {
         serviceData.assignAll(args['service'] ?? {});
         artisanData.assignAll(args['artisan'] ?? {});
+        isArtisanSpecificFlow.value = args.containsKey('artisan') && args['artisan'] != null;
       } else {
         artisanData.assignAll(args);
+        isArtisanSpecificFlow.value = true;
         if (serviceData.isEmpty) {
           serviceData.assignAll({
             'title': args['role'] ?? args['occupation'] ?? 'Service Details',
@@ -66,7 +73,80 @@ class ServiceDetailsController extends GetxController {
         }
       }
       _normalizeArtisanData();
-      fetchTopArtisansForService();
+      if (isArtisanSpecificFlow.value) {
+        fetchArtisanProfile();
+      } else {
+        fetchTopArtisansForService();
+      }
+    }
+  }
+
+  Future<void> fetchArtisanProfile() async {
+    final String? artisanId = artisanData['id']?.toString() ?? artisanData['artisan_id']?.toString();
+    if (artisanId == null) return;
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token')?.trim().replaceAll('"', '');
+
+      final response = await http.get(
+        Uri.parse("${ApiServices.artisan_public_profile}$artisanId/public/"),
+        headers: {
+          'Accept': 'application/json',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 20));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        artisanData.addAll(data); 
+
+        // The user showed that data is nested in 'artisan_profile'
+        final profile = data['artisan_profile'] ?? data;
+        
+        artisanBio.value = profile['bio']?.toString() ?? '';
+        
+        final exp = profile['experience_years'] ?? profile['years_of_experience'] ?? profile['experience'];
+        artisanExperience.value = exp != null ? "$exp Years" : "";
+
+        if (profile['skills'] != null) {
+          if (profile['skills'] is List) {
+            artisanSkills.assignAll((profile['skills'] as List).map((e) => e.toString()).toList());
+          } else if (profile['skills'] is String) {
+            try {
+              // Sometimes skills come as a JSON string like '["skill1", "skill2"]'
+              final List decodedSkills = json.decode(profile['skills']);
+              artisanSkills.assignAll(decodedSkills.map((e) => e.toString()).toList());
+            } catch (e) {
+              artisanSkills.assignAll([profile['skills'].toString()]);
+            }
+          }
+        }
+
+        if (profile['service_areas'] != null) {
+          if (profile['service_areas'] is List) {
+            artisanServiceAreas.assignAll((profile['service_areas'] as List).map((e) => e.toString()).toList());
+          } else if (profile['service_areas'] is String) {
+            try {
+              final List decodedAreas = json.decode(profile['service_areas']);
+              artisanServiceAreas.assignAll(decodedAreas.map((e) => e.toString()).toList());
+            } catch (e) {
+              artisanServiceAreas.assignAll([profile['service_areas'].toString()]);
+            }
+          }
+        }
+
+        // CRITICAL: Extract the correct service ID that this artisan actually provides
+        if (data['services'] != null && data['services'] is List && data['services'].isNotEmpty) {
+          artisanData['service_id'] = data['services'][0]['id']?.toString();
+        } else if (profile['service_id'] != null) {
+          artisanData['service_id'] = profile['service_id'].toString();
+        } else if (data['service'] != null) {
+          artisanData['service_id'] = data['service'].toString();
+        }
+      }
+    } catch (e) {
+      print("Error fetching artisan profile: $e");
     }
   }
 
@@ -77,6 +157,32 @@ class ServiceDetailsController extends GetxController {
     artisanData['hourly_rate'] ??= artisanData['pricePerHour'];
     artisanData['distance'] ??= artisanData['distanceOrTime'];
     artisanData['occupation'] ??= artisanData['role'];
+
+    // Pre-populate observables if data is already present in arguments
+    if (artisanData['bio'] != null) artisanBio.value = artisanData['bio'].toString();
+    if (artisanData['experience'] != null) artisanExperience.value = "${artisanData['experience']} Years";
+    
+    if (artisanData['skills'] != null) {
+      if (artisanData['skills'] is List) {
+        artisanSkills.assignAll((artisanData['skills'] as List).map((e) => e.toString()).toList());
+      } else if (artisanData['skills'] is String) {
+        try {
+          final decoded = json.decode(artisanData['skills']);
+          if (decoded is List) artisanSkills.assignAll(decoded.map((e) => e.toString()).toList());
+        } catch (_) {}
+      }
+    }
+
+    if (artisanData['service_areas'] != null) {
+      if (artisanData['service_areas'] is List) {
+        artisanServiceAreas.assignAll((artisanData['service_areas'] as List).map((e) => e.toString()).toList());
+      } else if (artisanData['service_areas'] is String) {
+        try {
+          final decoded = json.decode(artisanData['service_areas']);
+          if (decoded is List) artisanServiceAreas.assignAll(decoded.map((e) => e.toString()).toList());
+        } catch (_) {}
+      }
+    }
   }
 
   Future<void> fetchTopArtisansForService() async {
@@ -127,7 +233,11 @@ class ServiceDetailsController extends GetxController {
           });
         }
 
-        topArtisans.assignAll(dataList.map((e) {
+        final String? currentArtisanId = artisanData['id']?.toString() ?? artisanData['artisan_id']?.toString();
+
+        topArtisans.assignAll(dataList.where((e) {
+          return e['artisan_id']?.toString() != currentArtisanId;
+        }).map((e) {
           final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
           return {
             'id': e['artisan_id'],
@@ -140,6 +250,11 @@ class ServiceDetailsController extends GetxController {
             'jobsDone': e['total_jobs_done'] ?? 0,
             'price': e['effective_price']?.toString() ?? '0',
             'distanceOrTime': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
+            'bio': e['bio'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['bio'] : null),
+            'experience': e['experience_years'] ?? e['years_of_experience'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['experience_years'] : null),
+            'skills': e['skills'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['skills'] : null),
+            'service_areas': e['service_areas'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['service_areas'] : null),
+            'service_id': e['service']?.toString() ?? e['service_id']?.toString() ?? (e['artisan_profile'] != null ? e['artisan_profile']['service_id'] : null),
           };
         }).toList());
       }
@@ -152,5 +267,10 @@ class ServiceDetailsController extends GetxController {
 
   void toggleFavorite() => isFavorite.value = !isFavorite.value;
   void changeTab(int index) => selectedTab.value = index;
-  void bookNow() => Get.toNamed(Routes.BOOKING, arguments: Get.arguments);
+  void bookNow() {
+    Get.toNamed(Routes.BOOKING, arguments: {
+      'service': Map<String, dynamic>.from(serviceData),
+      'artisan': Map<String, dynamic>.from(artisanData),
+    });
+  }
 }

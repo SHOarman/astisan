@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../../core/global_controllers/role_controller.dart';
 
 class Language extends StatefulWidget {
   const Language({super.key});
@@ -8,7 +10,7 @@ class Language extends StatefulWidget {
 }
 
 class _LanguageState extends State<Language> {
-  String selectedLanguage = "English";
+  final RoleController roleController = Get.find<RoleController>();
 
   @override
   Widget build(BuildContext context) {
@@ -38,32 +40,33 @@ class _LanguageState extends State<Language> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Column(
-          children: [
-            _buildLanguageTile("English"),
-            const SizedBox(height: 12),
-            _buildLanguageTile("French"),
-          ],
-        ),
-      ),
+      body: Obx(() {
+        String currentLang = roleController.isClient 
+            ? roleController.clientLanguage.value 
+            : roleController.workerLanguage.value;
+            
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              _buildLanguageTile("English", "en", currentLang == "en"),
+              const SizedBox(height: 12),
+              _buildLanguageTile("French", "fr", currentLang == "fr"),
+            ],
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildLanguageTile(String title) {
-    bool isSelected = selectedLanguage == title;
-
+  Widget _buildLanguageTile(String title, String langCode, bool isSelected) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedLanguage = title;
-        });
+        roleController.setLanguage(langCode);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(
-          // Light blue background if selected, white with border if not
           color: isSelected ? const Color(0xFFEEF4FF) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -82,14 +85,21 @@ class _LanguageState extends State<Language> {
                 color: Color(0xFF1D2939),
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey.shade400,
-              size: 20,
-            ),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF2E90FA),
+                size: 20,
+              )
+            else
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey.shade400,
+                size: 20,
+              ),
           ],
         ),
       ),
     );
   }
-}
+}

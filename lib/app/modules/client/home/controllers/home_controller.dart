@@ -157,20 +157,41 @@ class HomeController extends GetxController {
             return ratB.compareTo(ratA); // Higher rating first
           });
 
-          recommendedArtisans.assignAll(dataList.map((e) {
+          final verifiedList = dataList.where((e) {
+            return e['is_verified'] == true || (e['artisan_profile'] != null && e['artisan_profile']['is_verified'] == true);
+          }).toList();
+
+          recommendedArtisans.assignAll(verifiedList.map((e) {
             final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
+            
+            String? extractedServiceId = e['service']?.toString() ?? e['service_id']?.toString() ?? e['category']?.toString();
+            if (extractedServiceId == null && e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
+              extractedServiceId = e['services'][0]['service']?.toString() ?? e['services'][0]['id']?.toString();
+            }
+            if (extractedServiceId == null && e['artisan_profile'] is Map) {
+              final profServices = e['artisan_profile']['services'];
+              if (profServices != null && profServices is List && profServices.isNotEmpty) {
+                extractedServiceId = profServices[0]['service']?.toString() ?? profServices[0]['id']?.toString();
+              }
+            }
+
             return {
               'id': e['artisan_id'],
+              'service_id': extractedServiceId,
               'name': e['full_name'] ?? 'Artisan',
               'role': e['occupation'] ?? 'Specialist',
               'avatar': ApiServices.formatImageUrl(e['profile_picture']?.toString()),
-              'isVerified': e['is_verified'] ?? true,
+              'isVerified': e['is_verified'] == true || (e['artisan_profile'] != null && e['artisan_profile']['is_verified'] == true),
               'isOnline': e['is_online'] ?? true,
               'rating': double.tryParse(e['avg_rating']?.toString() ?? '0') ?? 0.0,
               'reviews': e['review_count'] ?? 0,
               'jobsDone': e['total_jobs_done'] ?? 0,
-              'price': e['effective_price']?.toString() ?? '0',
+              'price': _getValidPrice(e),
               'distanceOrTime': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
+              'bio': e['bio'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['bio'] : null),
+              'experience': e['experience_years'] ?? e['years_of_experience'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['experience_years'] : null),
+              'skills': e['skills'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['skills'] : null),
+              'service_areas': e['service_areas'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['service_areas'] : null),
             };
           }).toList());
           return;
@@ -181,6 +202,44 @@ class HomeController extends GetxController {
     } finally {
       isLoadingArtisans.value = false;
     }
+  }
+
+  String _getValidPrice(Map<String, dynamic> e) {
+    String? servicePrice;
+    if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
+      servicePrice = e['services'][0]['price']?.toString();
+    }
+    if (servicePrice == null && e['artisan_profile'] is Map) {
+      final profServices = e['artisan_profile']['services'];
+      if (profServices != null && profServices is List && profServices.isNotEmpty) {
+        servicePrice = profServices[0]['price']?.toString();
+      }
+    }
+
+    final possibleValues = [
+      servicePrice,
+      e['effective_price'],
+      e['price_override'],
+      e['hourly_rate'],
+      e['base_price'],
+      if (e['artisan_profile'] is Map) ...[
+        e['artisan_profile']['effective_price'],
+        e['artisan_profile']['price_override'],
+        e['artisan_profile']['hourly_rate'],
+        e['artisan_profile']['base_price'],
+        e['artisan_profile']['effective_price'],
+      ]
+    ];
+
+    for (var val in possibleValues) {
+      if (val != null) {
+        String strVal = val.toString().trim();
+        if (strVal.isNotEmpty && strVal != '0' && strVal != '0.0' && strVal != '0.00') {
+          return strVal;
+        }
+      }
+    }
+    return '0';
   }
 
   void _useDummyArtisans() {

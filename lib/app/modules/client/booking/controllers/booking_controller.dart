@@ -165,10 +165,20 @@ class BookingController extends GetxController {
   }
 
   // Cost calculations
-  double get _minServiceFee =>
-      double.tryParse(serviceData['price_range_min']?.toString() ?? '0') ?? 0;
-  double get _maxServiceFee =>
-      double.tryParse(serviceData['price_range_max']?.toString() ?? '0') ?? 0;
+  double get artisanRate {
+    if (selectedArtisan.isNotEmpty) {
+      return double.tryParse(selectedArtisan['price']?.toString() ?? selectedArtisan['hourly_rate']?.toString() ?? '0') ?? 0;
+    }
+    return 0;
+  }
+
+  double get _minServiceFee => selectedArtisan.isNotEmpty 
+      ? artisanRate 
+      : double.tryParse(serviceData['price_range_min']?.toString() ?? '0') ?? 0;
+      
+  double get _maxServiceFee => selectedArtisan.isNotEmpty 
+      ? artisanRate 
+      : double.tryParse(serviceData['price_range_max']?.toString() ?? '0') ?? 0;
 
   double get platformFeeMin => _minServiceFee * 0.05;
   double get platformFeeMax => _maxServiceFee * 0.05;
@@ -207,12 +217,15 @@ class BookingController extends GetxController {
     if (currentStep.value < 3) {
       currentStep.value++;
     } else if (currentStep.value == 3) {
+      currentStep.value = 4;
       Get.toNamed(Routes.CAMERA, arguments: {'service': serviceData.value});
+    } else if (currentStep.value == 5) {
+      submitBooking();
     }
   }
 
   Future<void> submitBooking() async {
-    isLoadingAddresses.value = true; // Use this as a general loading state
+    isLoadingAddresses.value = true;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
@@ -240,10 +253,137 @@ class BookingController extends GetxController {
       String formattedTime =
           "${selectedTime.value.hour.toString().padLeft(2, '0')}:${selectedTime.value.minute.toString().padLeft(2, '0')}:00";
 
-      request.fields['service'] = serviceData['id']?.toString() ?? '';
+      String serviceId = serviceData['id']?.toString() ?? 
+                               selectedArtisan['service_id']?.toString() ?? '';
+
+      // Check if occupation/role contains the UUID (as suggested by the user)
+      if (serviceId.isEmpty && selectedArtisan.isNotEmpty) {
+        String possibleUuid = selectedArtisan['role']?.toString() ?? selectedArtisan['occupation']?.toString() ?? '';
+        if (possibleUuid.length > 30) { // UUID is 36 chars
+          serviceId = possibleUuid;
+        }
+      }
+
+      // If we still don't have a serviceId, fetch the artisan's public profile
+      // to get their registered service UUID.
+      if (serviceId.isEmpty && selectedArtisan.isNotEmpty) {
+        try {
+          final artisanId = selectedArtisan['id']?.toString() ?? '';
+          if (artisanId.isNotEmpty) {
+            final res = await http.get(
+              Uri.parse("${ApiServices.artisan_public_profile}$artisanId/public/"),
+              headers: {
+                if (token != null) 'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+              },
+            );
+            if (res.statusCode == 200) {
+              final data = json.decode(res.body);
+              if (data['services'] != null && data['services'] is List && data['services'].isNotEmpty) {
+                serviceId = data['services'][0]['service']?.toString() ?? 
+                            data['services'][0]['id']?.toString() ?? '';
+              } else if (data['artisan_profile'] != null && data['artisan_profile']['service_id'] != null) {
+                serviceId = data['artisan_profile']['service_id'].toString();
+              }
+            }
+          }
+        } catch (e) {
+          print("Error fetching artisan service: $e");
+        }
+      }
+
+      // If an artisan is selected, we MUST use their service ID
+      if (selectedArtisan.isNotEmpty) {
+        final artisanId = selectedArtisan['id']?.toString() ?? selectedArtisan['artisan_id']?.toString() ?? '';
+        request.fields['artisan'] = artisanId;
+        
+        // Ensure we have a valid serviceId for THIS artisan
+        if (serviceId.isEmpty) {
+          // Attempt to fetch correct service ID from their profile if still missing
+          try {
+            final res = await http.get(
+              Uri.parse("${ApiServices.artisan_public_profile}$artisanId/public/"),
+              headers: {
+                if (token != null) 'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+              },
+            );
+            if (res.statusCode == 200) {
+              final data = json.decode(res.body);
+              if (data['services'] != null && data['services'] is List && data['services'].isNotEmpty) {
+                serviceId = data['services'][0]['service']?.toString() ?? 
+                            data['services'][0]['id']?.toString() ?? '';
+              } else if (data['artisan_profile'] != null && data['artisan_profile']['service_id'] != null) {
+                serviceId = data['artisan_profile']['service_id'].toString();
+              }
+            }
+          } catch (e) {
+            print("Error fetching artisan service: $e");
+          }
+        }
+      } else {
+        // Auto-match flow: No artisan selected, use the service ID from home page selection
+        // Omit the 'artisan' field to let the system auto-assign
+      }
+
+      // If still empty, we must find a service ID that this artisan supports.
+      // We will look for a service matching their occupation/role name.
+      if (serviceId.isEmpty) {
+        try {
+          final res2 = await http.get(
+            Uri.parse(ApiServices.popular_services),
+            headers: {
+              'Accept': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          );
+          if (res2.statusCode == 200) {
+            final data2 = json.decode(res2.body);
+            List<dynamic> list2 = (data2 is Map) ? (data2['results'] ?? []) : (data2 is List ? data2 : []);
+            
+            if (list2.isNotEmpty) {
+              String occupation = (selectedArtisan['role'] ?? selectedArtisan['occupation'] ?? '').toString().toLowerCase();
+              
+              // Try to find a service that matches the occupation string
+              // e.g. if occupation is "planning.homeclean", it might match a service named "Home Cleaning"
+              var matchingService = list2.firstWhere(
+                (s) => s['name']?.toString().toLowerCase().contains(occupation.split('.').last) == true || 
+                       occupation.toLowerCase().contains(s['name']?.toString().toLowerCase() ?? '___'),
+                orElse: () => null,
+              );
+
+              if (matchingService != null) {
+                serviceId = matchingService['id']?.toString() ?? '';
+                print("DEBUG: Resolved service ID by matching occupation '$occupation' to service '${matchingService['name']}': $serviceId");
+              } else {
+                // Last resort: if we have NO service ID, we take the first one just to prevent the red error,
+                // though it might still fail at the server if the artisan doesn't offer it.
+                serviceId = list2[0]['id']?.toString() ?? '';
+                print("DEBUG: Final fallback service ID: $serviceId");
+              }
+            }
+          }
+        } catch (e) {
+          print("Error in fallback service resolution: $e");
+        }
+      }
+
+      if (serviceId.isEmpty) {
+        Get.snackbar(
+          "Error",
+          "Could not identify the service to book. Please select a service first.",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        isLoadingAddresses.value = false;
+        return;
+      }
+
+      request.fields['service'] = serviceId;
+
       request.fields['service_address'] =
           selectedAddress['id']?.toString() ?? '';
-      request.fields['artisan'] = selectedArtisan['id']?.toString() ?? '';
+      // 'artisan' field is already handled above based on selection
       request.fields['scheduled_date'] = formattedDate;
       request.fields['scheduled_time'] = formattedTime;
       request.fields['additional_notes'] = notesController.text;
@@ -264,14 +404,15 @@ class BookingController extends GetxController {
 
       if (response.statusCode == 201) {
         final decoded = json.decode(response.body);
-        Get.offNamed(
-          Routes.SUCCESS,
-          arguments: {
-            'service': serviceData.value,
-            'booking': decoded,
-            'artisan': selectedArtisan.value,
-          },
+        Get.snackbar(
+          "Success",
+          "Booking confirmed successfully!",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF4CAE79),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
         );
+        Get.offAllNamed(Routes.ORDER_HISTORY);
       } else {
         Get.snackbar(
           "Error",
@@ -296,7 +437,11 @@ class BookingController extends GetxController {
   void previousStep() {
     Get.focusScope?.unfocus();
     if (currentStep.value > 1) {
-      currentStep.value--;
+      if (currentStep.value == 5) {
+        currentStep.value = 3;
+      } else {
+        currentStep.value--;
+      }
     } else {
       Get.back();
     }

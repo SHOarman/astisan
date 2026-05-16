@@ -37,12 +37,14 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
             Center(
               child: Stack(
                 children: [
-                  CircleAvatar(
+                  Obx(() => CircleAvatar(
                     radius: 60.0,
-                    backgroundImage: artisan['profile_picture'] != null && artisan['profile_picture'].isNotEmpty
-                        ? NetworkImage(artisan['profile_picture'])
+                    backgroundImage: (controller.artisanData['avatar'] != null && controller.artisanData['avatar'].toString().isNotEmpty)
+                        ? NetworkImage(controller.artisanData['avatar'])
+                        : (controller.artisanData['profile_picture'] != null && controller.artisanData['profile_picture'].toString().isNotEmpty)
+                        ? NetworkImage(controller.artisanData['profile_picture'])
                         : const AssetImage('assets/images/placeholder_avatar.png') as ImageProvider,
-                  ),
+                  )),
                   Positioned(
                     bottom: 4,
                     right: 4,
@@ -60,21 +62,21 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
               ),
             ),
             const SizedBox(height: 16.0),
-            Text(
-              artisan['full_name'] ?? 'Marcus Johnson',
+            Obx(() => Text(
+              controller.artisanData['name'] ?? controller.artisanData['full_name'] ?? 'Artisan Name',
               style: GoogleFonts.poppins(
                 fontSize: 22.0,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textColor,
               ),
-            ),
-            Text(
-              artisan['occupation'] ?? 'Professional Plumber',
+            )),
+            Obx(() => Text(
+              controller.artisanData['role'] ?? controller.artisanData['occupation'] ?? 'Professional',
               style: GoogleFonts.poppins(
                 fontSize: 16.0,
                 color: AppColors.greyText,
               ),
-            ),
+            )),
             const SizedBox(height: 24.0),
             _buildStatsRow(artisan),
             const SizedBox(height: 32.0),
@@ -85,25 +87,37 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
                 children: [
                   _buildSectionTitle('About'),
                   const SizedBox(height: 12.0),
-                  Text(
-                    'Experienced artisan with a proven track record of providing high-quality services. Specializing in ${artisan['occupation'] ?? 'general maintenance'} with over 5 years of experience.',
+                  Obx(() => Text(
+                    controller.artisanData['bio']?.toString().isNotEmpty == true
+                        ? controller.artisanData['bio']
+                        : 'Experienced artisan with a proven track record of providing high-quality services. Specializing in ${controller.artisanData['role'] ?? controller.artisanData['occupation'] ?? 'general maintenance'}.',
                     style: GoogleFonts.poppins(
                       fontSize: 14.0,
                       color: AppColors.greyText,
                       height: 1.6,
                     ),
-                  ),
+                  )),
                   const SizedBox(height: 24.0),
                   _buildSectionTitle('Skills'),
                   const SizedBox(height: 12.0),
-                  Wrap(
+                  Obx(() => Wrap(
                     spacing: 8.0,
                     runSpacing: 8.0,
+                    children: _buildSkillsList(controller.artisanData),
+                  )),
+                  const SizedBox(height: 24.0),
+                  _buildSectionTitle('Service Areas'),
+                  const SizedBox(height: 12.0),
+                  Row(
                     children: [
-                      _buildSkillBadge('Plumbing'),
-                      _buildSkillBadge('Repair'),
-                      _buildSkillBadge('Installation'),
-                      _buildSkillBadge('Maintenance'),
+                      const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Obx(() => Text(
+                          controller.artisanData['distance'] ?? controller.artisanData['distanceOrTime'] ?? 'Nearby',
+                          style: GoogleFonts.poppins(fontSize: 14.0, color: AppColors.greyText),
+                        )),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 32.0),
@@ -138,14 +152,14 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
   }
 
   Widget _buildStatsRow(Map<String, dynamic> artisan) {
-    return Row(
+    return Obx(() => Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatItem('Rating', '${artisan['rating'] ?? '4.9'}', Icons.star_rounded, AppColors.ratingStar),
-        _buildStatItem('Jobs', '${artisan['review_count'] ?? '127'}', Icons.work_outline, AppColors.primary),
-        _buildStatItem('Rate', '\$${artisan['hourly_rate'] ?? '35'}/hr', Icons.monetization_on_outlined, AppColors.statusCompletedText),
+        _buildStatItem('Rating', '${controller.artisanData['rating'] ?? '0.0'}', Icons.star_rounded, AppColors.ratingStar),
+        _buildStatItem('Jobs', '${controller.artisanData['jobsDone'] ?? controller.artisanData['review_count'] ?? '0'}', Icons.work_outline, AppColors.primary),
+        _buildStatItem('Rate', '\$${controller.artisanData['price'] ?? controller.artisanData['hourly_rate'] ?? '0'}', Icons.monetization_on_outlined, AppColors.statusCompletedText),
       ],
-    );
+    ));
   }
 
   Widget _buildStatItem(String label, String value, IconData icon, Color iconColor) {
@@ -199,5 +213,15 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildSkillsList(Map<String, dynamic> artisan) {
+    if (artisan['skills'] != null && artisan['skills'] is List && artisan['skills'].isNotEmpty) {
+      return (artisan['skills'] as List).map((s) => _buildSkillBadge(s.toString())).toList();
+    }
+    return [
+      _buildSkillBadge('Professional'),
+      _buildSkillBadge('Verified'),
+    ];
   }
 }

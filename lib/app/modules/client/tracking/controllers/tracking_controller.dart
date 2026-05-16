@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/Services/api_services.dart';
 
 class TrackingController extends GetxController {
   final booking = Rxn<Map<String, dynamic>>();
@@ -48,10 +49,11 @@ class TrackingController extends GetxController {
     profession.value = b['artisan_occupation'] ?? artisan['occupation'] ?? artisan['category_name'] ?? "Specialist";
     
     // Robust image retrieval
-    artisanImageUrl.value = b['artisan_picture'] ?? 
+    String rawImageUrl = b['artisan_picture'] ?? 
                            artisan['profile_picture'] ?? 
                            artisan['artisan_picture'] ?? 
                            artisan['avatar'] ?? "";
+    artisanImageUrl.value = ApiServices.formatImageUrl(rawImageUrl);
                            
     serviceName.value = b['service_name'] ?? "Service";
     location.value = b['address'] ?? "N/A";
@@ -95,7 +97,14 @@ class TrackingController extends GetxController {
   }
 
   void goToChat() {
-    Get.toNamed(Routes.CHAT);
+    final b = booking.value ?? {};
+    Get.toNamed(Routes.CHAT, arguments: {
+      'id': b['booking_id'] ?? b['id'] ?? '',
+      'name': artisanName.value,
+      'profile': artisanImageUrl.value,
+      'isClient': true,
+      'isOnline': true,
+    });
   }
 
   void viewCompletionWork() {
