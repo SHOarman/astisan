@@ -113,10 +113,10 @@ class ApiServices {
 
 
   static String formatImageUrl(String? url) {
-    if (url == null || url.isEmpty) return '';
+    if (url == null || url.isEmpty || url.trim().toLowerCase() == 'string') return '';
     
     String formattedUrl = url;
-    final localhostRegex = RegExp(r'https?://(localhost|127\.0\.0\.1)(:\d+)?');
+    final localhostRegex = RegExp(r'https?://(localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d+\.\d+)(:\d+)?');
     
     if (localhostRegex.hasMatch(formattedUrl)) {
       formattedUrl = formattedUrl.replaceFirst(localhostRegex, baseurl);

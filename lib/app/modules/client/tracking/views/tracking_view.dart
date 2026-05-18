@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:math' as math;
 
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_strings.dart';
@@ -428,19 +429,19 @@ class TrackingView extends GetView<TrackingController> {
                               letterSpacing: 1.2,
                             ),
                           ),
-                          Row(
+                          Obx(() => Row(
                             children: [
                               Container(
                                 width: 8.0,
                                 height: 8.0,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.statusCompletedText,
+                                decoration: BoxDecoration(
+                                  color: controller.isLive.value ? const Color(0xFF4CAF50) : AppColors.statusCompletedText,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 6.0),
                               Text(
-                                AppStrings.arrivingIn.tr,
+                                "Arriving in ${controller.etaMinutes.value} mins",
                                 style: GoogleFonts.poppins(
                                   color: AppColors.white,
                                   fontSize: 18.0,
@@ -448,7 +449,7 @@ class TrackingView extends GetView<TrackingController> {
                                 ),
                               ),
                             ],
-                          ),
+                          )),
                         ],
                       ),
                     ),
@@ -462,123 +463,292 @@ class TrackingView extends GetView<TrackingController> {
             ),
           ),
         ),
-        body: Stack(
-          children: [
-            MapPlaceholder(
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 100.0,
-                    left: 50.0,
-                    child: CustomPaint(
-                      size: const Size(150.0, 150.0),
-                      painter: RouteLinePainter(),
-                    ),
-                  ),
-                  Positioned(
-                    top: 250.0,
-                    left: 140.0,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+        body: Obx(() {
+          // Dynamic calculation and projection
+          final cLat = controller.clientLatitude.value;
+          final cLng = controller.clientLongitude.value;
+          final wLat = controller.workerLatitude.value;
+          final wLng = controller.workerLongitude.value;
+
+          // Fallback coordinates to avoid showing the loading spinner forever
+          final double finalCLat = cLat == 0.0 ? 23.8103 : cLat;
+          final double finalCLng = cLng == 0.0 ? 90.4125 : cLng;
+          final double finalWLat = wLat == 0.0 ? 23.7561 : wLat;
+          final double finalWLng = wLng == 0.0 ? 90.3871 : wLng;
+
+          return Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final height = constraints.maxHeight;
+
+                  // Find min/max coordinates
+                  double minLat = math.min(finalCLat, finalWLat);
+                  double maxLat = math.max(finalCLat, finalWLat);
+                  double minLng = math.min(finalCLng, finalWLng);
+                  double maxLng = math.max(finalCLng, finalWLng);
+
+                  // Padding to avoid hitting viewport edges
+                  double latDiff = (maxLat - minLat).abs();
+                  double lngDiff = (maxLng - minLng).abs();
+                  if (latDiff < 0.003) latDiff = 0.003;
+                  if (lngDiff < 0.003) lngDiff = 0.003;
+
+                  minLat -= latDiff * 0.35;
+                  maxLat += latDiff * 0.35;
+                  minLng -= lngDiff * 0.35;
+                  maxLng += lngDiff * 0.35;
+
+                  final latRange = maxLat - minLat;
+                  final lngRange = maxLng - minLng;
+
+                  // Translate GPS coordinates to screen positions
+                  final cX = ((finalCLng - minLng) / lngRange) * width;
+                  final cY = (1.0 - (finalCLat - minLat) / latRange) * height;
+
+                  final wX = ((finalWLng - minLng) / lngRange) * width;
+                  final wY = (1.0 - (finalWLat - minLat) / latRange) * height;
+
+                  return MapPlaceholder(
+                    child: Stack(
                       children: [
-                        Container(
-                          width: 44.0,
-                          height: 44.0,
-                          padding: const EdgeInsets.all(2.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10)
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(22.0),
-                            child: Image.asset(AppImages.placeholderAvatar, fit: BoxFit.cover),
+                        // Dynamic curve route line
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: DynamicRoutePainter(
+                              start: Offset(wX, wY),
+                              end: Offset(cX, cY),
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
-                        Container(width: 2.0, height: 12.0, color: AppColors.primary),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12.0),
+
+                        // Client Marker (Pulsing blue aura and home pin)
+                        Positioned(
+                          left: cX - 24,
+                          top: cY - 24,
+                          child: PulsingMarker(
+                            color: const Color(0xFF2196F3),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2196F3),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black12, blurRadius: 6),
+                                ],
+                              ),
+                              child: const Icon(Icons.home_rounded, color: Colors.white, size: 20),
+                            ),
                           ),
-                          child: Text(
-                            '12 min',
-                            style: GoogleFonts.poppins(color: AppColors.white, fontSize: 10.0, fontWeight: FontWeight.w600),
+                        ),
+
+                        // Worker Marker (Pulsing primary aura with floating banner showing ETA)
+                        Positioned(
+                          left: wX - 22,
+                          top: wY - 55,
+                          child: PulsingMarker(
+                            color: AppColors.primary,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    boxShadow: const [
+                                      BoxShadow(color: Colors.black12, blurRadius: 4),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    "${controller.etaMinutes.value} min",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 10.0,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 2.0,
+                                  height: 4.0,
+                                  color: AppColors.primary,
+                                ),
+                                Container(
+                                  width: 44.0,
+                                  height: 44.0,
+                                  padding: const EdgeInsets.all(2.0),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    child: controller.artisanImageUrl.value.isNotEmpty
+                                        ? Image.network(
+                                            controller.artisanImageUrl.value,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => Image.asset(
+                                              AppImages.placeholderAvatar,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                        : Image.asset(
+                                            AppImages.placeholderAvatar,
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ArtisanBottomSheetCard(
-                headerWidget: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  decoration: BoxDecoration(
-                    color: AppColors.statusCompletedText.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.near_me_outlined, color: AppColors.statusCompletedText, size: 18.0),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        'ETA: 12 minutes · 1.2 km away',
-                        style: GoogleFonts.poppins(color: AppColors.statusCompletedText, fontSize: 12.0, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                avatarPath: AppImages.placeholderAvatar,
-                name: 'Marcus Johnson',
-                badgeText: AppStrings.verified.tr,
-                details: 'Plumber · Pipe Leak Repair',
-                ratingValue: '4.9 (127 jobs)',
-                isOnline: true,
-                actionWidget: const SizedBox.shrink(),
-                trailingIcon: GestureDetector(
-                  onTap: controller.goToChat,
-                  child: Container(
-                    padding: const EdgeInsets.all(12.0),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ArtisanBottomSheetCard(
+                  headerWidget: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                      color: AppColors.statusCompletedText.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Icon(Icons.chat_bubble_outline, color: AppColors.primary, size: 24.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.near_me_outlined, color: AppColors.statusCompletedText, size: 18.0),
+                        const SizedBox(width: 8.0),
+                        Text(
+                          'ETA: ${controller.etaMinutes.value} minutes · ${controller.distanceKm.value} km away',
+                          style: GoogleFonts.poppins(color: AppColors.statusCompletedText, fontSize: 12.0, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  avatarPath: controller.artisanImageUrl.value.isNotEmpty ? controller.artisanImageUrl.value : AppImages.placeholderAvatar,
+                  name: controller.artisanName.value,
+                  badgeText: AppStrings.verified.tr,
+                  details: '${controller.profession.value} · ${controller.serviceName.value}',
+                  ratingValue: '${controller.rating.value} (Verified)',
+                  isOnline: true,
+                  actionWidget: const SizedBox.shrink(),
+                  trailingIcon: GestureDetector(
+                    onTap: controller.goToChat,
+                    child: Container(
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12.0),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                      ),
+                      child: const Icon(Icons.chat_bubble_outline, color: AppColors.primary, size: 24.0),
+                    ),
                   ),
                 ),
-              ),
-            )
-          ],
-        )
+              )
+            ],
+          );
+        })
     );
   }
 }
 
-class RouteLinePainter extends CustomPainter {
+class PulsingMarker extends StatefulWidget {
+  final Widget child;
+  final Color color;
+
+  const PulsingMarker({
+    super.key,
+    required this.child,
+    this.color = AppColors.primary,
+  });
+
+  @override
+  State<PulsingMarker> createState() => _PulsingMarkerState();
+}
+
+class _PulsingMarkerState extends State<PulsingMarker> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Container(
+              width: 56 * _controller.value,
+              height: 56 * _controller.value,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.color.withOpacity(0.4 * (1.0 - _controller.value)),
+              ),
+            );
+          },
+        ),
+        widget.child,
+      ],
+    );
+  }
+}
+
+class DynamicRoutePainter extends CustomPainter {
+  final Offset start;
+  final Offset end;
+  final Color color;
+
+  DynamicRoutePainter({
+    required this.start,
+    required this.end,
+    required this.color,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     var paint = Paint()
-      ..color = AppColors.primary
+      ..color = color
       ..strokeWidth = 4.0
       ..style = PaintingStyle.stroke;
 
     var path = Path();
-    path.moveTo(0, size.height);
-    path.lineTo(0, size.height * 0.5);
-    path.lineTo(size.width * 0.5, size.height * 0.5);
-    path.lineTo(size.width * 0.5, 0);
+    path.moveTo(start.dx, start.dy);
+
+    // Bending curve control point for realistic road-like look
+    var controlPoint = Offset(
+      (start.dx + end.dx) / 2 + 40,
+      (start.dy + end.dy) / 2 - 40,
+    );
+    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
 
     Path dashPath = Path();
     double dashWidth = 8.0;
@@ -598,5 +768,5 @@ class RouteLinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}

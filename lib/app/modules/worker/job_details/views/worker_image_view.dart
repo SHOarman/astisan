@@ -12,10 +12,31 @@ class WorkerImageView extends StatelessWidget {
       body: Stack(
         children: [
           Center(
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.contain,
-            ),
+            child: imagePath.startsWith('http')
+                ? Image.network(
+                    imagePath,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+                      );
+                    },
+                  )
+                : Image.asset(
+                    imagePath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+                      );
+                    },
+                  ),
           ),
           Positioned(
             top: Get.mediaQuery.padding.top + 16,

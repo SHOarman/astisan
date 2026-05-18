@@ -50,39 +50,13 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
       elevation: 0,
       centerTitle: true,
       automaticallyImplyLeading: false,
-      title: Column(
-        children: [
-          Text(
-            AppStrings.artisanIsOnTheWay.tr,
-            style: GoogleFonts.poppins(
-              fontSize: 12.0,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-          Obx(() => Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4CAF50),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8.0),
-              Text(
-                "Arriving in ${controller.arrivalTime.value}",
-                style: GoogleFonts.poppins(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          )),
-        ],
+      title: Text(
+        "Job Details",
+        style: GoogleFonts.poppins(
+          fontSize: 18.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
       actions: [
         IconButton(
@@ -352,10 +326,24 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
   Widget _buildAttachmentCard() {
     return Obx(() => controller.attachmentImage.value.isEmpty 
       ? const SizedBox.shrink()
-      : _buildSectionCard(
+      : Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(color: const Color(0xFFE5E7EB)), // Premium light grey border
+          ),
           child: Row(
             children: [
-              const Icon(Icons.image_outlined, color: AppColors.textColor, size: 24.0),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: const Icon(Icons.image_outlined, color: AppColors.textColor, size: 22.0),
+              ),
               const SizedBox(width: 12.0),
               Expanded(
                 child: Text(
@@ -368,11 +356,11 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.visibility_outlined, color: AppColors.textColor, size: 22.0),
+                icon: const Icon(Icons.remove_red_eye_outlined, color: AppColors.textColor, size: 22.0),
                 onPressed: controller.viewAttachment,
               ),
               IconButton(
-                icon: const Icon(Icons.download_outlined, color: AppColors.textColor, size: 22.0),
+                icon: const Icon(Icons.file_download_outlined, color: AppColors.textColor, size: 22.0),
                 onPressed: controller.downloadAttachment,
               ),
             ],

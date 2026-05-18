@@ -63,7 +63,7 @@ class IncomingRequestsController extends GetxController {
   }
 
   Future<void> declineRequest(Map<String, dynamic> req) async {
-    await _updateBookingStatus(req, 'cancelled');
+    await _updateBookingStatus(req, 'rejected');
   }
 
   Future<void> _updateBookingStatus(Map<String, dynamic> req, String status) async {
@@ -77,16 +77,22 @@ class IncomingRequestsController extends GetxController {
       final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
       final String url = "${ApiServices.artisan_update_status}$id/status/";
 
+      String currentStatus = status;
+      // Rejection notes are often required in REST APIs to satisfy validation schemas.
+      final String note = (currentStatus == 'rejected' || currentStatus == 'cancelled' || currentStatus == 'declined') 
+          ? 'Declined by artisan' 
+          : '';
+
       final Map<String, dynamic> payload = {
-        'new_status': status,
-        'note': ''
+        'new_status': currentStatus,
+        'note': note
       };
 
       print("DEBUG: Status Update Request");
       print("DEBUG: URL: $url");
       print("DEBUG: Payload: $payload");
 
-      final response = await http.post(
+      var response = await http.post(
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $cleanToken',
@@ -96,8 +102,47 @@ class IncomingRequestsController extends GetxController {
         body: json.encode(payload),
       ).timeout(const Duration(seconds: 15));
 
-      print("DEBUG: Status Update Response Code: ${response.statusCode}");
-      print("DEBUG: Status Update Response Body: ${response.body}");
+      print("DEBUG: Status Update Response for '$currentStatus': ${response.statusCode} - ${response.body}");
+
+      // Cascade Fallback 1: If 'rejected' fails with 400 Bad Request, fall back and try 'cancelled'
+      if (response.statusCode == 400 && currentStatus == 'rejected') {
+        currentStatus = 'cancelled';
+        payload['new_status'] = currentStatus;
+        payload['note'] = 'Declined by artisan';
+        
+        print("DEBUG: Rejection failed. Trying fallback status 'cancelled'...");
+        response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Authorization': 'Bearer $cleanToken',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: json.encode(payload),
+        ).timeout(const Duration(seconds: 15));
+        
+        print("DEBUG: Status Update Response for 'cancelled': ${response.statusCode} - ${response.body}");
+      }
+
+      // Cascade Fallback 2: If 'cancelled' also fails with 400, try 'declined'
+      if (response.statusCode == 400 && currentStatus == 'cancelled') {
+        currentStatus = 'declined';
+        payload['new_status'] = currentStatus;
+        payload['note'] = 'Declined by artisan';
+        
+        print("DEBUG: Cancellation failed. Trying fallback status 'declined'...");
+        response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Authorization': 'Bearer $cleanToken',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: json.encode(payload),
+        ).timeout(const Duration(seconds: 15));
+        
+        print("DEBUG: Status Update Response for 'declined': ${response.statusCode} - ${response.body}");
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar(
@@ -114,8 +159,7 @@ class IncomingRequestsController extends GetxController {
             'initialData': req,
           });
         }
-      }
- else {
+      } else {
         print("ERROR: Status update failed. Response: ${response.body}");
         Get.snackbar('Error', 'Update failed (${response.statusCode}): ${response.body}');
       }

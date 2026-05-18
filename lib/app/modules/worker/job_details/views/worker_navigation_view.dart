@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:math' as math;
 
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_strings.dart';
+import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/components/map_placeholder.dart';
 import '../controllers/worker_job_details_controller.dart';
 import 'cancel_order_dialog.dart';
@@ -15,23 +17,126 @@ class WorkerNavigationView extends GetView<WorkerJobDetailsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Map Background
-          const MapPlaceholder(),
-          
-          // Custom Header (Floating over Map)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: _buildHeader(),
-          ),
+      body: Obx(() {
+        final cLat = controller.clientLatitude.value;
+        final cLng = controller.clientLongitude.value;
+        final wLat = controller.currentLatitude.value;
+        final wLng = controller.currentLongitude.value;
 
-          // Bottom Sheet Card
-          _buildBottomSheet(),
-        ],
-      ),
+        // Fallback coordinates to avoid showing the loading spinner forever
+        final double finalCLat = cLat == 0.0 ? 23.8103 : cLat;
+        final double finalCLng = cLng == 0.0 ? 90.4125 : cLng;
+        final double finalWLat = wLat == 0.0 ? 23.7561 : wLat;
+        final double finalWLng = wLng == 0.0 ? 90.3871 : wLng;
+
+        return Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final height = constraints.maxHeight;
+
+                // Find min/max coordinates
+                double minLat = math.min(finalCLat, finalWLat);
+                double maxLat = math.max(finalCLat, finalWLat);
+                double minLng = math.min(finalCLng, finalWLng);
+                double maxLng = math.max(finalCLng, finalWLng);
+
+                // Padding to avoid hitting viewport edges
+                double latDiff = (maxLat - minLat).abs();
+                double lngDiff = (maxLng - minLng).abs();
+                if (latDiff < 0.003) latDiff = 0.003;
+                if (lngDiff < 0.003) lngDiff = 0.003;
+
+                minLat -= latDiff * 0.35;
+                maxLat += latDiff * 0.35;
+                minLng -= lngDiff * 0.35;
+                maxLng += lngDiff * 0.35;
+
+                final latRange = maxLat - minLat;
+                final lngRange = maxLng - minLng;
+
+                // Translate GPS coordinates to screen positions
+                final cX = ((finalCLng - minLng) / lngRange) * width;
+                final cY = (1.0 - (finalCLat - minLat) / latRange) * height;
+
+                final wX = ((finalWLng - minLng) / lngRange) * width;
+                final wY = (1.0 - (finalWLat - minLat) / latRange) * height;
+
+                return MapPlaceholder(
+                  child: Stack(
+                    children: [
+                      // Curved path line
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: NavigationRoutePainter(
+                            start: Offset(wX, wY),
+                            end: Offset(cX, cY),
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+
+                      // Client Target (blue house)
+                      Positioned(
+                        left: cX - 24,
+                        top: cY - 24,
+                        child: PulsingNavMarker(
+                          color: const Color(0xFF2196F3),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF2196F3),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(color: Colors.black12, blurRadius: 6),
+                              ],
+                            ),
+                            child: const Icon(Icons.home_rounded, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ),
+
+                      // Worker Current (primary pin/dot moving)
+                      Positioned(
+                        left: wX - 18,
+                        top: wY - 18,
+                        child: PulsingNavMarker(
+                          color: AppColors.primary,
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(color: Colors.black26, blurRadius: 8),
+                              ],
+                            ),
+                            child: const Icon(Icons.navigation_rounded, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            
+            // Custom Header (Floating over Map)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: _buildHeader(),
+            ),
+
+            // Bottom Sheet Card
+            _buildBottomSheet(),
+          ],
+        );
+      }),
     );
   }
 
@@ -66,14 +171,14 @@ class WorkerNavigationView extends GetView<WorkerJobDetailsController> {
                     ),
                   ),
                   const SizedBox(width: 8.0),
-                  Text(
+                  Obx(() => Text(
                     "Arriving in ${controller.arrivalTime.value}",
                     style: GoogleFonts.poppins(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
-                  ),
+                  )),
                 ],
               ),
             ],
@@ -82,7 +187,10 @@ class WorkerNavigationView extends GetView<WorkerJobDetailsController> {
             right: 16,
             child: IconButton(
               icon: const Icon(Icons.close, color: Colors.white, size: 28),
-              onPressed: () => Get.back(),
+              onPressed: () {
+                controller.stopLocationSharing();
+                Get.back();
+              },
             ),
           ),
         ],
@@ -132,7 +240,9 @@ class WorkerNavigationView extends GetView<WorkerJobDetailsController> {
                 children: [
                   CircleAvatar(
                     radius: 25,
-                    backgroundImage: AssetImage(controller.clientImage.value),
+                    backgroundImage: controller.clientImage.value.startsWith('http')
+                        ? NetworkImage(controller.clientImage.value)
+                        : AssetImage(controller.clientImage.value.isEmpty ? AppImages.placeholderAvatar : controller.clientImage.value) as ImageProvider,
                   ),
                   const SizedBox(width: 12.0),
                   Expanded(
@@ -252,3 +362,109 @@ class WorkerNavigationView extends GetView<WorkerJobDetailsController> {
     );
   }
 }
+
+class PulsingNavMarker extends StatefulWidget {
+  final Widget child;
+  final Color color;
+
+  const PulsingNavMarker({
+    super.key,
+    required this.child,
+    this.color = AppColors.primary,
+  });
+
+  @override
+  State<PulsingNavMarker> createState() => _PulsingNavMarkerState();
+}
+
+class _PulsingNavMarkerState extends State<PulsingNavMarker> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Container(
+              width: 56 * _controller.value,
+              height: 56 * _controller.value,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.color.withOpacity(0.4 * (1.0 - _controller.value)),
+              ),
+            );
+          },
+        ),
+        widget.child,
+      ],
+    );
+  }
+}
+
+class NavigationRoutePainter extends CustomPainter {
+  final Offset start;
+  final Offset end;
+  final Color color;
+
+  NavigationRoutePainter({
+    required this.start,
+    required this.end,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = color
+      ..strokeWidth = 4.0
+      ..style = PaintingStyle.stroke;
+
+    var path = Path();
+    path.moveTo(start.dx, start.dy);
+
+    // Curved control point
+    var controlPoint = Offset(
+      (start.dx + end.dx) / 2 + 40,
+      (start.dy + end.dy) / 2 - 40,
+    );
+    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
+
+    Path dashPath = Path();
+    double dashWidth = 8.0;
+    double dashSpace = 6.0;
+    double distance = 0.0;
+
+    for (var pathMetric in path.computeMetrics()) {
+      while (distance < pathMetric.length) {
+        dashPath.addPath(
+          pathMetric.extractPath(distance, distance + dashWidth),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+

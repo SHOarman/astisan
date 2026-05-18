@@ -7,11 +7,11 @@ import '../constants/static/app_strings.dart';
 class RequestCard extends StatelessWidget {
   final String clientName;
   final String? clientPictureUrl;
+  final String clientRating;
   final String serviceTitle;
   final String address;
   final String distance;
-  final String time;
-  final String price;
+  final String timeAgo;
   final String tag; // URGENT, NORMAL
   final VoidCallback onAccept;
   final VoidCallback onDecline;
@@ -22,11 +22,11 @@ class RequestCard extends StatelessWidget {
     super.key,
     required this.clientName,
     this.clientPictureUrl,
+    required this.clientRating,
     required this.serviceTitle,
     required this.address,
     required this.distance,
-    required this.time,
-    required this.price,
+    required this.timeAgo,
     required this.tag,
     required this.onAccept,
     required this.onDecline,
@@ -97,7 +97,7 @@ class RequestCard extends StatelessWidget {
                           Icon(Icons.timer_outlined, size: 14.0, color: Colors.grey.shade400),
                           const SizedBox(width: 4.0),
                           Text(
-                            "0:40s",
+                            timeAgo,
                             style: GoogleFonts.poppins(fontSize: 12.0, color: AppColors.greyText, fontWeight: FontWeight.w500),
                           ),
                         ],
@@ -147,27 +147,12 @@ class RequestCard extends StatelessWidget {
                                 const Icon(Icons.star, size: 14.0, color: AppColors.normalYellow),
                                 const SizedBox(width: 4.0),
                                 Text(
-                                  "4.8 Client Rating",
+                                  "$clientRating Client Rating",
                                   style: GoogleFonts.poppins(fontSize: 12.0, color: AppColors.greyText, fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
                           ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF0F5FA),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          price,
-                          style: GoogleFonts.poppins(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                          ),
                         ),
                       ),
                     ],
@@ -182,7 +167,7 @@ class RequestCard extends StatelessWidget {
                   const SizedBox(height: 10.0),
                   _buildDetailRow(Icons.location_on_rounded, address, Colors.grey.shade500),
                   const SizedBox(height: 10.0),
-                  _buildDetailRow(Icons.access_time_filled_rounded, "$distance away • $time drive", Colors.grey.shade500),
+                  _buildDetailRow(Icons.access_time_filled_rounded, "$distance away", Colors.grey.shade500),
                   
                   const SizedBox(height: 20.0),
                   

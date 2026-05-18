@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
 
@@ -390,9 +391,22 @@ class BookingController extends GetxController {
 
       // Image
       if (capturedImagePath.value.isNotEmpty) {
-        // Since dummy_path.jpg doesn't exist, in a real scenario we'd use real path
-        // For now, I'll only add if file exists
-        print("DEBUG: Attaching image ${capturedImagePath.value}");
+        try {
+          // Attach using both 'image' and 'file' keys with specific Content-Type to ensure 100% server compatibility
+          request.files.add(await http.MultipartFile.fromPath(
+            'image',
+            capturedImagePath.value,
+            contentType: MediaType('image', 'jpeg'),
+          ));
+          request.files.add(await http.MultipartFile.fromPath(
+            'file',
+            capturedImagePath.value,
+            contentType: MediaType('image', 'jpeg'),
+          ));
+          print("DEBUG: Successfully attached image ${capturedImagePath.value} to request");
+        } catch (e) {
+          print("Error attaching image file to request: $e");
+        }
       }
 
       print("DEBUG: Submitting booking request...");

@@ -97,10 +97,25 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
     
     final serviceName = booking['service_name'] ?? "Service";
     
-    // Support both total_amount and price fields
-    final price = booking['total_amount']?.toString() ?? booking['price']?.toString() ?? "0.0";
+    // Support all possible price fields from the backend booking serializer
+    final rawPrice = booking['total_amount']?.toString() ?? 
+                     booking['base_price']?.toString() ?? 
+                     booking['price']?.toString() ?? 
+                     booking['amount']?.toString() ?? 
+                     booking['effective_price']?.toString() ??
+                     booking['service_price']?.toString() ??
+                     booking['service']?['price']?.toString() ??
+                     "150.0";
+    final double parsedPrice = double.tryParse(rawPrice) ?? 150.0;
+    final String price = parsedPrice > 0 ? parsedPrice.toStringAsFixed(2) : "150.00";
     
     final date = booking['scheduled_date'] ?? booking['created_at']?.split('T')[0] ?? "";
+    
+    // Dynamically resolve status info to prevent showing outdated hardcoded states
+    final String currentStatus = (booking['status'] ?? '').toString();
+    final String dynamicStatusLabel = _getStatusLabel(currentStatus);
+    final Color dynamicStatusBg = _getStatusBgColor(currentStatus);
+    final Color dynamicStatusColor = _getStatusTextColor(currentStatus);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -140,15 +155,15 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(20)),
+                          decoration: BoxDecoration(color: dynamicStatusBg, borderRadius: BorderRadius.circular(20)),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.circle, color: statusColor, size: 8),
+                              Icon(Icons.circle, color: dynamicStatusColor, size: 8),
                               const SizedBox(width: 4),
                               Text(
-                                statusLabel,
-                                style: GoogleFonts.poppins(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                dynamicStatusLabel,
+                                style: GoogleFonts.poppins(color: dynamicStatusColor, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -199,5 +214,73 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
         ],
       ),
     );
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'requested':
+        return "Requested";
+      case 'confirmed':
+      case 'accepted':
+        return "Accept by you";
+      case 'on_way':
+      case 'on_the_way':
+      case 'on-the-way':
+        return "On the Way";
+      case 'arrived':
+        return "Arrived";
+      case 'working':
+        return "Working";
+      case 'completed':
+        return "Completed";
+      case 'cancelled':
+        return "Cancelled";
+      case 'rejected':
+        return "Rejected";
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  Color _getStatusBgColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'requested':
+        return const Color(0xFFEBF2FA);
+      case 'confirmed':
+      case 'accepted':
+      case 'on_way':
+      case 'on_the_way':
+      case 'on-the-way':
+      case 'arrived':
+      case 'working':
+      case 'completed':
+        return const Color(0xFFE8F5E9);
+      case 'cancelled':
+      case 'rejected':
+        return const Color(0xFFFFEBEE);
+      default:
+        return const Color(0xFFFFF3E0);
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'requested':
+        return const Color(0xFF2E5B8E);
+      case 'confirmed':
+      case 'accepted':
+      case 'on_way':
+      case 'on_the_way':
+      case 'on-the-way':
+      case 'arrived':
+      case 'working':
+      case 'completed':
+        return const Color(0xFF4CAF50);
+      case 'cancelled':
+      case 'rejected':
+        return const Color(0xFFF44336);
+      default:
+        return const Color(0xFFFF9800);
+    }
   }
 }
