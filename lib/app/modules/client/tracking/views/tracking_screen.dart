@@ -425,7 +425,7 @@ class TrackingScreen extends GetView<TrackingController> {
 
   // --- BOTTOM BUTTONS ---
   Widget _buildBottomButtons() {
-    final bool canTrack = controller.isStatusAtLeast('on_way') && controller.status.value != 'completed';
+    final bool canTrack = ['on_way', 'on_the_way', 'on-the-way'].contains(controller.status.value);
     
     return SafeArea(
       child: Padding(

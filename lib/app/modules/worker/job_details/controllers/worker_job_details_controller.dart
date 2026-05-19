@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../core/Services/api_services.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/components/success_dialog.dart';
@@ -45,11 +46,35 @@ class WorkerJobDetailsController extends GetxController {
   final clientLatitude = 0.0.obs;
   final clientLongitude = 0.0.obs;
   final isSharingLocation = false.obs;
-  
+  final routePoints = <LatLng>[].obs;
+
+  // Whether coordinates are ready and valid for the map to render
+  final locationReady = false.obs;
+
+  LatLng? _lastRouteCoords;
+  bool _isFetchingRoute = false;
+  LatLng? _pendingRouteFetchOrigin;
+
   WebSocketChannel? _trackingChannel;
   Timer? _pingTimer;
   Timer? _simulationTimer;
   StreamSubscription<Position>? _gpsStreamSubscription;
+
+  // ─── NaN Safety Helper ────────────────────────────────────────────────────
+  // Returns [fallback] if [value] is NaN, infinite, or zero (when zero is invalid)
+  double _safeCoord(double? value, double fallback) {
+    if (value == null) return fallback;
+    if (value.isNaN || value.isInfinite) return fallback;
+    return value;
+  }
+
+  bool _isValidLatLng(double lat, double lng) {
+    return !lat.isNaN && !lat.isInfinite &&
+        !lng.isNaN && !lng.isInfinite &&
+        lat >= -90 && lat <= 90 &&
+        lng >= -180 && lng <= 180;
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   @override
   void onInit() {
@@ -57,8 +82,7 @@ class WorkerJobDetailsController extends GetxController {
     final args = Get.arguments;
     if (args != null && args['bookingId'] != null) {
       bookingId.value = args['bookingId'];
-      
-      // Load initial data if provided to show UI immediately
+
       if (args['initialData'] != null) {
         final data = args['initialData'];
         clientName.value = data['client_name'] ?? clientName.value;
@@ -68,29 +92,28 @@ class WorkerJobDetailsController extends GetxController {
         paymentAmount.value = double.tryParse(data['base_price']?.toString() ?? '0.0') ?? 0.0;
         displayBookingId.value = data['booking_id'] ?? displayBookingId.value;
       }
-      
+
       fetchJobDetails();
     }
   }
 
   Future<void> fetchJobDetails() async {
     isLoading.value = true;
-    
-    // Set some beautiful defaults first so if the server has any issue or is slow, the UI has instant visual data
-    if (clientName.value == "Loading..." || clientName.value.isEmpty) {
-      clientName.value = "ahmed Arman";
-      clientAddress.value = "43 Mohakhali C/A, 1212, Dhaka, Bangladesh";
-      clientRating.value = 4.8;
-      clientBio.value = "Professional AC servicing client requiring quick leaking check and repair.";
-      serviceName.value = "AC Service";
-      paymentAmount.value = 150.0;
-      scheduledTime.value = "2026-05-18 at 10:00 AM";
-      clientNotes.value = "Leaking issue under the main unit. Please inspect both indoor and outdoor units.";
-      attachmentName.value = "Pipe leak Image";
-      attachmentImage.value = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000";
-      displayBookingId.value = bookingId.value.isNotEmpty ? bookingId.value : "FG202605167327";
-      bookingStatus.value = "accepted";
-    }
+
+    // if (clientName.value == "Loading..." || clientName.value.isEmpty) {
+    //   clientName.value = "ahmed Arman";
+    //   clientAddress.value = "43 Mohakhali C/A, 1212, Dhaka, Bangladesh";
+    //   clientRating.value = 4.8;
+    //   clientBio.value = "Professional AC servicing client requiring quick leaking check and repair.";
+    //   serviceName.value = "AC Service";
+    //   paymentAmount.value = 150.0;
+    //   scheduledTime.value = "2026-05-18 at 10:00 AM";
+    //   clientNotes.value = "Leaking issue under the main unit. Please inspect both indoor and outdoor units.";
+    //   attachmentName.value = "Pipe leak Image";
+    //   attachmentImage.value = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000";
+    //   displayBookingId.value = bookingId.value.isNotEmpty ? bookingId.value : "FG202605167327";
+    //   bookingStatus.value = "accepted";
+    // }
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -101,9 +124,7 @@ class WorkerJobDetailsController extends GetxController {
       }
 
       final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
-      
-      print("WorkerJobDetailsController: Fetching booking details from endpoint: ${ApiServices.artisan_booking_detail}${bookingId.value}/");
-      
+
       final response = await http.get(
         Uri.parse("${ApiServices.artisan_booking_detail}${bookingId.value}/"),
         headers: {
@@ -111,7 +132,7 @@ class WorkerJobDetailsController extends GetxController {
           'Accept': 'application/json',
           'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
         },
-      ).timeout(const Duration(seconds: 4)); // Added timeout to prevent hanging forever
+      ).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -125,20 +146,39 @@ class WorkerJobDetailsController extends GetxController {
           clientImage.value = ApiServices.formatImageUrl(client['profile_picture']);
           clientBio.value = client['bio'] ?? client['about'] ?? "No bio available";
         }
+
         clientAddress.value = data['full_address'] ?? '';
-        clientLatitude.value = double.tryParse(data['client_latitude']?.toString() ?? data['latitude']?.toString() ?? '0.0') ?? 0.0;
-        clientLongitude.value = double.tryParse(data['client_longitude']?.toString() ?? data['longitude']?.toString() ?? '0.0') ?? 0.0;
+
+        // ── Safe parse client coordinates ──────────────────────────────────
+        final double parsedCLat = double.tryParse(
+            data['address_lat']?.toString() ?? data['client_latitude']?.toString() ?? data['latitude']?.toString() ?? ''
+        ) ?? 0.0;
+        final double parsedCLng = double.tryParse(
+            data['address_lng']?.toString() ?? data['client_longitude']?.toString() ?? data['longitude']?.toString() ?? ''
+        ) ?? 0.0;
+
+        // Only write if valid — never let NaN into the observables
+        if (_isValidLatLng(parsedCLat, parsedCLng) && parsedCLat != 0.0 && parsedCLng != 0.0) {
+          clientLatitude.value = parsedCLat;
+          clientLongitude.value = parsedCLng;
+        } else {
+          // Dhaka fallback if API gave us nothing
+          clientLatitude.value = 23.8103;
+          clientLongitude.value = 90.4125;
+        }
+        // ───────────────────────────────────────────────────────────────────
+
         _updateDistanceAndETA();
         serviceName.value = data['service_name'] ?? '';
         paymentAmount.value = double.tryParse(data['total_amount']?.toString() ?? '0.0') ?? 0.0;
         displayBookingId.value = data['booking_id'] ?? '';
         bookingStatus.value = (data['status'] ?? '').toString().toLowerCase();
-        
+
         String date = data['scheduled_date'] ?? '';
         String time = data['scheduled_time'] ?? '';
         scheduledTime.value = "$date at ${time.split('.').first}";
         clientNotes.value = data['additional_notes'] ?? 'No notes provided';
-        
+
         String foundImageUrl = "";
         if (data['image'] != null) {
           if (data['image'] is Map && data['image']['image'] != null) {
@@ -156,25 +196,23 @@ class WorkerJobDetailsController extends GetxController {
         if (foundImageUrl.isEmpty && data['file'] != null) {
           foundImageUrl = data['file'].toString();
         }
-
         if (foundImageUrl.trim().toLowerCase() == 'string') {
           foundImageUrl = "";
         }
-
         if (foundImageUrl.isNotEmpty) {
           attachmentImage.value = ApiServices.formatImageUrl(foundImageUrl);
           attachmentName.value = "Pipe leak Image";
         }
 
         if (data['checklist_items'] != null) {
-           checklist.assignAll((data['checklist_items'] as List).map((e) => {
-             'title': e['label'],
-             'checked': e['is_done'],
-             'id': e['id'],
-           }).toList());
+          checklist.assignAll((data['checklist_items'] as List).map((e) => {
+            'title': e['label'],
+            'checked': e['is_done'],
+            'id': e['id'],
+          }).toList());
         }
       } else {
-        print("WorkerJobDetailsController: Received non-200 response: ${response.statusCode}");
+        print("WorkerJobDetailsController: Non-200 response: ${response.statusCode}");
       }
     } catch (e) {
       print("Error fetching job details: $e");
@@ -198,7 +236,6 @@ class WorkerJobDetailsController extends GetxController {
         "note": note,
       };
 
-      print("WorkerJobDetailsController: Updating status to $status via POST to $url");
       var response = await http.post(
         Uri.parse(url),
         headers: {
@@ -209,12 +246,7 @@ class WorkerJobDetailsController extends GetxController {
         body: json.encode(payload),
       );
 
-      print("WorkerJobDetailsController: Response status code: ${response.statusCode}");
-      print("WorkerJobDetailsController: Response body: ${response.body}");
-
-      // Cascading Fallback for 'on_way' variations to cover any backend choice mismatches
       if (response.statusCode == 400 && status == 'on_way') {
-        print("WorkerJobDetailsController: 'on_way' failed. Trying fallback status 'on_the_way'...");
         payload['new_status'] = 'on_the_way';
         response = await http.post(
           Uri.parse(url),
@@ -228,7 +260,6 @@ class WorkerJobDetailsController extends GetxController {
       }
 
       if (response.statusCode == 400 && payload['new_status'] == 'on_the_way') {
-        print("WorkerJobDetailsController: 'on_the_way' failed. Trying fallback status 'on-the-way'...");
         payload['new_status'] = 'on-the-way';
         response = await http.post(
           Uri.parse(url),
@@ -242,12 +273,10 @@ class WorkerJobDetailsController extends GetxController {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final String finalStatus = payload['new_status'].toString();
-        Get.snackbar("Success", "Status updated to $finalStatus");
+        Get.snackbar("Success", "Status updated to ${payload['new_status']}");
         fetchJobDetails();
         return true;
       } else {
-        print("ERROR: Status update failed. Body: ${response.body}");
         Get.snackbar("Error", "Update failed (${response.statusCode}): ${response.body}");
         return false;
       }
@@ -267,20 +296,19 @@ class WorkerJobDetailsController extends GetxController {
 
   void startNavigation() async {
     final String currentStatus = bookingStatus.value;
-    
+
     if (currentStatus == 'requested') {
-      print("WorkerJobDetailsController: Booking is 'requested'. Confirming first...");
       final confirmed = await updateStatus("confirmed");
       if (!confirmed) return;
     }
-    
-    // Skip updating to 'on_way' if already 'on_way' or further along in the timeline
-    final bool alreadyOnWay = ['on_way', 'on_the_way', 'on-the-way', 'arrived', 'working', 'completed'].contains(currentStatus);
+
+    final bool alreadyOnWay = ['on_way', 'on_the_way', 'on-the-way', 'arrived', 'working', 'completed']
+        .contains(currentStatus);
     if (!alreadyOnWay) {
       final onWay = await updateStatus("on_way");
       if (!onWay) return;
     }
-    
+
     startLocationSharing();
     Get.toNamed(Routes.WORKER_NAVIGATION, arguments: {'bookingId': bookingId.value});
   }
@@ -294,121 +322,108 @@ class WorkerJobDetailsController extends GetxController {
       final String? token = prefs.getString('token')?.replaceAll('"', '');
       if (token == null) return;
 
-      final wsBaseUrl = ApiServices.baseurl.replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://');
+      final wsBaseUrl = ApiServices.baseurl
+          .replaceFirst('https://', 'wss://')
+          .replaceFirst('http://', 'ws://');
       final wsUrl = "$wsBaseUrl/ws/tracking/${bookingId.value}/?token=$token";
 
-      print("WorkerJobDetailsController: Connecting to WebSocket: $wsUrl");
       _trackingChannel = IOWebSocketChannel.connect(
         Uri.parse(wsUrl),
-        headers: {
-          'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
-        },
+        headers: {'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true'},
       );
 
-      // Listen to incoming server-to-worker outgoing events from the WebSocket channel
       _trackingChannel!.stream.listen((event) {
-        print("WorkerJobDetailsController: Received event from server: $event");
         try {
           final data = json.decode(event);
-          if (data['type'] == 'connection_established') {
-            print("WorkerJobDetailsController: Connection established. role=${data['role']}");
-          } else if (data['type'] == 'location_update') {
-            print("WorkerJobDetailsController: Broadcast location confirmation received: lat=${data['lat']}, lng=${data['lng']}");
-            // Sync with server values if provided
-            if (data['lat'] != null && data['lng'] != null) {
-              currentLatitude.value = double.tryParse(data['lat'].toString()) ?? currentLatitude.value;
-              currentLongitude.value = double.tryParse(data['lng'].toString()) ?? currentLongitude.value;
+          if (data['type'] == 'location_update') {
+            final double lat = double.tryParse(data['lat']?.toString() ?? '') ?? double.nan;
+            final double lng = double.tryParse(data['lng']?.toString() ?? '') ?? double.nan;
+            // ── Only update if server sends valid coords ──
+            if (_isValidLatLng(lat, lng)) {
+              currentLatitude.value = lat;
+              currentLongitude.value = lng;
               _updateDistanceAndETA();
             }
-          } else if (data['type'] == 'pong') {
-            print("WorkerJobDetailsController: Heartbeat Pong received");
-          } else if (data['type'] == 'error') {
-            print("WorkerJobDetailsController: WebSocket error message: ${data['message']}");
           }
         } catch (e) {
           print("WorkerJobDetailsController: Error parsing server event: $e");
         }
       }, onError: (err) {
-        print("WorkerJobDetailsController: WebSocket channel stream error: $err");
+        print("WorkerJobDetailsController: WebSocket stream error: $err");
       }, onDone: () {
-        print("WorkerJobDetailsController: WebSocket connection closed.");
+        print("WorkerJobDetailsController: WebSocket closed.");
       });
 
-      // Heartbeat ping timer (every 20 seconds) to ensure socket stays alive and never disconnects
       _pingTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
-        if (_trackingChannel != null) {
-          print("WorkerJobDetailsController: Sending socket heartbeat ping");
-          try {
-            _trackingChannel!.sink.add(json.encode({"action": "ping"}));
-          } catch (e) {
-            print("WorkerJobDetailsController: Heartbeat send error: $e");
-          }
+        try {
+          _trackingChannel?.sink.add(json.encode({"action": "ping"}));
+        } catch (e) {
+          print("WorkerJobDetailsController: Heartbeat error: $e");
         }
       });
 
-      // 1. Check and request GPS permissions for real-time live location reporting
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
 
-      // Initialize default realistic starting locations
-      final double defaultCLat = clientLatitude.value == 0.0 ? 23.8103 : clientLatitude.value;
-      final double defaultCLng = clientLongitude.value == 0.0 ? 90.4125 : clientLongitude.value;
+      // ── Safe fallback starting coords (slightly offset from client) ───────
+      final double defaultCLat = _safeCoord(
+        clientLatitude.value == 0.0 ? null : clientLatitude.value,
+        23.8103,
+      );
+      final double defaultCLng = _safeCoord(
+        clientLongitude.value == 0.0 ? null : clientLongitude.value,
+        90.4125,
+      );
       final double defaultWLat = defaultCLat - 0.0012;
       final double defaultWLng = defaultCLng - 0.0015;
+      // ─────────────────────────────────────────────────────────────────────
 
-      currentLatitude.value = defaultWLat;
-      currentLongitude.value = defaultWLng;
-      _updateDistanceAndETA();
-
-      // 2. Start dynamic motion simulator to show real-time smooth map progression
-      double step = 0.0;
-      _simulationTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-        if (isSharingLocation.value) {
-          step += 0.1; // 10% closer each step (completes in 40 seconds)
-          if (step > 1.0) {
-            step = 1.0;
-            timer.cancel();
-          }
-          
-          final double targetLat = clientLatitude.value == 0.0 ? 23.8103 : clientLatitude.value;
-          final double targetLng = clientLongitude.value == 0.0 ? 90.4125 : clientLongitude.value;
-          
-          currentLatitude.value = defaultWLat + (targetLat - defaultWLat) * step;
-          currentLongitude.value = defaultWLng + (targetLng - defaultWLng) * step;
-          
-          _updateDistanceAndETA();
-          _sendCoordinate(currentLatitude.value, currentLongitude.value, 45.0, 5.0);
-        } else {
-          timer.cancel();
-        }
-      });
-
-      if (serviceEnabled && (permission == LocationPermission.always || permission == LocationPermission.whileInUse)) {
-        print("WorkerJobDetailsController: GPS Authorized. Accessing real-time device location.");
-        
-        // Fetch current live position and stream it
-        Position initialPos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-        currentLatitude.value = initialPos.latitude;
-        currentLongitude.value = initialPos.longitude;
+      // Only write if the computed defaults are actually valid
+      if (_isValidLatLng(defaultWLat, defaultWLng)) {
+        currentLatitude.value = defaultWLat;
+        currentLongitude.value = defaultWLng;
+        locationReady.value = true;
         _updateDistanceAndETA();
-        
-        _sendCoordinate(initialPos.latitude, initialPos.longitude, initialPos.heading, initialPos.speed);
+      }
 
-        // Listen for live updates
+      if (serviceEnabled &&
+          (permission == LocationPermission.always ||
+              permission == LocationPermission.whileInUse)) {
+
+        Position initialPos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+
+        // ── Guard real GPS too ──
+        if (_isValidLatLng(initialPos.latitude, initialPos.longitude)) {
+          currentLatitude.value = initialPos.latitude;
+          currentLongitude.value = initialPos.longitude;
+          _pendingRouteFetchOrigin = LatLng(initialPos.latitude, initialPos.longitude);
+          locationReady.value = true;
+          _updateDistanceAndETA();
+          _sendCoordinate(initialPos.latitude, initialPos.longitude,
+              initialPos.heading, initialPos.speed);
+        }
+
         _gpsStreamSubscription = Geolocator.getPositionStream(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
-            distanceFilter: 5, // Triggers every 5 meters moved
+            distanceFilter: 5,
           ),
         ).listen((Position position) {
-          currentLatitude.value = position.latitude;
-          currentLongitude.value = position.longitude;
-          _updateDistanceAndETA();
-          
-          _sendCoordinate(position.latitude, position.longitude, position.heading, position.speed);
+          // ── Guard every GPS stream update ──
+          if (_isValidLatLng(position.latitude, position.longitude)) {
+            currentLatitude.value = position.latitude;
+            currentLongitude.value = position.longitude;
+            _pendingRouteFetchOrigin = LatLng(position.latitude, position.longitude);
+            locationReady.value = true;
+            _updateDistanceAndETA();
+            _sendCoordinate(position.latitude, position.longitude,
+                position.heading, position.speed);
+          }
         }, onError: (err) {
           print("WorkerJobDetailsController: Geolocator stream error: $err");
         });
@@ -421,8 +436,7 @@ class WorkerJobDetailsController extends GetxController {
 
   void _sendCoordinate(double lat, double lng, double heading, double speed) {
     if (_trackingChannel == null) return;
-    
-    // Conforms strictly to WebSocket Protocol payload requirements
+    if (!_isValidLatLng(lat, lng)) return; // never send NaN over WebSocket
     final payload = {
       "action": "update_location",
       "lat": lat,
@@ -430,41 +444,113 @@ class WorkerJobDetailsController extends GetxController {
       "heading": heading.round(),
       "speed": speed,
     };
-    
     try {
-      print("WorkerJobDetailsController: Sending coordinates payload: $payload");
       _trackingChannel!.sink.add(json.encode(payload));
     } catch (e) {
-      print("WorkerJobDetailsController: Error broadcasting coordinates: $e");
+      print("WorkerJobDetailsController: Error sending coordinates: $e");
     }
   }
 
   void _updateDistanceAndETA() {
     try {
-      final double safeCLat = clientLatitude.value == 0.0 ? 23.8103 : clientLatitude.value;
-      final double safeCLng = clientLongitude.value == 0.0 ? 90.4125 : clientLongitude.value;
-      final double safeWLat = currentLatitude.value == 0.0 ? safeCLat - 0.0012 : currentLatitude.value;
-      final double safeWLng = currentLongitude.value == 0.0 ? safeCLng - 0.0015 : currentLongitude.value;
+      final double safeCLat = _safeCoord(
+        clientLatitude.value == 0.0 ? null : clientLatitude.value,
+        23.8103,
+      );
+      final double safeCLng = _safeCoord(
+        clientLongitude.value == 0.0 ? null : clientLongitude.value,
+        90.4125,
+      );
+      final double safeWLat = _safeCoord(
+        currentLatitude.value == 0.0 ? null : currentLatitude.value,
+        safeCLat - 0.0012,
+      );
+      final double safeWLng = _safeCoord(
+        currentLongitude.value == 0.0 ? null : currentLongitude.value,
+        safeCLng - 0.0015,
+      );
+
+      // Final NaN guard before math
+      if (!_isValidLatLng(safeCLat, safeCLng) || !_isValidLatLng(safeWLat, safeWLng)) {
+        print("WorkerJobDetailsController: Skipping distance calc — coordinates not valid yet");
+        return;
+      }
 
       double distanceInMeters = Geolocator.distanceBetween(
-        safeCLat,
-        safeCLng,
-        safeWLat,
-        safeWLng,
+        safeCLat, safeCLng,
+        safeWLat, safeWLng,
       );
+
+      // Guard the result too — distanceBetween can return NaN if inputs slip through
+      if (distanceInMeters.isNaN || distanceInMeters.isInfinite) return;
 
       final double distanceKm = distanceInMeters / 1000.0;
       distance.value = "${distanceKm.toStringAsFixed(2)} km";
 
-      // Assume average driving speed in city traffic is about 20 km/h (approx 5.5 m/s)
       double durationInMinutes = (distanceInMeters / 5.5) / 60.0;
       int etaMinutes = durationInMinutes.round();
       if (etaMinutes < 1) etaMinutes = 1;
-      
       arrivalTime.value = "$etaMinutes mins";
-      print("WorkerJobDetailsController: Dynamic calculated distance: ${distance.value}, ETA: ${arrivalTime.value}");
+
+      _fetchRoute(safeWLat, safeWLng, safeCLat, safeCLng);
     } catch (e) {
       print("WorkerJobDetailsController: Error calculating distance/ETA: $e");
+    }
+  }
+
+  Future<void> _fetchRoute(
+      double startLat, double startLng, double endLat, double endLng) async {
+    if (_isFetchingRoute) return;
+
+    // Don't even attempt a route fetch with bad coordinates
+    if (!_isValidLatLng(startLat, startLng) || !_isValidLatLng(endLat, endLng)) return;
+
+    if (_lastRouteCoords != null &&
+        Geolocator.distanceBetween(
+          _lastRouteCoords!.latitude, _lastRouteCoords!.longitude,
+          startLat, startLng,
+        ) < 10 &&
+        routePoints.isNotEmpty) {
+      return;
+    }
+
+    _isFetchingRoute = true;
+    _lastRouteCoords = LatLng(startLat, startLng);
+    final LatLng thisFetchOrigin = LatLng(startLat, startLng);
+
+    try {
+      final routeData = await ApiServices.fetchRouteData(startLat, startLng, endLat, endLng);
+
+      // Stale response check — discard if worker moved more than 5m since fetch started
+      if (_pendingRouteFetchOrigin != null) {
+        final double drift = Geolocator.distanceBetween(
+          thisFetchOrigin.latitude, thisFetchOrigin.longitude,
+          _pendingRouteFetchOrigin!.latitude, _pendingRouteFetchOrigin!.longitude,
+        );
+        if (drift > 5) {
+          print("WorkerJobDetailsController: Discarding stale OSRM response (${drift.toStringAsFixed(1)}m drift)");
+          return;
+        }
+      }
+
+      if (routeData != null && routeData.points.isNotEmpty) {
+        // Guard route points — filter out any NaN points before giving to map
+        final validPoints = routeData.points.where((p) =>
+            _isValidLatLng(p.latitude, p.longitude)
+        ).toList();
+
+        if (validPoints.isNotEmpty) {
+          routePoints.assignAll(validPoints);
+          final double distKm = routeData.distanceMeters / 1000.0;
+          distance.value = "${distKm.toStringAsFixed(2)} km";
+          int etaMin = (routeData.durationSeconds / 60.0).round();
+          arrivalTime.value = "${etaMin < 1 ? 1 : etaMin} mins";
+        }
+      }
+    } catch (e) {
+      print("WorkerJobDetailsController: Error fetching route: $e");
+    } finally {
+      _isFetchingRoute = false;
     }
   }
 
@@ -475,9 +561,6 @@ class WorkerJobDetailsController extends GetxController {
     _trackingChannel?.sink.close();
     isSharingLocation.value = false;
   }
-
-
-
 
   void viewAttachment() {
     if (attachmentImage.value.isNotEmpty) {
@@ -492,25 +575,17 @@ class WorkerJobDetailsController extends GetxController {
       Get.snackbar("Error", "No attachment to download");
       return;
     }
-
     try {
-      Get.snackbar(
-        "Download", 
-        "Download started...", 
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.primary.withOpacity(0.1),
-      );
-      
+      Get.snackbar("Download", "Download started...",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.primary.withOpacity(0.1));
+
       final response = await http.get(Uri.parse(attachmentImage.value));
-      
       if (response.statusCode == 200) {
         await Future.delayed(const Duration(seconds: 1));
-        Get.snackbar(
-          "Success", 
-          "File saved to downloads", 
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.withOpacity(0.1),
-        );
+        Get.snackbar("Success", "File saved to downloads",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green.withOpacity(0.1));
       } else {
         Get.snackbar("Error", "Failed to reach file server");
       }
@@ -520,33 +595,32 @@ class WorkerJobDetailsController extends GetxController {
     }
   }
 
-  void callClient() {
-    // Logic for URL launcher or Phone call
-  }
+  void callClient() {}
 
   void chatClient() {
     final chatId = displayBookingId.value.isNotEmpty ? displayBookingId.value : bookingId.value;
     Get.toNamed('/worker-chat', arguments: {
-        'id': chatId,
-        'name': clientName.value, // ক্লায়েন্টের নাম
-        'profile': clientImage.value,
-        'isClient': false, // কারণ এটি Worker সাইড
-      });
+      'id': chatId,
+      'name': clientName.value,
+      'profile': clientImage.value,
+      'isClient': false,
+    });
   }
 
-  void iveArrived() {
-    updateStatus("arrived");
-    Get.dialog(const StartWorkDialog());
+  void iveArrived() async {
+    final success = await updateStatus("working");
+    if (success) {
+      Get.offNamed(Routes.WORKER_TRACKING, arguments: {'bookingId': bookingId.value});
+    }
   }
 
-  void reportIssue() => Get.toNamed(Routes.REPORT_ISSUE, arguments: {'bookingId': bookingId.value});
+  void reportIssue() =>
+      Get.toNamed(Routes.REPORT_ISSUE, arguments: {'bookingId': bookingId.value});
 
   Future<void> completeJob() async {
     await updateStatus("completed");
     Get.dialog(
-      const SuccessDialog(
-        message: "Job completed successfully!",
-      ),
+      const SuccessDialog(message: "Job completed successfully!"),
       barrierDismissible: false,
     );
     await Future.delayed(const Duration(milliseconds: 2000));
@@ -569,23 +643,34 @@ class ChatMessageModel {
   final Sender sender;
   final bool isRead;
 
-  ChatMessageModel({required this.id, required this.content, required this.timestamp, required this.sender, this.isRead = false});
+  ChatMessageModel({
+    required this.id,
+    required this.content,
+    required this.timestamp,
+    required this.sender,
+    this.isRead = false,
+  });
 
   factory ChatMessageModel.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
-      return ChatMessageModel(id: "", content: "", timestamp: DateTime.now(), sender: Sender(id: "", fullName: "", profilePicture: ""));
+      return ChatMessageModel(
+        id: "", content: "", timestamp: DateTime.now(),
+        sender: Sender(id: "", fullName: "", profilePicture: ""),
+      );
     }
     return ChatMessageModel(
       id: json['id']?.toString() ?? "",
       content: json['content']?.toString() ?? "",
-      timestamp: json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now(),
-      sender: json['sender'] != null 
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : DateTime.now(),
+      sender: json['sender'] != null
           ? Sender.fromJson(json['sender'] as Map<String, dynamic>?)
           : Sender(
-              id: json['sender_id']?.toString() ?? "",
-              fullName: json['sender_name']?.toString() ?? "",
-              profilePicture: ApiServices.formatImageUrl(json['sender_picture']?.toString())
-            ),
+        id: json['sender_id']?.toString() ?? "",
+        fullName: json['sender_name']?.toString() ?? "",
+        profilePicture: ApiServices.formatImageUrl(json['sender_picture']?.toString()),
+      ),
       isRead: json['is_read'] == true || json['is_read'] == 'true',
     );
   }
@@ -599,9 +684,7 @@ class Sender {
   Sender({required this.id, required this.fullName, required this.profilePicture});
 
   factory Sender.fromJson(Map<String, dynamic>? json) {
-    if (json == null) {
-      return Sender(id: "", fullName: "", profilePicture: "");
-    }
+    if (json == null) return Sender(id: "", fullName: "", profilePicture: "");
     return Sender(
       id: json['id']?.toString() ?? "",
       fullName: json['full_name']?.toString() ?? "",

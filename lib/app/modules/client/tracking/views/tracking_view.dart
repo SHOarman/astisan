@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,8 +8,10 @@ import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/components/status_timeline_tile.dart';
-import '../../../../core/components/map_placeholder.dart';
 import '../../../../core/components/artisan_bottom_sheet_card.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../controllers/tracking_controller.dart';
 
 class TrackingView extends GetView<TrackingController> {
@@ -21,6 +24,25 @@ class TrackingView extends GetView<TrackingController> {
     }
 
     return Obx(() {
+      final bool isOnWay = ['on_way', 'on_the_way', 'on-the-way'].contains(controller.status.value);
+      if (!isOnWay) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (Get.currentRoute == Routes.TRACKING) {
+            Get.back();
+            Get.snackbar(
+              "Status Update",
+              "Artisan is no longer on the way.",
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          }
+        });
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
       if (controller.isLoading.value == false) {
         return _buildMapState(context);
       } else {
@@ -464,155 +486,139 @@ class TrackingView extends GetView<TrackingController> {
           ),
         ),
         body: Obx(() {
-          // Dynamic calculation and projection
-          final cLat = controller.clientLatitude.value;
-          final cLng = controller.clientLongitude.value;
-          final wLat = controller.workerLatitude.value;
-          final wLng = controller.workerLongitude.value;
+          // Dynamic coordinates extraction
+          final double cLat = controller.clientLatitude.value;
+          final double cLng = controller.clientLongitude.value;
+          final double wLat = controller.workerLatitude.value;
+          final double wLng = controller.workerLongitude.value;
 
           // Fallback coordinates to avoid showing the loading spinner forever
           final double finalCLat = cLat == 0.0 ? 23.8103 : cLat;
           final double finalCLng = cLng == 0.0 ? 90.4125 : cLng;
-          final double finalWLat = wLat == 0.0 ? 23.7561 : wLat;
-          final double finalWLng = wLng == 0.0 ? 90.3871 : wLng;
+          final double finalWLat = wLat == 0.0 ? finalCLat - 0.0012 : wLat;
+          final double finalWLng = wLng == 0.0 ? finalCLng - 0.0015 : wLng;
 
           return Stack(
             children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final height = constraints.maxHeight;
-
-                  // Find min/max coordinates
-                  double minLat = math.min(finalCLat, finalWLat);
-                  double maxLat = math.max(finalCLat, finalWLat);
-                  double minLng = math.min(finalCLng, finalWLng);
-                  double maxLng = math.max(finalCLng, finalWLng);
-
-                  // Padding to avoid hitting viewport edges
-                  double latDiff = (maxLat - minLat).abs();
-                  double lngDiff = (maxLng - minLng).abs();
-                  if (latDiff < 0.003) latDiff = 0.003;
-                  if (lngDiff < 0.003) lngDiff = 0.003;
-
-                  minLat -= latDiff * 0.35;
-                  maxLat += latDiff * 0.35;
-                  minLng -= lngDiff * 0.35;
-                  maxLng += lngDiff * 0.35;
-
-                  final latRange = maxLat - minLat;
-                  final lngRange = maxLng - minLng;
-
-                  // Translate GPS coordinates to screen positions
-                  final cX = ((finalCLng - minLng) / lngRange) * width;
-                  final cY = (1.0 - (finalCLat - minLat) / latRange) * height;
-
-                  final wX = ((finalWLng - minLng) / lngRange) * width;
-                  final wY = (1.0 - (finalWLat - minLat) / latRange) * height;
-
-                  return MapPlaceholder(
-                    child: Stack(
-                      children: [
-                        // Dynamic curve route line
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: DynamicRoutePainter(
-                              start: Offset(wX, wY),
-                              end: Offset(cX, cY),
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-
-                        // Client Marker (Pulsing blue aura and home pin)
-                        Positioned(
-                          left: cX - 24,
-                          top: cY - 24,
-                          child: PulsingMarker(
-                            color: const Color(0xFF2196F3),
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2196F3),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(color: Colors.black12, blurRadius: 6),
-                                ],
-                              ),
-                              child: const Icon(Icons.home_rounded, color: Colors.white, size: 20),
-                            ),
-                          ),
-                        ),
-
-                        // Worker Marker (Pulsing primary aura with floating banner showing ETA)
-                        Positioned(
-                          left: wX - 22,
-                          top: wY - 55,
-                          child: PulsingMarker(
-                            color: AppColors.primary,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    boxShadow: const [
-                                      BoxShadow(color: Colors.black12, blurRadius: 4),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    "${controller.etaMinutes.value} min",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 10.0,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  width: 2.0,
-                                  height: 4.0,
-                                  color: AppColors.primary,
-                                ),
-                                Container(
-                                  width: 44.0,
-                                  height: 44.0,
-                                  padding: const EdgeInsets.all(2.0),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    child: controller.artisanImageUrl.value.isNotEmpty
-                                        ? Image.network(
-                                            controller.artisanImageUrl.value,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) => Image.asset(
-                                              AppImages.placeholderAvatar,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                        : Image.asset(
-                                            AppImages.placeholderAvatar,
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                ),
+              FlutterMap(
+                options: MapOptions(
+                  initialCenter: LatLng(
+                      (finalCLat + finalWLat) / 2,
+                      (finalCLng + finalWLng) / 2),
+                  initialZoom: 14.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: "https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=GPXbdZO7XpRukMLD8Bz1",
+                    userAgentPackageName: 'com.artisan.app',
+                  ),
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: controller.routePoints.isNotEmpty
+                            ? controller.routePoints
+                            : [
+                          LatLng(finalWLat, finalWLng),
+                          LatLng(finalCLat, finalCLng),
+                        ],
+                        color: AppColors.primary,
+                        strokeWidth: 4.0,
+                      ),
+                    ],
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: LatLng(finalCLat, finalCLng),
+                        width: 48,
+                        height: 48,
+                        child: PulsingMarker(
+                          color: const Color(0xFF2196F3),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF2196F3),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(color: Colors.black12, blurRadius: 6),
                               ],
                             ),
+                            child: const Icon(Icons.home_rounded, color: Colors.white, size: 20),
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                      Marker(
+                        point: LatLng(finalWLat, finalWLng),
+                        width: 60,
+                        height: 100,
+                        alignment: Alignment.topCenter,
+                        child: PulsingMarker(
+                          color: AppColors.primary,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  boxShadow: const [
+                                    BoxShadow(color: Colors.black12, blurRadius: 4),
+                                  ],
+                                ),
+                                child: Text(
+                                  "${controller.etaMinutes.value} min",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 2.0,
+                                height: 4.0,
+                                color: AppColors.primary,
+                              ),
+                              Container(
+                                width: 44.0,
+                                height: 44.0,
+                                padding: const EdgeInsets.all(2.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  child: controller.artisanImageUrl.value.isNotEmpty
+                                      ? Image.network(
+                                    controller.artisanImageUrl.value,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                                      AppImages.placeholderAvatar,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                      : Image.asset(
+                                    AppImages.placeholderAvatar,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               Positioned(
                 bottom: 0,
@@ -722,51 +728,3 @@ class _PulsingMarkerState extends State<PulsingMarker> with SingleTickerProvider
   }
 }
 
-class DynamicRoutePainter extends CustomPainter {
-  final Offset start;
-  final Offset end;
-  final Color color;
-
-  DynamicRoutePainter({
-    required this.start,
-    required this.end,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = color
-      ..strokeWidth = 4.0
-      ..style = PaintingStyle.stroke;
-
-    var path = Path();
-    path.moveTo(start.dx, start.dy);
-
-    // Bending curve control point for realistic road-like look
-    var controlPoint = Offset(
-      (start.dx + end.dx) / 2 + 40,
-      (start.dy + end.dy) / 2 - 40,
-    );
-    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
-
-    Path dashPath = Path();
-    double dashWidth = 8.0;
-    double dashSpace = 6.0;
-    double distance = 0.0;
-
-    for (var pathMetric in path.computeMetrics()) {
-      while (distance < pathMetric.length) {
-        dashPath.addPath(
-          pathMetric.extractPath(distance, distance + dashWidth),
-          Offset.zero,
-        );
-        distance += dashWidth + dashSpace;
-      }
-    }
-    canvas.drawPath(dashPath, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}

@@ -1,3 +1,19 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
+
+class RouteData {
+  final List<LatLng> points;
+  final double distanceMeters;
+  final double durationSeconds;
+
+  RouteData({
+    required this.points,
+    required this.distanceMeters,
+    required this.durationSeconds,
+  });
+}
+
 class ApiServices {
   ApiServices._();
 
@@ -126,5 +142,33 @@ class ApiServices {
     }
     
     return formattedUrl;
+  }
+
+  static Future<RouteData?> fetchRouteData(double startLat, double startLng, double endLat, double endLng) async {
+    try {
+      final url = "https://router.project-osrm.org/route/v1/driving/$startLng,$startLat;$endLng,$endLat?overview=full&geometries=geojson";
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['routes'] != null && data['routes'].isNotEmpty) {
+          final route = data['routes'][0];
+          final geometry = route['geometry'];
+          if (geometry != null && geometry['coordinates'] != null) {
+            final coords = geometry['coordinates'] as List;
+            final points = coords.map((c) => LatLng(c[1] as double, c[0] as double)).toList();
+            final distance = double.tryParse(route['distance'].toString()) ?? 0.0;
+            final duration = double.tryParse(route['duration'].toString()) ?? 0.0;
+            return RouteData(
+              points: points,
+              distanceMeters: distance,
+              durationSeconds: duration,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      print("ApiServices: fetchRouteData error: $e");
+    }
+    return null;
   }
 }

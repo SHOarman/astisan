@@ -364,11 +364,11 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
       child: SafeArea(
         top: false,
         child: Obx(() {
-          final isCompleted = controller.currentStep.value == 3;
+          final isWorking = controller.status.value == 'working' || controller.currentStep.value == 2;
           return ElevatedButton(
-            onPressed: isCompleted ? controller.markAsComplete : null,
+            onPressed: isWorking ? controller.markAsComplete : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: isCompleted ? AppColors.primary : const Color(0xFFE5E7EB),
+              backgroundColor: isWorking ? AppColors.primary : const Color(0xFFE5E7EB),
               minimumSize: const Size(double.infinity, 56.0),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
               elevation: 0,
@@ -378,7 +378,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
               style: GoogleFonts.poppins(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: isCompleted ? Colors.white : AppColors.greyText,
+                color: isWorking ? Colors.white : AppColors.greyText,
               ),
             ),
           );

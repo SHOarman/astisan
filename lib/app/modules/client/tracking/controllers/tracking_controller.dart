@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
 
@@ -40,6 +42,10 @@ class TrackingController extends GetxController {
   final etaMinutes = 0.obs;
   final distanceKm = 0.0.obs;
   final isLive = false.obs;
+  final routePoints = <LatLng>[].obs;
+  LatLng? _lastRouteCoords;
+  LatLng? _lastDestinationCoords;
+  bool _isFetchingRoute = false;
 
   WebSocketChannel? _wsChannel;
   StreamSubscription<Position>? _gpsSubscription;
@@ -53,6 +59,31 @@ class TrackingController extends GetxController {
       _updateFields();
       _startTracking();
     }
+
+    ever(status, (currentStatus) {
+      final String lowerStatus = currentStatus.toLowerCase();
+      if (lowerStatus == 'completed') {
+        final String route = Get.currentRoute;
+        if (route.contains(Routes.TRACKING) || route.contains(Routes.TRACKINGSCREEN)) {
+          Get.offNamed(Routes.WORK_OVERVIEW);
+          Get.snackbar(
+            "Job Completed",
+            "The artisan has completed the job successfully!",
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+        }
+      } else {
+        final bool isOnWay = ['on_way', 'on_the_way', 'on-the-way'].contains(lowerStatus);
+        if (!isOnWay) {
+          final String route = Get.currentRoute;
+          if (route.contains(Routes.TRACKING) && !route.contains(Routes.TRACKINGSCREEN)) {
+            Get.back();
+          }
+        }
+      }
+    });
   }
 
   void _updateFields() {
@@ -82,6 +113,23 @@ class TrackingController extends GetxController {
     estimatedCost.value = "\$${b['total_amount'] ?? '0'}";
     jobStartTime.value = b['scheduled_time'] ?? b['scheduled_date'] ?? "N/A";
     status.value = (b['status'] ?? "").toString().toLowerCase();
+
+    final double parsedCLat = double.tryParse(b['address_lat']?.toString() ?? b['client_latitude']?.toString() ?? b['latitude']?.toString() ?? '') ?? 0.0;
+    final double parsedCLng = double.tryParse(b['address_lng']?.toString() ?? b['client_longitude']?.toString() ?? b['longitude']?.toString() ?? '') ?? 0.0;
+
+    if (parsedCLat != 0.0 && parsedCLng != 0.0 && _isValidLatLng(parsedCLat, parsedCLng)) {
+      if (clientLatitude.value != parsedCLat || clientLongitude.value != parsedCLng) {
+        clientLatitude.value = parsedCLat;
+        clientLongitude.value = parsedCLng;
+        _calculateDistanceAndETA();
+      }
+    } else {
+      if (clientLatitude.value == 0.0) {
+        clientLatitude.value = 23.8103;
+        clientLongitude.value = 90.4125;
+        _calculateDistanceAndETA();
+      }
+    }
 
     // Set times based on availability or current status using real-time dates
     if (isStatusAtLeast('confirmed')) {
@@ -164,16 +212,16 @@ class TrackingController extends GetxController {
     final bookingId = (b['id'] ?? b['booking_id'] ?? '').toString();
     if (bookingId.isEmpty) return;
 
-    // 1. Get client's current location via GPS if enabled
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
-        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-        clientLatitude.value = position.latitude;
-        clientLongitude.value = position.longitude;
-      }
-    } catch (e) {
-      print("TrackingController: Error getting client location: $e");
+    // Set static client location from booking data, not the device location
+    final double parsedCLat = double.tryParse(b['address_lat']?.toString() ?? b['client_latitude']?.toString() ?? b['latitude']?.toString() ?? '') ?? 0.0;
+    final double parsedCLng = double.tryParse(b['address_lng']?.toString() ?? b['client_longitude']?.toString() ?? b['longitude']?.toString() ?? '') ?? 0.0;
+
+    if (parsedCLat != 0.0 && parsedCLng != 0.0 && _isValidLatLng(parsedCLat, parsedCLng)) {
+      clientLatitude.value = parsedCLat;
+      clientLongitude.value = parsedCLng;
+    } else {
+      clientLatitude.value = 23.8103;
+      clientLongitude.value = 90.4125;
     }
 
     // 2. Fetch initial location fallback from API
@@ -315,11 +363,16 @@ class TrackingController extends GetxController {
 
   void _calculateDistanceAndETA() {
     try {
+      final double safeCLat = clientLatitude.value == 0.0 ? 23.8103 : clientLatitude.value;
+      final double safeCLng = clientLongitude.value == 0.0 ? 90.4125 : clientLongitude.value;
+      final double safeWLat = workerLatitude.value == 0.0 ? safeCLat - 0.0012 : workerLatitude.value;
+      final double safeWLng = workerLongitude.value == 0.0 ? safeCLng - 0.0015 : workerLongitude.value;
+
       double distanceInMeters = Geolocator.distanceBetween(
-        clientLatitude.value,
-        clientLongitude.value,
-        workerLatitude.value,
-        workerLongitude.value,
+        safeCLat,
+        safeCLng,
+        safeWLat,
+        safeWLng,
       );
 
       distanceKm.value = double.parse((distanceInMeters / 1000.0).toStringAsFixed(2));
@@ -330,8 +383,55 @@ class TrackingController extends GetxController {
       if (etaMinutes.value < 1) etaMinutes.value = 1;
 
       print("TrackingController: Calculated distance: ${distanceKm.value} km, ETA: ${etaMinutes.value} minutes");
+
+      // Asynchronously fetch street routing points
+      _fetchRoute(safeWLat, safeWLng, safeCLat, safeCLng);
     } catch (e) {
       print("TrackingController: Error calculating distance/ETA: $e");
+    }
+  }
+
+  Future<void> _fetchRoute(double startLat, double startLng, double endLat, double endLng) async {
+    if (_isFetchingRoute) return;
+    if (!_isValidLatLng(startLat, startLng) || !_isValidLatLng(endLat, endLng)) return;
+
+    if (_lastRouteCoords != null && _lastDestinationCoords != null &&
+        Geolocator.distanceBetween(
+          _lastRouteCoords!.latitude,
+          _lastRouteCoords!.longitude,
+          startLat,
+          startLng,
+        ) < 10 &&
+        Geolocator.distanceBetween(
+          _lastDestinationCoords!.latitude,
+          _lastDestinationCoords!.longitude,
+          endLat,
+          endLng,
+        ) < 10 &&
+        routePoints.isNotEmpty) {
+      return;
+    }
+
+    _isFetchingRoute = true;
+    _lastRouteCoords = LatLng(startLat, startLng);
+    _lastDestinationCoords = LatLng(endLat, endLng);
+
+    try {
+      final routeData = await ApiServices.fetchRouteData(startLat, startLng, endLat, endLng);
+      if (routeData != null && routeData.points.isNotEmpty) {
+        routePoints.assignAll(routeData.points);
+
+        // Update with OSRM driving metrics if available
+        distanceKm.value = double.parse((routeData.distanceMeters / 1000.0).toStringAsFixed(2));
+
+        int etaMin = (routeData.durationSeconds / 60.0).round();
+        if (etaMin < 1) etaMin = 1;
+        etaMinutes.value = etaMin;
+      }
+    } catch (e) {
+      print("TrackingController: Error fetching route: $e");
+    } finally {
+      _isFetchingRoute = false;
     }
   }
 
@@ -348,6 +448,13 @@ class TrackingController extends GetxController {
 
   void viewCompletionWork() {
     Get.toNamed(Routes.WORK_OVERVIEW);
+  }
+
+  bool _isValidLatLng(double lat, double lng) {
+    return !lat.isNaN && !lat.isInfinite &&
+        !lng.isNaN && !lng.isInfinite &&
+        lat >= -90 && lat <= 90 &&
+        lng >= -180 && lng <= 180;
   }
 
   @override
