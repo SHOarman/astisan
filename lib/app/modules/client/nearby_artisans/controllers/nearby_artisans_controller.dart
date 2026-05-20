@@ -80,23 +80,37 @@ class NearbyArtisansController extends GetxController {
           final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
           
           String? extractedServiceId;
+          String? extractedServiceName;
+          String? extractedServicePrice;
+
           if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
-            extractedServiceId = e['services'][0]['service']?.toString() ?? e['services'][0]['id']?.toString();
+            final firstService = e['services'][0];
+            extractedServiceId = firstService['service_id']?.toString() ?? firstService['service']?.toString() ?? firstService['id']?.toString();
+            extractedServiceName = firstService['name']?.toString();
+            extractedServicePrice = firstService['price']?.toString();
           }
           if (extractedServiceId == null && profile['services'] != null && profile['services'] is List && profile['services'].isNotEmpty) {
-            extractedServiceId = profile['services'][0]['service']?.toString() ?? profile['services'][0]['id']?.toString();
+            final firstProfileService = profile['services'][0];
+            extractedServiceId = firstProfileService['service_id']?.toString() ?? firstProfileService['service']?.toString() ?? firstProfileService['id']?.toString();
+            extractedServiceName ??= firstProfileService['name']?.toString();
+            extractedServicePrice ??= firstProfileService['price']?.toString();
           }
+
+          // Use extracted values, fallback to route arguments or artisan root fields
+          final finalOccupation = extractedServiceName ?? profile['occupation'] ?? e['occupation'] ?? serviceName;
+          final finalPrice = _getValidPrice(e, profile, extractedServicePrice);
 
           return {
             'id': e['id'] ?? e['artisan_id'],
             'service_id': extractedServiceId,
+            'service_name': extractedServiceName ?? finalOccupation,
             'full_name': e['full_name'] ?? 'Artisan',
             'profile_picture': ApiServices.formatImageUrl(e['profile_picture']?.toString()),
-            'occupation': profile['occupation'] ?? e['occupation'] ?? serviceName,
+            'occupation': finalOccupation,
             'rating': double.tryParse(profile['average_rating']?.toString() ?? e['avg_rating']?.toString() ?? '0') ?? 0.0,
             'review_count': profile['total_reviews'] ?? e['review_count'] ?? 0,
             'distance': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
-            'hourly_rate': _getValidPrice(e, profile),
+            'hourly_rate': finalPrice,
             'is_verified': true,
             'bio': profile['bio'] ?? e['bio'],
             'experience': profile['experience_years'] ?? profile['years_of_experience'] ?? profile['experience'] ?? e['experience'],
@@ -115,17 +129,9 @@ class NearbyArtisansController extends GetxController {
     }
   }
 
-  String _getValidPrice(Map<String, dynamic> e, Map<String, dynamic> profile) {
-    String? servicePrice;
-    if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
-      servicePrice = e['services'][0]['price']?.toString();
-    }
-    if (servicePrice == null && profile['services'] != null && profile['services'] is List && profile['services'].isNotEmpty) {
-      servicePrice = profile['services'][0]['price']?.toString();
-    }
-
+  String _getValidPrice(Map<String, dynamic> e, Map<String, dynamic> profile, String? extractedServicePrice) {
     final possibleValues = [
-      servicePrice,
+      extractedServicePrice,
       e['effective_price'],
       e['price_override'],
       e['hourly_rate'],
@@ -134,7 +140,6 @@ class NearbyArtisansController extends GetxController {
       profile['price_override'],
       profile['hourly_rate'],
       profile['base_price'],
-      profile['effective_price'],
     ];
 
     for (var val in possibleValues) {

@@ -63,7 +63,8 @@ class BookingView extends GetView<BookingController> {
           ),
           Obx(() => FixedBottomActionBar(
             buttonText: controller.currentStep.value == 5 ? AppStrings.confirm.tr : AppStrings.continueBtn.tr,
-            onPressed: controller.nextStep,
+            isLoading: controller.isSubmittingBooking.value,
+            onPressed: controller.isSubmittingBooking.value ? null : controller.nextStep,
           )),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -5,19 +6,133 @@ import 'dart:convert';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
 
+// ─── Model ───────────────────────────────────────────────────────────────────
+class ScheduleBooking {
+  final String id;
+  final String bookingId;
+  final String clientName;
+  final String clientPicture;
+  final String serviceName;
+  final String clientAvgRating;
+  final String status;
+  final String distanceKm;
+  final String scheduledDate;
+  final String scheduledTime;
+  final String fullAddress;
+  final String basePrice;
+  final String completionTime;
+  final String createdAt;
+
+  ScheduleBooking({
+    required this.id,
+    required this.bookingId,
+    required this.clientName,
+    required this.clientPicture,
+    required this.serviceName,
+    required this.clientAvgRating,
+    required this.status,
+    required this.distanceKm,
+    required this.scheduledDate,
+    required this.scheduledTime,
+    required this.fullAddress,
+    required this.basePrice,
+    required this.completionTime,
+    required this.createdAt,
+  });
+
+  factory ScheduleBooking.fromJson(Map<String, dynamic> json) {
+    // Parse base_price - may be null, "-", or a number string
+    String price = '0';
+    final rawPrice = json['base_price'];
+    if (rawPrice != null && rawPrice.toString().isNotEmpty && rawPrice.toString() != '-' && rawPrice.toString() != 'null') {
+      final parsed = double.tryParse(rawPrice.toString());
+      if (parsed != null) {
+        price = parsed % 1 == 0 ? parsed.toInt().toString() : parsed.toStringAsFixed(2);
+      } else {
+        price = rawPrice.toString();
+      }
+    }
+
+    return ScheduleBooking(
+      id: json['id']?.toString() ?? '',
+      bookingId: json['booking_id']?.toString() ?? '',
+      clientName: json['client_name']?.toString() ?? 'Client',
+      clientPicture: ApiServices.formatImageUrl(json['client_picture']?.toString()),
+      serviceName: json['service_name']?.toString() ?? '',
+      clientAvgRating: json['client_avg_rating']?.toString() ?? '0',
+      status: json['status']?.toString() ?? '',
+      distanceKm: json['distance_km']?.toString() ?? '',
+      scheduledDate: json['scheduled_date']?.toString() ?? '',
+      scheduledTime: json['scheduled_time']?.toString() ?? '',
+      fullAddress: json['full_address']?.toString() ?? '',
+      basePrice: price,
+      completionTime: json['completion_time']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? '',
+    );
+  }
+
+  /// Derives a display-friendly card status label matching the UI mockups
+  String get cardStatus {
+    final s = status.toLowerCase();
+    if (s == 'working') return 'Working';
+    if (s == 'on_way' || s == 'on_the_way' || s == 'on-the-way') return 'On the Way';
+    if (s == 'arrived') return 'Arrived';
+    if (s == 'completed') return 'Completed';
+    if (s == 'cancelled') return 'Cancelled';
+    if (s == 'rejected') return 'Rejected';
+    if (s == 'requested' || s == 'confirmed' || s == 'accepted') return 'Accept by you';
+    return 'Upcoming';
+  }
+
+  /// Formats scheduled_time ("17:39:08.455Z") into "5:39 PM"
+  String get formattedTime {
+    try {
+      final parts = scheduledTime.split(':');
+      if (parts.length < 2) return scheduledTime;
+      int hour = int.parse(parts[0]);
+      int minute = int.parse(parts[1]);
+      final period = hour >= 12 ? 'PM' : 'AM';
+      if (hour > 12) hour -= 12;
+      if (hour == 0) hour = 12;
+      return '${hour}:${minute.toString().padLeft(2, '0')} $period';
+    } catch (_) {
+      return scheduledTime;
+    }
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 class WorkerHomeController extends GetxController {
   final isOnline = true.obs;
-  
+  final isScheduleLoading = false.obs;
+
   // Real Data from API
   final userName = 'Loading...'.obs;
   final userEmail = '...'.obs;
   final phoneNumber = '...'.obs;
   final profilePicture = ''.obs;
 
+  // Today's schedule from API
+  final scheduleBookings = <ScheduleBooking>[].obs;
+
+  /// How often to silently re-poll the schedule endpoint (real-time feel)
+  static const _pollInterval = Duration(seconds: 30);
+  Timer? _scheduleTimer;
+
   @override
   void onInit() {
     super.onInit();
     fetchCurrentStatus();
+    // First load — show spinner
+    fetchTodaySchedule();
+    // Subsequent silent polls every 30 s — cards update without flash
+    _scheduleTimer = Timer.periodic(_pollInterval, (_) => _silentRefreshSchedule());
+  }
+
+  @override
+  void onClose() {
+    _scheduleTimer?.cancel();
+    super.onClose();
   }
 
   Future<void> fetchCurrentStatus() async {
@@ -25,7 +140,7 @@ class WorkerHomeController extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
       if (token == null) return;
-      
+
       final String cleanToken = token.trim().replaceAll('"', '');
 
       final response = await http.get(
@@ -38,13 +153,13 @@ class WorkerHomeController extends GetxController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Updating Identity Data
         userName.value = data['full_name'] ?? '';
         userEmail.value = data['email'] ?? '';
         phoneNumber.value = data['phone'] ?? '';
         profilePicture.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
-        
+
         final artisan = data['artisan_profile'];
         if (artisan != null) {
           isOnline.value = artisan['is_online'] ?? true;
@@ -55,13 +170,86 @@ class WorkerHomeController extends GetxController {
     }
   }
 
+  /// Fetches today's scheduled bookings (shows loading spinner — for first load / pull-to-refresh).
+  Future<void> fetchTodaySchedule() async {
+    isScheduleLoading.value = true;
+    await _doFetchSchedule();
+    isScheduleLoading.value = false;
+  }
+
+  /// Silent background refresh — does NOT touch isScheduleLoading so UI never flashes.
+  Future<void> _silentRefreshSchedule() async {
+    await _doFetchSchedule();
+  }
+
+  /// Core fetch logic shared by both the initial load and the periodic timer.
+  Future<void> _doFetchSchedule() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      if (token == null || token.isEmpty) {
+        print("DEBUG: No token found for schedule fetch");
+        return;
+      }
+
+      final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final url = ApiServices.artisan_today_schedule;
+      print("DEBUG: Fetching today schedule from: $url");
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $cleanToken',
+          'Accept': 'application/json',
+          'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      print("DEBUG: Schedule response status: ${response.statusCode}");
+      print("DEBUG: Schedule response body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> results =
+            (data is List) ? data : (data['results'] as List? ?? []);
+
+        print("DEBUG: Parsed ${results.length} bookings from today schedule");
+
+        final newBookings = results
+            .map((e) => ScheduleBooking.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+        if (_hasChanges(newBookings)) {
+          scheduleBookings.assignAll(newBookings);
+          print("DEBUG: Updated scheduleBookings with ${newBookings.length} items");
+        }
+      } else {
+        print("DEBUG: fetchTodaySchedule non-200: ${response.statusCode} ${response.body}");
+      }
+    } catch (e) {
+      print("DEBUG: fetchTodaySchedule error: $e");
+    }
+  }
+
+  /// Compares current list with newly fetched list by id+status to skip redundant rebuilds.
+  bool _hasChanges(List<ScheduleBooking> incoming) {
+    if (incoming.length != scheduleBookings.length) return true;
+    for (int i = 0; i < incoming.length; i++) {
+      if (incoming[i].id != scheduleBookings[i].id ||
+          incoming[i].status != scheduleBookings[i].status) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> toggleStatus(bool value) async {
     isOnline.value = value;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
       if (token == null) return;
-      
+
       final String cleanToken = token.trim().replaceAll('"', '');
 
       final response = await http.post(
@@ -85,40 +273,33 @@ class WorkerHomeController extends GetxController {
     Get.toNamed(Routes.WORKER_JOB_DETAILS);
   }
 
+  void handleJobTap(ScheduleBooking booking) {
+    final status = booking.status.toLowerCase();
+    final args = {
+      'bookingId': booking.id,
+      'initialData': {
+        'booking_id': booking.bookingId,
+        'client_name': booking.clientName,
+        'client_picture': booking.clientPicture,
+        'service_name': booking.serviceName,
+        'full_address': booking.fullAddress,
+        'base_price': booking.basePrice,
+      },
+    };
+
+    if (status == 'on_way' || status == 'on_the_way' || status == 'on-the-way') {
+      Get.toNamed(Routes.WORKER_NAVIGATION, arguments: args);
+    } else if (status == 'arrived' || status == 'working') {
+      Get.toNamed(Routes.WORKER_TRACKING, arguments: args);
+    } else {
+      // requested, confirmed, accepted, completed, cancelled, etc.
+      Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: args);
+    }
+  }
+
   void goToChat() {
     Get.toNamed(Routes.WORKER_CHAT);
   }
-
-  // Dummy data for list rendering
-  final scheduleItems = [
-    {
-      'title': 'Pipe Leak Repair',
-      'client': 'Alex Thompson',
-      'time': '10:00 AM',
-      'distance': '1.8 km',
-      'price': '\$75',
-      'duration': '2 hrs',
-      'status': 'ONGOING',
-    },
-    {
-      'title': 'Faucet Installation',
-      'client': 'Maria Santos',
-      'time': '2:00 PM',
-      'distance': '3.2 km',
-      'price': '\$55',
-      'duration': '1 hr',
-      'status': 'UPCOMING',
-    },
-    {
-      'title': 'Bathroom Remodeling',
-      'client': 'Robert Chen',
-      'time': '9:00 AM',
-      'distance': '5.1 km',
-      'price': '\$200',
-      'duration': '4 hrs',
-      'status': 'UPCOMING',
-    },
-  ].obs;
 
   final weeklySummary = [
     {
@@ -138,4 +319,3 @@ class WorkerHomeController extends GetxController {
     },
   ].obs;
 }
-

@@ -79,7 +79,7 @@ class PopularServicesView extends GetView<PopularServicesController> {
                       reviews: service['reviews'] as int,
                       priceRange: service['priceRange'] as String,
                       onTap: () {
-                        Get.toNamed(Routes.BOOKING, arguments: {
+                        Get.toNamed(Routes.SERVICE_DETAILS, arguments: {
                           'service': service,
                           'source': 'popular_services',
                         });

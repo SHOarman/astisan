@@ -165,28 +165,40 @@ class HomeController extends GetxController {
             final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
             
             String? extractedServiceId = e['service']?.toString() ?? e['service_id']?.toString() ?? e['category']?.toString();
-            if (extractedServiceId == null && e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
-              extractedServiceId = e['services'][0]['service']?.toString() ?? e['services'][0]['id']?.toString();
+            String? extractedServiceName;
+            String? extractedServicePrice;
+
+            if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
+              final firstService = e['services'][0];
+              extractedServiceId ??= firstService['service_id']?.toString() ?? firstService['service']?.toString() ?? firstService['id']?.toString();
+              extractedServiceName = firstService['name']?.toString();
+              extractedServicePrice = firstService['price']?.toString();
             }
             if (extractedServiceId == null && e['artisan_profile'] is Map) {
               final profServices = e['artisan_profile']['services'];
               if (profServices != null && profServices is List && profServices.isNotEmpty) {
-                extractedServiceId = profServices[0]['service']?.toString() ?? profServices[0]['id']?.toString();
+                final firstProfService = profServices[0];
+                extractedServiceId = firstProfService['service_id']?.toString() ?? firstProfService['service']?.toString() ?? firstProfService['id']?.toString();
+                extractedServiceName ??= firstProfService['name']?.toString();
+                extractedServicePrice ??= firstProfService['price']?.toString();
               }
             }
+
+            final finalOccupation = extractedServiceName ?? e['occupation'] ?? 'Specialist';
 
             return {
               'id': e['artisan_id'],
               'service_id': extractedServiceId,
               'name': e['full_name'] ?? 'Artisan',
-              'role': e['occupation'] ?? 'Specialist',
+              'role': finalOccupation,
+              'occupation': finalOccupation,
               'avatar': ApiServices.formatImageUrl(e['profile_picture']?.toString()),
               'isVerified': e['is_verified'] == true || (e['artisan_profile'] != null && e['artisan_profile']['is_verified'] == true),
               'isOnline': e['is_online'] ?? true,
               'rating': double.tryParse(e['avg_rating']?.toString() ?? '0') ?? 0.0,
               'reviews': e['review_count'] ?? 0,
               'jobsDone': e['total_jobs_done'] ?? 0,
-              'price': _getValidPrice(e),
+              'price': _getValidPrice(e, extractedServicePrice),
               'distanceOrTime': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
               'bio': e['bio'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['bio'] : null),
               'experience': e['experience_years'] ?? e['years_of_experience'] ?? (e['artisan_profile'] != null ? e['artisan_profile']['experience_years'] : null),
@@ -204,20 +216,9 @@ class HomeController extends GetxController {
     }
   }
 
-  String _getValidPrice(Map<String, dynamic> e) {
-    String? servicePrice;
-    if (e['services'] != null && e['services'] is List && e['services'].isNotEmpty) {
-      servicePrice = e['services'][0]['price']?.toString();
-    }
-    if (servicePrice == null && e['artisan_profile'] is Map) {
-      final profServices = e['artisan_profile']['services'];
-      if (profServices != null && profServices is List && profServices.isNotEmpty) {
-        servicePrice = profServices[0]['price']?.toString();
-      }
-    }
-
+  String _getValidPrice(Map<String, dynamic> e, String? extractedServicePrice) {
     final possibleValues = [
-      servicePrice,
+      extractedServicePrice,
       e['effective_price'],
       e['price_override'],
       e['hourly_rate'],

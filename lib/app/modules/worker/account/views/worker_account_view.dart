@@ -336,6 +336,7 @@ class WorkerAccountView extends StatelessWidget {
           _buildMenuTile(Icons.language, AppStrings.language.tr, "English, French", onTap: () => Get.toNamed(Routes.language)),
           _buildMenuTile(Icons.badge_outlined, AppStrings.accountVerification.tr, "Verified by passport", trailing: _buildVerifiedPill(), onTap: () => Get.toNamed(Routes.WORKER_VERIFICATION)),
           _buildMenuTile(Icons.assignment_outlined, AppStrings.orderHistory.tr, "Upcoming, Completed, Cancel", onTap: () => Get.toNamed(Routes.WORKER_ORDER_HISTORY)),
+          _buildMenuTile(Icons.support_agent_rounded, "Emergency Support", "Chat with Admin AI", onTap: () => Get.toNamed(Routes.emergency_support)),
           _buildMenuTile(Icons.settings_outlined, AppStrings.accountSettings.tr, "Payment, availability, zones", onTap: () => Get.toNamed(Routes.WORKER_ACCOUNT_SETTINGS)),
           _buildMenuTile(Icons.security, AppStrings.security.tr, "Password secured", onTap: () => Get.toNamed(Routes.SECURITY)),
           _buildMenuTile(Icons.help_outline_rounded, AppStrings.helpSupport.tr, "Get assistance", showDivider: false, onTap: () => Get.toNamed(Routes.HELP_SUPPORT)),

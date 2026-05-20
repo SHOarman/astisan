@@ -18,39 +18,39 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Obx(
-        () => SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildTopSection(context),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 24.0),
-
-
-                    if (controller.isOnline.value) ...[
-                      _buildIncomingRequestBanner(),
+        () => RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchCurrentStatus();
+            await controller.fetchTodaySchedule();
+          },
+          color: AppColors.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                _buildTopSection(context),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       const SizedBox(height: 24.0),
+
+                      // Schedule Section
+                      _buildSectionHeader("Today's Schedule", "See all"),
+                      const SizedBox(height: 16.0),
+                      _buildScheduleList(),
+
+                      const SizedBox(height: 24.0),
+
+                      _buildWeeklySummarySection(),
+
+                      const SizedBox(height: 120.0),
                     ],
-
-                    // Schedule Section
-                    _buildSectionHeader("Today's Schedule", "See all"),
-                    const SizedBox(height: 16.0),
-                    _buildScheduleList(),
-
-                    const SizedBox(height: 24.0),
-
-
-                    _buildWeeklySummarySection(),
-
-                    const SizedBox(height: 120.0),
-
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -334,57 +334,6 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
     );
   }
 
-  Widget _buildIncomingRequestBanner() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.onlineGreen, width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.notifications_active_outlined,
-              color: AppColors.onlineGreen,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "New Request Incoming!",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textColor,
-                  ),
-                ),
-                Text(
-                  "Pipe Leak Repair • 1.2 km away",
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.0,
-                    color: AppColors.greyText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        ],
-      ),
-    );
-  }
-
   Widget _buildSectionHeader(String title, String actionText) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -410,16 +359,61 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
   }
 
   Widget _buildScheduleList() {
+    if (controller.isScheduleLoading.value) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (controller.scheduleBookings.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.calendar_today_outlined,
+                size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 12),
+            Text(
+              "No bookings scheduled for today",
+              style: GoogleFonts.poppins(
+                fontSize: 14.0,
+                color: Colors.grey.shade400,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
-      children: controller.scheduleItems.map((item) {
-        return ScheduleCard(
-          serviceTitle: item['title']!,
-          clientName: item['client']!,
-          time: item['time']!,
-          distance: item['distance']!,
-          price: item['price']!,
-          duration: item['duration']!,
-          status: item['status']!,
+      children: controller.scheduleBookings.map((booking) {
+        // Format distance from server
+        String distanceStr = '--';
+        if (booking.distanceKm.isNotEmpty) {
+          final double? km = double.tryParse(booking.distanceKm);
+          if (km != null) {
+            distanceStr = '${km.toStringAsFixed(1)} km';
+          } else {
+            distanceStr = '${booking.distanceKm} km';
+          }
+        }
+
+        return GestureDetector(
+          onTap: () => controller.handleJobTap(booking),
+          child: ScheduleCard(
+            serviceTitle: booking.serviceName.isNotEmpty ? booking.serviceName : 'Service',
+            clientName: booking.clientName,
+            clientImage: booking.clientPicture,
+            time: booking.formattedTime,
+            distance: distanceStr,
+            price: booking.basePrice != '0' ? '\$${booking.basePrice}' : '--',
+            duration: booking.completionTime.isNotEmpty ? booking.completionTime : booking.scheduledDate,
+            status: booking.cardStatus,
+          ),
         );
       }).toList(),
     );

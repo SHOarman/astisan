@@ -50,9 +50,14 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
                         const SizedBox(height: 24.0),
                         _buildTabs(),
                         const SizedBox(height: 24.0),
-                        Obx(() => controller.selectedTab.value == 0
-                            ? _buildOverviewSection()
-                            : _buildReviewsSection()),
+                        Obx(() {
+                          if (controller.isServiceFlow.value) {
+                            return _buildServiceFlowOverview();
+                          }
+                          return controller.selectedTab.value == 0
+                              ? _buildOverviewSection()
+                              : _buildReviewsSection();
+                        }),
                       ],
                     ),
                   ),
@@ -62,7 +67,9 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
           ),
           Obx(() => FixedBottomActionBar(
             leadingText: AppStrings.startingFrom.tr,
-            leadingValue: '\$${controller.artisanData['price'] ?? controller.artisanData['hourly_rate'] ?? '0'}',
+            leadingValue: controller.isServiceFlow.value
+                ? (controller.serviceData['priceRange']?.toString() ?? '\$${controller.artisanData['price'] ?? '0'}')
+                : '\$${controller.artisanData['price'] ?? controller.artisanData['hourly_rate'] ?? '0'}',
             buttonText: AppStrings.bookNow.tr,
             onPressed: controller.bookNow,
           )),
@@ -79,7 +86,9 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
         child: Stack(
           children: [
             Obx(() {
-              final imagePath = controller.artisanData['avatar'] ?? controller.artisanData['profile_picture'] ?? controller.serviceData['image'] ?? AppImages.popElectricalWiring;
+              final imagePath = controller.isServiceFlow.value
+                  ? (controller.serviceData['image'] ?? controller.artisanData['avatar'] ?? controller.artisanData['profile_picture'] ?? AppImages.popElectricalWiring)
+                  : (controller.artisanData['avatar'] ?? controller.artisanData['profile_picture'] ?? controller.serviceData['image'] ?? AppImages.popElectricalWiring);
               return imagePath.toString().startsWith('http')
                   ? Image.network(imagePath, width: double.infinity, height: 220.0, fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Image.asset(AppImages.popElectricalWiring, fit: BoxFit.cover))
@@ -157,7 +166,7 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
             const SizedBox(width: 16.0),
             Expanded(
               child: Obx(() {
-                final price = controller.serviceData['price'] ?? controller.serviceData['price_range'] ?? controller.artisanData['price'] ?? controller.artisanData['hourly_rate'];
+                final price = controller.serviceData['priceRange'] ?? controller.serviceData['price'] ?? controller.serviceData['price_range'] ?? controller.artisanData['price'] ?? controller.artisanData['hourly_rate'];
                 return Text(
                   price != null ? (price.toString().startsWith('\$') ? price.toString() : '\$$price') : '\$40-\$80',
                   textAlign: TextAlign.end,
@@ -175,12 +184,22 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
     return Container(
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(16.0), border: Border.all(color: AppColors.border)),
-      child: Obx(() => Row(
-        children: [
-          Expanded(child: _buildTab(AppStrings.overview.tr, controller.selectedTab.value == 0, () => controller.changeTab(0))),
-          Expanded(child: _buildTab(AppStrings.reviews.tr, controller.selectedTab.value == 1, () => controller.changeTab(1))),
-        ],
-      )),
+      child: Obx(() {
+        if (controller.isServiceFlow.value) {
+          // Service flow: Only Overview tab, no Reviews
+          return Row(
+            children: [
+              Expanded(child: _buildTab(AppStrings.overview.tr, true, () {})),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: _buildTab(AppStrings.overview.tr, controller.selectedTab.value == 0, () => controller.changeTab(0))),
+            Expanded(child: _buildTab(AppStrings.reviews.tr, controller.selectedTab.value == 1, () => controller.changeTab(1))),
+          ],
+        );
+      }),
     );
   }
 
@@ -321,6 +340,137 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
           Text(review['comment'], style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0)),
         ],
       ),
+    );
+  }
+
+  Widget _buildServiceFlowOverview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Service description from artisan (if available)
+        Obx(() {
+          if (controller.serviceDescription.value.isNotEmpty) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle('About This Service'),
+                const SizedBox(height: 12.0),
+                Text(
+                  controller.serviceDescription.value,
+                  style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0, height: 1.5),
+                ),
+                const SizedBox(height: 24.0),
+              ],
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+
+        // All best artisans for this service
+        Obx(() {
+          if (controller.isLoadingTopArtisans.value) {
+            return const Center(child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: CircularProgressIndicator(),
+            ));
+          }
+          if (controller.topArtisans.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text('No artisans available for this service right now.',
+                  style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle('Best Artisans for This'),
+              const SizedBox(height: 16.0),
+              ...controller.topArtisans.map((artisan) {
+                final isSelected = controller.selectedArtisan['id'] == artisan['id'];
+                return GestureDetector(
+                  onTap: () {
+                    controller.selectedArtisan.assignAll(artisan);
+                    controller.artisanData.assignAll(artisan);
+                    controller.normalizeArtisanData();
+                    if (artisan['service_description'] != null) {
+                      controller.serviceDescription.value = artisan['service_description'].toString();
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary.withAlpha(10) : AppColors.white,
+                      borderRadius: BorderRadius.circular(16.0),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primary : AppColors.border,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: _buildArtisanImage(artisan['avatar']),
+                      ),
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(artisan['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.onlineGreen,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text('Selected', style: GoogleFonts.poppins(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.star, color: AppColors.ratingStar, size: 14),
+                                const SizedBox(width: 4),
+                                Text('${artisan['rating']}', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
+                                Text(' • ${artisan['jobsDone']} jobs', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.greyText)),
+                                if (artisan['distanceOrTime'] != null) ...[
+                                  Text(' • ${artisan['distanceOrTime']}', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.greyText)),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          final previousArtisan = Map<String, dynamic>.from(controller.artisanData);
+                          controller.artisanData.assignAll(artisan);
+                          controller.fetchArtisanProfile();
+                          Get.to(() => const artisan_profile_view.ArtisanProfileView())?.then((_) {
+                            controller.artisanData.assignAll(previousArtisan);
+                          });
+                        },
+                        child: Text('View', style: GoogleFonts.poppins(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                      ),
+                    ]),
+                  ),
+                );
+              }).toList(),
+            ],
+          );
+        }),
+      ],
     );
   }
 

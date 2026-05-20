@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:ui';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -114,26 +115,48 @@ class WorkerTrackingController extends GetxController {
     if (s == 'completed') {
       currentStep.value = 3;
       progressPercent.value = 1.0;
-      elapsedMinutes.value = 34;
+      // Calculate total elapsed from start to completion
+      if (b['completed_at'] != null && (b['working_at'] != null || b['arrived_at'] != null)) {
+        try {
+          final start = DateTime.parse(b['working_at'] ?? b['arrived_at']);
+          final end = DateTime.parse(b['completed_at']);
+          elapsedMinutes.value = end.difference(start).inMinutes;
+        } catch (_) {
+          elapsedMinutes.value = 0;
+        }
+      }
     } else if (s == 'working') {
       currentStep.value = 2;
       progressPercent.value = 0.75;
       
-      if (b['started_work_at'] != null || b['working_at'] != null) {
+      if (b['working_at'] != null || b['started_work_at'] != null || b['arrived_at'] != null) {
         try {
-          final start = DateTime.parse(b['started_work_at'] ?? b['working_at']);
+          final start = DateTime.parse(b['working_at'] ?? b['started_work_at'] ?? b['arrived_at']);
+          elapsedMinutes.value = DateTime.now().difference(start).inMinutes;
+          if (elapsedMinutes.value < 0) elapsedMinutes.value = 0;
+          // Dynamic progress based on estimated 60 min job
+          progressPercent.value = (elapsedMinutes.value / 60).clamp(0.1, 0.95);
+        } catch (_) {
+          elapsedMinutes.value = 0;
+        }
+      }
+    } else if (s == 'arrived') {
+      currentStep.value = 2;
+      progressPercent.value = 0.5;
+      
+      if (b['arrived_at'] != null) {
+        try {
+          final start = DateTime.parse(b['arrived_at']);
           elapsedMinutes.value = DateTime.now().difference(start).inMinutes;
           if (elapsedMinutes.value < 0) elapsedMinutes.value = 0;
         } catch (_) {
-          elapsedMinutes.value = 34;
+          elapsedMinutes.value = 0;
         }
-      } else {
-        elapsedMinutes.value = 34;
       }
-    } else if (s == 'on_way' || s == 'on_the_way' || s == 'on-the-way' || s == 'arrived') {
+    } else if (s == 'on_way' || s == 'on_the_way' || s == 'on-the-way') {
       currentStep.value = 1;
-      progressPercent.value = 0.30;
-      elapsedMinutes.value = 10;
+      progressPercent.value = 0.25;
+      elapsedMinutes.value = 0;
     } else {
       currentStep.value = 0;
       progressPercent.value = 0.0;
@@ -147,7 +170,7 @@ class WorkerTrackingController extends GetxController {
       onWayTime.value = _formatRealTime(b['on_way_at'] ?? b['started_navigation_at']);
     }
     if (currentStep.value >= 2) {
-      workingTime.value = _formatRealTime(b['working_at'] ?? b['arrived_at']);
+      workingTime.value = _formatRealTime(b['arrived_at'] ?? b['working_at']);
     }
     if (currentStep.value >= 3) {
       completedTime.value = _formatRealTime(b['completed_at'] ?? b['finished_at']);
@@ -178,17 +201,17 @@ class WorkerTrackingController extends GetxController {
     return "$hour:$minute $ampm";
   }
 
-  Future<void> updateStatus(String status) async {
+  Future<bool> updateStatus(String newStatus) async {
     isLoading.value = true;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
-      if (token == null) return;
+      if (token == null) return false;
 
       final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
       final String url = "${ApiServices.artisan_update_status}${bookingId.value}/status/";
 
-      print("DEBUG: Tracking - Updating status to $status via POST to $url");
+      print("DEBUG: Tracking - Updating status to $newStatus via POST to $url");
 
       final response = await http.post(
         Uri.parse(url),
@@ -198,33 +221,48 @@ class WorkerTrackingController extends GetxController {
           'Accept': 'application/json',
         },
         body: json.encode({
-          "new_status": status,
-          "note": "Updated via tracking screen",
+          "new_status": newStatus,
         }),
       ).timeout(const Duration(seconds: 15));
 
-      print("DEBUG: Tracking Response: ${response.statusCode}");
+      print("DEBUG: Tracking Response: ${response.statusCode} ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Status updated to $status");
-        if (status == "working") {
-          currentStep.value = 2;
-        } else if (status == "completed") {
-          currentStep.value = 3;
-        }
+        Get.snackbar("Success", "Status updated successfully",
+            backgroundColor: const Color(0xFF4CAE79),
+            colorText: const Color(0xFFFFFFFF));
         fetchBookingDetails();
+        return true;
+      } else {
+        Get.snackbar("Error", "Failed: ${response.body}",
+            backgroundColor: const Color(0xFFFF0000),
+            colorText: const Color(0xFFFFFFFF));
+        return false;
       }
     } catch (e) {
       print("Error in tracking status update: $e");
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  void startWorking() => updateStatus("working");
+  void startWorking() async {
+    final success = await updateStatus("working");
+    if (success) {
+      status.value = 'working';
+      currentStep.value = 2;
+      fetchBookingDetails();
+    }
+  }
 
-  void markAsComplete() {
-    Get.toNamed(Routes.JOB_COMPLETION, arguments: {'bookingId': bookingId.value});
+  void markAsComplete() async {
+    final success = await updateStatus("completed");
+    if (success) {
+      status.value = 'completed';
+      currentStep.value = 3;
+      Get.toNamed(Routes.JOB_COMPLETION, arguments: {'bookingId': bookingId.value});
+    }
   }
 
   void goToChat() {

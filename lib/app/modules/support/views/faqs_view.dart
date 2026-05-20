@@ -16,14 +16,6 @@ class FaqsView extends GetView<SupportController> {
       Get.put(SupportController());
     }
 
-    final faqs = [
-      {'q': AppStrings.faqQ1, 'a': AppStrings.faqA1},
-      {'q': AppStrings.faqQ2, 'a': AppStrings.faqA2},
-      {'q': AppStrings.faqQ3, 'a': AppStrings.faqA3},
-      {'q': AppStrings.faqQ4, 'a': AppStrings.faqA4},
-      {'q': AppStrings.faqQ5, 'a': AppStrings.faqA5},
-    ];
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -43,12 +35,19 @@ class FaqsView extends GetView<SupportController> {
           ),
         ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        itemCount: faqs.length,
-        separatorBuilder: (context, index) => Divider(color: Colors.grey.withOpacity(0.1), height: 1),
-        itemBuilder: (context, index) {
-          return Obx(() {
+      body: Obx(() {
+        if (controller.isLoadingFaqs.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (controller.faqsList.isEmpty) {
+          return const Center(child: Text('No FAQs available at the moment.'));
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          itemCount: controller.faqsList.length,
+          separatorBuilder: (context, index) => Divider(color: Colors.grey.withOpacity(0.1), height: 1),
+          itemBuilder: (context, index) {
+            final faq = controller.faqsList[index];
             final isExpanded = controller.expandedIndex.value == index;
             return Theme(
               data: ThemeData().copyWith(dividerColor: Colors.transparent),
@@ -58,7 +57,7 @@ class FaqsView extends GetView<SupportController> {
                 iconColor: AppColors.textColor,
                 collapsedIconColor: AppColors.textColor,
                 title: Text(
-                  faqs[index]['q']!.tr,
+                  faq['question'] ?? '',
                   style: GoogleFonts.poppins(
                     color: AppColors.textColor,
                     fontSize: 16.0,
@@ -69,7 +68,7 @@ class FaqsView extends GetView<SupportController> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: Text(
-                      faqs[index]['a']!.tr,
+                      faq['answer'] ?? '',
                       style: GoogleFonts.poppins(
                         color: Colors.grey[600],
                         fontSize: 14.0,
@@ -80,9 +79,9 @@ class FaqsView extends GetView<SupportController> {
                 ],
               ),
             );
-          });
-        },
-      ),
+          },
+        );
+      }),
     );
   }
 }

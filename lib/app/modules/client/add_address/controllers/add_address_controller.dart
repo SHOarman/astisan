@@ -38,7 +38,11 @@ class AddAddressController extends GetxController {
       isLoading.value = true;
       try {
         final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString('token');
+        String? token = prefs.getString('token');
+        if (token != null) token = token.trim().replaceAll('"', '');
+
+        final lat = locationController.currentPosition.value?.latitude.toString() ?? "0.0";
+        final lng = locationController.currentPosition.value?.longitude.toString() ?? "0.0";
 
         final body = {
           "label": label.value,
@@ -48,15 +52,18 @@ class AddAddressController extends GetxController {
           "state": stateController.text.trim(),
           "zip_code": zipController.text.trim(),
           "country": countryController.text.trim(),
-          "latitude": locationController.currentPosition.value?.latitude.toString() ?? "0.0",
-          "longitude": locationController.currentPosition.value?.longitude.toString() ?? "0.0",
+          "latitude": lat,
+          "longitude": lng,
           "is_default": isDefault.value
         };
+
+        print("DEBUG: Saving address with lat=$lat, lng=$lng");
+        print("DEBUG: Address body: $body");
 
         final response = await http.post(
           Uri.parse(ApiServices.client_addresses),
           headers: {
-            'Authorization': 'Bearer $token',
+            if (token != null) 'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },

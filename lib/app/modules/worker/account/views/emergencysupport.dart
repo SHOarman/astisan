@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/emergency_support_controller.dart';
 
-class EmergencySupport extends StatelessWidget {
+class EmergencySupport extends GetView<EmergencySupportController> {
   const EmergencySupport({super.key});
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<EmergencySupportController>()) {
+      Get.put(EmergencySupportController());
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -23,28 +29,30 @@ class EmergencySupport extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                const SizedBox(height: 10),
-                _buildReceiverMessage(
-                  context,
-                  "Hi Sarah! 👋 I'm here to support your practice. What's on your mind today?",
-                  "10:02 AM",
-                ),
-                _buildSenderMessage(
-                  "I'm having trouble planning this week.",
-                  "10:02 AM",
-                ),
-                _buildReceiverMessage(
-                  context,
-                  "I hear you — planning stress is really common when we're focused on high-performance goals. Let's break it down into manageable emotional chunks.",
-                  "10:02 AM",
-                  hasAction: true,
-                ),
-              ],
-            ),
+            child: Obx(() {
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: controller.messages.length,
+                itemBuilder: (context, index) {
+                  final message = controller.messages[index];
+                  if (message.isUser) {
+                    return _buildSenderMessage(message.text, message.time);
+                  } else {
+                    return _buildReceiverMessage(context, message.text, message.time);
+                  }
+                },
+              );
+            }),
           ),
+          Obx(() {
+            if (controller.isLoading.value) {
+              return const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           _buildChatInput(),
         ],
       ),
@@ -148,11 +156,16 @@ class EmergencySupport extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const CircleAvatar(
+              Obx(() => CircleAvatar(
                 radius: 18,
                 backgroundColor: Colors.orange,
-                child: Icon(Icons.person, size: 20, color: Colors.white),
-              ),
+                backgroundImage: controller.profilePicture.value.isNotEmpty
+                    ? NetworkImage(controller.profilePicture.value)
+                    : null,
+                child: controller.profilePicture.value.isEmpty
+                    ? const Icon(Icons.person, size: 20, color: Colors.white)
+                    : null,
+              )),
             ],
           ),
           Padding(
@@ -180,11 +193,13 @@ class EmergencySupport extends StatelessWidget {
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                controller: controller.textController,
+                decoration: const InputDecoration(
                   hintText: 'write your message',
                   border: InputBorder.none,
                 ),
+                onSubmitted: (_) => controller.sendMessage(),
               ),
             ),
           ),
@@ -194,7 +209,7 @@ class EmergencySupport extends StatelessWidget {
             radius: 25,
             child: IconButton(
               icon: const Icon(Icons.send, color: Colors.white),
-              onPressed: () {},
+              onPressed: () => controller.sendMessage(),
             ),
           ),
         ],

@@ -46,6 +46,10 @@ class ServiceDetailsController extends GetxController {
     },
   ].obs;
 
+  final isServiceFlow = false.obs; // true when coming from popular services
+  final serviceDescription = ''.obs;
+  final selectedArtisan = RxMap<String, dynamic>();
+
   @override
   void onInit() {
     super.onInit();
@@ -55,6 +59,22 @@ class ServiceDetailsController extends GetxController {
   void _handleArguments() {
     if (Get.arguments != null && Get.arguments is Map) {
       final args = Get.arguments as Map<String, dynamic>;
+
+      // Coming from popular services with service data
+      if (args['source'] == 'popular_services' && args['service'] != null) {
+        final service = args['service'] as Map<String, dynamic>;
+        serviceData.assignAll(service);
+        isServiceFlow.value = true;
+        isArtisanSpecificFlow.value = false;
+
+        final serviceId = service['id']?.toString();
+        if (serviceId != null && serviceId.isNotEmpty) {
+          fetchNearbyArtisansForServiceId(serviceId);
+        } else {
+          fetchTopArtisansForService();
+        }
+        return;
+      }
 
       if (args.containsKey('service') || args.containsKey('artisan')) {
         serviceData.assignAll(args['service'] ?? {});
@@ -72,7 +92,7 @@ class ServiceDetailsController extends GetxController {
           });
         }
       }
-      _normalizeArtisanData();
+      normalizeArtisanData();
       if (isArtisanSpecificFlow.value) {
         fetchArtisanProfile();
       } else {
@@ -150,7 +170,7 @@ class ServiceDetailsController extends GetxController {
     }
   }
 
-  void _normalizeArtisanData() {
+  void normalizeArtisanData() {
     artisanData['full_name'] ??= artisanData['name'];
     artisanData['profile_picture'] ??= artisanData['avatar'];
     artisanData['review_count'] ??= artisanData['reviews'];
@@ -182,6 +202,98 @@ class ServiceDetailsController extends GetxController {
           if (decoded is List) artisanServiceAreas.assignAll(decoded.map((e) => e.toString()).toList());
         } catch (_) {}
       }
+    }
+  }
+
+  Future<void> fetchNearbyArtisansForServiceId(String serviceId) async {
+    isLoadingTopArtisans.value = true;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token')?.trim().replaceAll('"', '');
+
+      final locationController = Get.find<LocationController>();
+      final pos = locationController.currentPosition.value;
+
+      Map<String, String> queryParams = {};
+      if (pos != null) {
+        queryParams['lat'] = pos.latitude.toString();
+        queryParams['lng'] = pos.longitude.toString();
+      }
+
+      final uri = Uri.parse('${ApiServices.baseurl}/api/services/client/services/$serviceId/nearby-artisans/').replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final dynamic decodedData = json.decode(response.body);
+        List<dynamic> dataList = (decodedData is Map) ? (decodedData['results'] ?? []) : (decodedData ?? []);
+
+        topArtisans.assignAll(dataList.map((e) {
+          final double dist = double.tryParse(e['distance_km']?.toString() ?? '0.0') ?? 0.0;
+
+          // Extract services info
+          String? svcDescription;
+          if (e['services'] != null && e['services'] is List) {
+            for (var svc in e['services']) {
+              if (svc['service_id']?.toString() == serviceId) {
+                svcDescription = svc['description']?.toString();
+                break;
+              }
+            }
+          }
+
+          return {
+            'id': e['artisan_id'],
+            'name': e['full_name'] ?? 'Artisan',
+            'role': e['occupation'] ?? serviceData['title'] ?? 'Specialist',
+            'avatar': ApiServices.formatImageUrl(e['profile_picture']?.toString()),
+            'isVerified': e['is_verified'] ?? false,
+            'rating': double.tryParse(e['avg_rating']?.toString() ?? '0') ?? 0.0,
+            'reviews': e['review_count'] ?? 0,
+            'jobsDone': e['total_jobs_done'] ?? 0,
+            'price': e['effective_price']?.toString() ?? '0',
+            'distanceOrTime': dist < 1.0 ? 'Nearby' : '${dist.toStringAsFixed(1)} km',
+            'bio': e['bio'],
+            'service_description': svcDescription,
+            'experience': e['experience_years'] ?? e['years_of_experience'],
+            'skills': e['skills'],
+            'service_areas': e['service_areas'],
+            'service_id': serviceId,
+          };
+        }).toList());
+
+        // Auto-select the best artisan (first one = highest rated + nearest)
+        if (topArtisans.isNotEmpty) {
+          selectedArtisan.assignAll(topArtisans.first);
+          artisanData.assignAll(topArtisans.first);
+          normalizeArtisanData();
+
+          // Set service description from the best artisan
+          if (topArtisans.first['service_description'] != null) {
+            serviceDescription.value = topArtisans.first['service_description'].toString();
+          }
+        }
+      } else {
+        // nearby-artisans API failed — not critical, user can still book without artisan
+        print("DEBUG: nearby-artisans returned ${response.statusCode}, trying fallback");
+        isLoadingTopArtisans.value = false;
+        await fetchTopArtisansForService();
+        return;
+      }
+    } catch (e) {
+      print("Error fetching nearby artisans for service: $e");
+      // Fallback on error too
+      isLoadingTopArtisans.value = false;
+      await fetchTopArtisansForService();
+      return;
+    } finally {
+      isLoadingTopArtisans.value = false;
     }
   }
 
@@ -257,6 +369,13 @@ class ServiceDetailsController extends GetxController {
             'service_id': e['service']?.toString() ?? e['service_id']?.toString() ?? (e['artisan_profile'] != null ? e['artisan_profile']['service_id'] : null),
           };
         }).toList());
+
+        // Auto-select best artisan in service flow
+        if (isServiceFlow.value && topArtisans.isNotEmpty && selectedArtisan.isEmpty) {
+          selectedArtisan.assignAll(topArtisans.first);
+          artisanData.assignAll(topArtisans.first);
+          normalizeArtisanData();
+        }
       }
     } catch (e) {
       print("Error fetching artisans: $e");
@@ -268,9 +387,10 @@ class ServiceDetailsController extends GetxController {
   void toggleFavorite() => isFavorite.value = !isFavorite.value;
   void changeTab(int index) => selectedTab.value = index;
   void bookNow() {
+    final artisan = selectedArtisan.isNotEmpty ? selectedArtisan : artisanData;
     Get.toNamed(Routes.BOOKING, arguments: {
       'service': Map<String, dynamic>.from(serviceData),
-      'artisan': Map<String, dynamic>.from(artisanData),
+      'artisan': Map<String, dynamic>.from(artisan),
     });
   }
 }

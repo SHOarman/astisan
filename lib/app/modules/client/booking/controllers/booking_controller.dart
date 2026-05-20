@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
+import '../../../../core/global_controllers/location_controller.dart';
 
 class BookingController extends GetxController {
   final currentStep = 1.obs;
@@ -139,6 +140,7 @@ class BookingController extends GetxController {
 
   // Navigation source
   final source = ''.obs;
+  final isSubmittingBooking = false.obs;
 
   final quickNotes = [
     '+ Urgent repair',
@@ -226,7 +228,11 @@ class BookingController extends GetxController {
   }
 
   Future<void> submitBooking() async {
-    isLoadingAddresses.value = true;
+    isSubmittingBooking.value = true;
+    Get.dialog(
+      const Center(child: CircularProgressIndicator(color: Colors.white)),
+      barrierDismissible: false,
+    );
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
@@ -384,6 +390,51 @@ class BookingController extends GetxController {
 
       request.fields['service_address'] =
           selectedAddress['id']?.toString() ?? '';
+
+      // Send lat/lng from the selected address raw data
+      final rawAddr = selectedAddress['raw'] ?? {};
+      print("======= BOOKING DEBUG =======");
+      print("DEBUG: Selected Address: $selectedAddress");
+      print("DEBUG: Raw Address Data: $rawAddr");
+      print("DEBUG: Service Data: ${serviceData.value}");
+      print("DEBUG: Selected Artisan: ${selectedArtisan.value}");
+      print("DEBUG: Artisan Rate: $artisanRate");
+
+      // Try raw address first, then fall back to device GPS
+      String lat = rawAddr['latitude']?.toString() ?? rawAddr['lat']?.toString() ?? '';
+      String lng = rawAddr['longitude']?.toString() ?? rawAddr['lng']?.toString() ?? rawAddr['lon']?.toString() ?? '';
+
+      // If address doesn't have lat/lng, use current device GPS
+      if (lat.isEmpty || lat == '0' || lat == 'null' || lng.isEmpty || lng == '0' || lng == 'null') {
+        try {
+          final locationCtrl = Get.find<LocationController>();
+          final pos = locationCtrl.currentPosition.value;
+          if (pos != null) {
+            lat = pos.latitude.toString();
+            lng = pos.longitude.toString();
+            print("DEBUG: Using device GPS: lat=$lat, lng=$lng");
+          }
+        } catch (e) {
+          print("DEBUG: Could not get device location: $e");
+        }
+      }
+      request.fields['address_lat'] = lat.isNotEmpty ? lat : '0';
+      request.fields['address_lng'] = lng.isNotEmpty ? lng : '0';
+      
+      // Send full address text
+      final fullAddr = rawAddr['address_line'] ?? rawAddr['full_address'] ?? selectedAddress['address'] ?? '';
+      if (fullAddr.toString().isNotEmpty) {
+        request.fields['full_address'] = fullAddr.toString();
+      }
+
+      // Send base_price from artisan rate or service price
+      final double price = artisanRate > 0 
+          ? artisanRate 
+          : (double.tryParse(serviceData['price_range_min']?.toString() ?? '0') ?? 0);
+      if (price > 0) {
+        request.fields['base_price'] = price.toStringAsFixed(2);
+      }
+
       // 'artisan' field is already handled above based on selection
       request.fields['scheduled_date'] = formattedDate;
       request.fields['scheduled_time'] = formattedTime;
@@ -410,13 +461,15 @@ class BookingController extends GetxController {
       }
 
       print("DEBUG: Submitting booking request...");
-      var streamedResponse = await request.send();
+      print("DEBUG: Fields: ${request.fields}");
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 60));
       var response = await http.Response.fromStream(streamedResponse);
 
       print("DEBUG: Booking Status: ${response.statusCode}");
       print("DEBUG: Booking Response: ${response.body}");
 
       if (response.statusCode == 201) {
+        if (Get.isDialogOpen ?? false) Get.back();
         final decoded = json.decode(response.body);
         Get.snackbar(
           "Success",
@@ -426,8 +479,9 @@ class BookingController extends GetxController {
           colorText: Colors.white,
           margin: const EdgeInsets.all(16),
         );
-        Get.offAllNamed(Routes.ORDER_HISTORY);
+        Get.offAllNamed(Routes.DASHBOARD);
       } else {
+        if (Get.isDialogOpen ?? false) Get.back();
         Get.snackbar(
           "Error",
           "Failed to create booking: ${response.body}",
@@ -436,15 +490,22 @@ class BookingController extends GetxController {
         );
       }
     } catch (e) {
+      if (Get.isDialogOpen ?? false) Get.back();
       print("Error submitting booking: $e");
+      
+      String errorMessage = "An unexpected error occurred.";
+      if (e.toString().contains("TimeoutException")) {
+        errorMessage = "The server is taking too long to respond. Please try again.";
+      }
+      
       Get.snackbar(
         "Error",
-        "An unexpected error occurred.",
+        errorMessage,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
     } finally {
-      isLoadingAddresses.value = false;
+      isSubmittingBooking.value = false;
     }
   }
 

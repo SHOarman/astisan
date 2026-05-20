@@ -77,15 +77,15 @@ class GetBonusView extends GetView<GetBonusController> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          controller.referralCode,
+                        Obx(() => Text(
+                          controller.isLoading.value ? '...' : (controller.referralCode.value.isEmpty ? 'N/A' : controller.referralCode.value),
                           style: GoogleFonts.poppins(
                             fontSize: 16.0,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textColor,
                             letterSpacing: 0.5,
                           ),
-                        ),
+                        )),
                         Row(
                           children: [
                             Container(
@@ -128,6 +128,65 @@ class GetBonusView extends GetView<GetBonusController> {
                 ),
               ],
             ),
+            const SizedBox(height: 32.0),
+            Text(
+              "Referral History",
+              style: GoogleFonts.poppins(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textColor,
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.referralHistory.isEmpty) {
+                return Text(
+                  "You haven't referred anyone yet.",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.0,
+                    color: AppColors.greyText,
+                  ),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: controller.referralHistory.length,
+                itemBuilder: (context, index) {
+                  final ref = controller.referralHistory[index];
+                  final name = ref['referred_name'] ?? ref['referred_email'] ?? 'Unknown';
+                  final bool bonusPaid = ref['bonus_paid'] == true;
+                  final amount = ref['bonus_amount'] ?? '0';
+                  
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.primary.withAlpha(20),
+                      child: const Icon(Icons.person, color: AppColors.primary),
+                    ),
+                    title: Text(name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    subtitle: Text(
+                      bonusPaid ? "Bonus Paid" : "Pending",
+                      style: GoogleFonts.poppins(
+                        color: bonusPaid ? Colors.green : Colors.orange,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: Text(
+                      "\$$amount",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textColor,
+                        fontSize: 16,
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
           ],
         ),
       ),

@@ -99,7 +99,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
   }
 
   Widget _buildSuccessBanner() {
-    return Container(
+    return Obx(() => Container(
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: AppColors.primary,
@@ -129,7 +129,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
                   ),
                 ),
                 Text(
-                  'Completed at 11:54 AM Â· Duration: 1h 36min',
+                  'Completed at ${controller.completedTime.value} · Duration: ${controller.duration.value}',
                   style: GoogleFonts.poppins(
                     color: AppColors.white.withAlpha(200),
                     fontSize: 12.0,
@@ -140,11 +140,11 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildArtisanSnippet() {
-    return Container(
+    return Obx(() => Container(
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -155,12 +155,25 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12.0),
-            child: Image.asset(
-              AppImages.homeMarcusJohnson,
-              width: 50.0,
-              height: 50.0,
-              fit: BoxFit.cover,
-            ),
+            child: controller.artisanImageUrl.value.isNotEmpty
+                ? Image.network(
+                    "http://localhost:8000${controller.artisanImageUrl.value}",
+                    width: 50.0,
+                    height: 50.0,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      AppImages.homeMarcusJohnson,
+                      width: 50.0,
+                      height: 50.0,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Image.asset(
+                    AppImages.homeMarcusJohnson,
+                    width: 50.0,
+                    height: 50.0,
+                    fit: BoxFit.cover,
+                  ),
           ),
           SizedBox(width: 16.0),
           Expanded(
@@ -168,7 +181,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'James Wilson',
+                  controller.artisanName.value.isEmpty ? 'Artisan' : controller.artisanName.value,
                   style: GoogleFonts.poppins(
                     color: AppColors.textColor,
                     fontSize: 14.0,
@@ -176,7 +189,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
                   ),
                 ),
                 Text(
-                  'Plumbing Expert',
+                  controller.profession.value.isEmpty ? 'Expert' : controller.profession.value,
                   style: GoogleFonts.poppins(
                     color: AppColors.greyText,
                     fontSize: 12.0,
@@ -188,7 +201,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
                     Icon(Icons.star, color: AppColors.ratingStar, size: 14.0),
                     SizedBox(width: 4.0),
                     Text(
-                      '4.9 Â· Expert',
+                      '${controller.rating.value > 0 ? controller.rating.value : "4.9"} · Expert',
                       style: GoogleFonts.poppins(
                         color: AppColors.textColor,
                         fontSize: 12.0,
@@ -210,11 +223,11 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildWorkCompleted() {
-    return Container(
+    return Obx(() => Container(
       padding: EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -257,7 +270,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
               )),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildPhotosSection() {
@@ -294,18 +307,16 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
   }
 
   Widget _buildCostBreakdown() {
-    return CostBreakdownCard(
+    return Obx(() => CostBreakdownCard(
       icon: Icons.credit_card_outlined,
       cardTitle: 'Cost Breakdown',
       items: [
-        CostBreakdownItem(title: 'Labor (1.5 hrs @ \$55/hr)', amount: '\$82.50'),
-        CostBreakdownItem(title: 'Parts: Pipe fitting Ã—2', amount: '\$18.00'),
-        CostBreakdownItem(title: 'Parts: Pressure valve', amount: '\$24.50'),
-        CostBreakdownItem(title: 'Platform fee (5%)', amount: '\$6.25'),
+        CostBreakdownItem(title: 'Service base fee', amount: controller.totalAmount.value),
+        CostBreakdownItem(title: 'Platform fee (0%)', amount: '\$0.00'),
       ],
       totalLabel: 'Total Due',
-      totalAmount: '\$131.25',
-    );
+      totalAmount: controller.totalAmount.value,
+    ));
   }
 
   Widget _buildGuaranteeBox() {
@@ -354,7 +365,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: () => Get.toNamed(Routes.BOOKING),
+          onPressed: () => controller.goToHome(),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             padding: EdgeInsets.symmetric(vertical: 16.0),

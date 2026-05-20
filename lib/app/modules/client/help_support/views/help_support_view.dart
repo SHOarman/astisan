@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/static/app_colors.dart';
 import '../controllers/help_support_controller.dart';
+import 'ai_support_chat_view.dart';
 
 class HelpSupportView extends GetView<HelpSupportController> {
   const HelpSupportView({super.key});
@@ -51,6 +52,8 @@ class HelpSupportView extends GetView<HelpSupportController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _buildMenuItem('Emergency Support (AI)', () => Get.to(() => const AiSupportChatView())),
+                _buildDivider(),
                 _buildMenuItem('Privacy Policy', controller.goToPrivacyPolicy),
                 _buildDivider(),
                 _buildMenuItem('Terms of Service', controller.goToTermsOfService),

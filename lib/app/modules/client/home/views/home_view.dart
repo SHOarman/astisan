@@ -339,7 +339,7 @@ class HomeView extends GetView<HomeController> {
                 reviews: service['reviews'],
                 priceRange: service['priceRange'],
                 onTap: () {
-                  Get.toNamed(Routes.BOOKING, arguments: {
+                  Get.toNamed(Routes.SERVICE_DETAILS, arguments: {
                     'service': service,
                     'source': 'popular_services',
                   });

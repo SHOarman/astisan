@@ -231,12 +231,15 @@ class WorkerJobDetailsController extends GetxController {
       final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
       final String url = "${ApiServices.artisan_update_status}${bookingId.value}/status/";
 
+      // API docs: field = "new_status", values = confirmed, on_way, arrived, working, completed, cancelled
       final Map<String, dynamic> payload = {
         "new_status": status,
-        "note": note,
       };
+      if (note.isNotEmpty) payload["note"] = note;
 
-      var response = await http.post(
+      print("DEBUG: Status update → $url | payload: $payload | current status: ${bookingStatus.value}");
+
+      final response = await http.post(
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $cleanToken',
@@ -246,38 +249,19 @@ class WorkerJobDetailsController extends GetxController {
         body: json.encode(payload),
       );
 
-      if (response.statusCode == 400 && status == 'on_way') {
-        payload['new_status'] = 'on_the_way';
-        response = await http.post(
-          Uri.parse(url),
-          headers: {
-            'Authorization': 'Bearer $cleanToken',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: json.encode(payload),
-        );
-      }
-
-      if (response.statusCode == 400 && payload['new_status'] == 'on_the_way') {
-        payload['new_status'] = 'on-the-way';
-        response = await http.post(
-          Uri.parse(url),
-          headers: {
-            'Authorization': 'Bearer $cleanToken',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: json.encode(payload),
-        );
-      }
+      print("DEBUG: Status response: ${response.statusCode} ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Status updated to ${payload['new_status']}");
+        bookingStatus.value = status;
+        Get.snackbar("Success", "Status updated successfully",
+            backgroundColor: const Color(0xFF4CAE79),
+            colorText: const Color(0xFFFFFFFF));
         fetchJobDetails();
         return true;
       } else {
-        Get.snackbar("Error", "Update failed (${response.statusCode}): ${response.body}");
+        Get.snackbar("Error", "Update failed (${response.statusCode}): ${response.body}",
+            backgroundColor: const Color(0xFFFF0000),
+            colorText: const Color(0xFFFFFFFF));
         return false;
       }
     } catch (e) {
@@ -307,6 +291,7 @@ class WorkerJobDetailsController extends GetxController {
     if (!alreadyOnWay) {
       final onWay = await updateStatus("on_way");
       if (!onWay) return;
+      bookingStatus.value = 'on_the_way';
     }
 
     startLocationSharing();
@@ -608,8 +593,9 @@ class WorkerJobDetailsController extends GetxController {
   }
 
   void iveArrived() async {
-    final success = await updateStatus("working");
+    final success = await updateStatus("arrived");
     if (success) {
+      bookingStatus.value = 'arrived';
       Get.offNamed(Routes.WORKER_TRACKING, arguments: {'bookingId': bookingId.value});
     }
   }

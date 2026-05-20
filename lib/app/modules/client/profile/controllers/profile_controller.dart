@@ -130,6 +130,7 @@ class ProfileController extends GetxController {
         userEmail.value = data['email'] ?? 'No Email';
         userPhone.value = data['phone'] ?? 'No Phone';
         userProfileImage.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+        await prefs.setString('user_profile_pic', userProfileImage.value);
 
         if (isWorker && data['artisan_profile'] != null) {
           final artisan = data['artisan_profile'];
@@ -153,6 +154,7 @@ class ProfileController extends GetxController {
           userEmail.value = data['email'] ?? 'No Email';
           userPhone.value = data['phone'] ?? 'No Phone';
           userProfileImage.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+          await prefs.setString('user_profile_pic', userProfileImage.value);
         } else {
           userName.value = 'Permission Denied (403)';
           Get.snackbar('Access Denied', 'Your account does not have permission for this role.', backgroundColor: Colors.orange, colorText: Colors.white);

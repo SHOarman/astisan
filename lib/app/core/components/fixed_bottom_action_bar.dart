@@ -7,6 +7,7 @@ class FixedBottomActionBar extends StatelessWidget {
   final String? leadingValue;
   final String buttonText;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
   const FixedBottomActionBar({
     super.key,
@@ -14,6 +15,7 @@ class FixedBottomActionBar extends StatelessWidget {
     this.leadingValue,
     required this.buttonText,
     this.onPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -77,21 +79,30 @@ class FixedBottomActionBar extends StatelessWidget {
                   ),
                   elevation: 0,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      buttonText,
-                      style: GoogleFonts.poppins(
-                        color: AppColors.white,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w600,
+                child: isLoading
+                    ? SizedBox(
+                        height: 24.0,
+                        width: 24.0,
+                        child: CircularProgressIndicator(
+                          color: AppColors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            buttonText,
+                            style: GoogleFonts.poppins(
+                              color: AppColors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 8.0),
+                          Icon(Icons.chevron_right, color: AppColors.white, size: 24.0),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 8.0),
-                    Icon(Icons.chevron_right, color: AppColors.white, size: 24.0),
-                  ],
-                ),
               ),
             ),
           ],

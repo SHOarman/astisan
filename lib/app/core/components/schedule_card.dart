@@ -10,6 +10,7 @@ class ScheduleCard extends StatelessWidget {
   final String price;
   final String duration;
   final String status; // ONGOING, UPCOMING
+  final String? clientImage;
   final String? iconPath;
 
   const ScheduleCard({
@@ -21,12 +22,32 @@ class ScheduleCard extends StatelessWidget {
     required this.price,
     required this.duration,
     required this.status,
+    this.clientImage,
     this.iconPath,
   });
 
   @override
   Widget build(BuildContext context) {
-    bool isOngoing = status.toUpperCase() == 'ONGOING';
+    final s = status.toLowerCase();
+    bool isOngoing = s == 'accept by you' || s == 'on the way' || s == 'arrived' || s == 'working';
+    bool isCompleted = s == 'completed';
+    bool isCancelled = s == 'cancelled' || s == 'rejected';
+
+    Color badgeBgColor = isOngoing
+        ? const Color(0xFFE8F5E9)
+        : isCompleted
+            ? const Color(0xFFE3F2FD)
+            : isCancelled
+                ? const Color(0xFFFFEBEE)
+                : const Color(0xFFF0F4F8);
+
+    Color badgeTextColor = isOngoing
+        ? AppColors.onlineGreen
+        : isCompleted
+            ? const Color(0xFF1976D2)
+            : isCancelled
+                ? const Color(0xFFD32F2F)
+                : const Color(0xFF546E7A);
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -45,20 +66,8 @@ class ScheduleCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Left Icon
-          Container(
-            width: 54.0,
-            height: 54.0,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F5FA),
-              borderRadius: BorderRadius.circular(14.0),
-            ),
-            child: Icon(
-              Icons.build_outlined, // Wrench icon used in mockups
-              color: Colors.grey.shade600,
-              size: 24.0,
-            ),
-          ),
+          // Left — Client Avatar or Service Icon
+          _buildAvatar(),
           const SizedBox(width: 16.0),
           
           // Center Info
@@ -81,25 +90,7 @@ class ScheduleCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8.0),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-                      decoration: BoxDecoration(
-                        color: isOngoing 
-                            ? const Color(0xFFE8EAF6) 
-                            : Colors.grey.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6.0),
-                      ),
-                      child: Text(
-                        status.toUpperCase(),
-                        style: GoogleFonts.poppins(
-                          fontSize: 9.0,
-                          fontWeight: FontWeight.w700,
-                          color: isOngoing 
-                              ? AppColors.primary 
-                              : Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
+                    _buildStatusBadge(badgeBgColor, badgeTextColor, isOngoing, isCompleted),
                   ],
                 ),
                 Text(
@@ -122,16 +113,18 @@ class ScheduleCard extends StatelessWidget {
                         color: AppColors.greyText,
                       ),
                     ),
-                    const SizedBox(width: 12.0),
-                    Icon(Icons.location_on_rounded, size: 14.0, color: Colors.grey.shade400),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      distance,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.0,
-                        color: AppColors.greyText,
+                    if (distance.isNotEmpty && distance != '--') ...[
+                      const SizedBox(width: 12.0),
+                      Icon(Icons.location_on_rounded, size: 14.0, color: Colors.grey.shade400),
+                      const SizedBox(width: 4.0),
+                      Text(
+                        distance,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.0,
+                          color: AppColors.greyText,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ],
@@ -159,6 +152,70 @@ class ScheduleCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final bool hasImage = clientImage != null && clientImage!.isNotEmpty && clientImage!.startsWith('http');
+    
+    return Container(
+      width: 54.0,
+      height: 54.0,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F5FA),
+        borderRadius: BorderRadius.circular(14.0),
+        image: hasImage
+            ? DecorationImage(
+                image: NetworkImage(clientImage!),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: hasImage
+          ? null
+          : Icon(
+              Icons.build_outlined,
+              color: Colors.grey.shade600,
+              size: 24.0,
+            ),
+    );
+  }
+
+  Widget _buildStatusBadge(Color bgColor, Color textColor, bool isOngoing, bool isCompleted) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isOngoing) ...[
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: textColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4.0),
+          ],
+          if (isCompleted) ...[
+            Icon(Icons.check_circle, size: 12, color: textColor),
+            const SizedBox(width: 4.0),
+          ],
+          Text(
+            status,
+            style: GoogleFonts.poppins(
+              fontSize: 10.0,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
           ),
         ],
       ),

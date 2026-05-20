@@ -65,7 +65,7 @@ class TrackingController extends GetxController {
       if (lowerStatus == 'completed') {
         final String route = Get.currentRoute;
         if (route.contains(Routes.TRACKING) || route.contains(Routes.TRACKINGSCREEN)) {
-          Get.offNamed(Routes.WORK_OVERVIEW);
+          Get.offNamed(Routes.WORK_OVERVIEW, arguments: booking.value);
           Get.snackbar(
             "Job Completed",
             "The artisan has completed the job successfully!",
@@ -447,7 +447,7 @@ class TrackingController extends GetxController {
   }
 
   void viewCompletionWork() {
-    Get.toNamed(Routes.WORK_OVERVIEW);
+    Get.toNamed(Routes.WORK_OVERVIEW, arguments: booking.value);
   }
 
   bool _isValidLatLng(double lat, double lng) {

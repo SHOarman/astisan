@@ -41,10 +41,18 @@ class BookingListView extends StatelessWidget {
         final String status = (booking['status'] ?? '').toString().toLowerCase();
         final bool isRequested = status == 'requested';
 
-        // Show price range for requested, real amount for others
-        final String displayAmount = isRequested 
-            ? (booking['service_price_range'] ?? "\$40 - \$100") 
-            : '\$${booking['total_amount'] ?? '0'}';
+        String displayAmount = "\$40 - \$100";
+        final basePrice = booking['base_price']?.toString() ?? '';
+        final totalAmount = booking['total_amount']?.toString() ?? '';
+
+        if (totalAmount.isNotEmpty && totalAmount != '0' && totalAmount != '0.0' && totalAmount != 'null') {
+          displayAmount = '\$$totalAmount';
+        } else if (basePrice.isNotEmpty && basePrice != '0' && basePrice != '0.0' && basePrice != 'null') {
+          final cleanPrice = basePrice.startsWith('-') ? basePrice.substring(1) : basePrice;
+          displayAmount = '\$$cleanPrice';
+        } else if (booking['service_price_range'] != null && booking['service_price_range'].toString().isNotEmpty && booking['service_price_range'].toString() != 'null') {
+          displayAmount = booking['service_price_range'].toString();
+        }
 
         return CustomBookingCard(
           title: booking['service_name'] ?? 'Service',
