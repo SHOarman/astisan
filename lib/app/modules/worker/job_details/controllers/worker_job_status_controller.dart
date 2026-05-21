@@ -10,7 +10,7 @@ class WorkerJobStatusController extends GetxController {
 
   final serviceName = "Pipe Repair".obs;
   final clientAddress = "123 Main St, NY".obs;
-  final estimatedCost = "\$65 - \$120".obs;
+  final estimatedCost = "Pending".obs;
   final jobStartTime = "10:18 AM".obs;
   final elapsedMinutes = 34.obs;
 

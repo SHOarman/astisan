@@ -114,8 +114,9 @@ class ResetPasswordVerificationView extends GetView<ResetPasswordVerificationCon
         }),
         const SizedBox(height: 40.0),
         Obx(() => CustomButton(
-          text: controller.isLoading.value ? 'Verifying...' : AppStrings.verify.tr,
-          onPressed: controller.isLoading.value ? null : controller.verify,
+          text: AppStrings.verify.tr,
+          isLoading: controller.isLoading.value,
+          onPressed: controller.verify,
         )),
       ],
     );

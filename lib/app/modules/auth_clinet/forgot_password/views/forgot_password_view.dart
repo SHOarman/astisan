@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -83,8 +83,9 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
           ),
           const SizedBox(height: 32.0),
           Obx(() => CustomButton(
-            text: controller.isLoading.value ? 'Sending...' : AppStrings.sendCode.tr,
-            onPressed: controller.isLoading.value ? null : controller.sendCode,
+            text: AppStrings.sendCode.tr,
+            isLoading: controller.isLoading.value,
+            onPressed: controller.sendCode,
           )),
         ],
       ),

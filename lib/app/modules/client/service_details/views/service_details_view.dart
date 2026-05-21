@@ -168,7 +168,7 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
               child: Obx(() {
                 final price = controller.serviceData['priceRange'] ?? controller.serviceData['price'] ?? controller.serviceData['price_range'] ?? controller.artisanData['price'] ?? controller.artisanData['hourly_rate'];
                 return Text(
-                  price != null ? (price.toString().startsWith('\$') ? price.toString() : '\$$price') : '\$40-\$80',
+                  price != null ? (price.toString().startsWith('\$') ? price.toString() : '\$$price') : 'Pending',
                   textAlign: TextAlign.end,
                   style: GoogleFonts.poppins(color: AppColors.primary, fontSize: 18.0, fontWeight: FontWeight.w700),
                 );

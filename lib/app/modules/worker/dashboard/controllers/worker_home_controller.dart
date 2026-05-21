@@ -3,8 +3,11 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
+import '../../../../core/global_controllers/location_controller.dart';
 
 // ─── Model ───────────────────────────────────────────────────────────────────
 class ScheduleBooking {
@@ -44,10 +47,15 @@ class ScheduleBooking {
     // Parse base_price - may be null, "-", or a number string
     String price = '0';
     final rawPrice = json['base_price'];
-    if (rawPrice != null && rawPrice.toString().isNotEmpty && rawPrice.toString() != '-' && rawPrice.toString() != 'null') {
+    if (rawPrice != null &&
+        rawPrice.toString().isNotEmpty &&
+        rawPrice.toString() != '-' &&
+        rawPrice.toString() != 'null') {
       final parsed = double.tryParse(rawPrice.toString());
       if (parsed != null) {
-        price = parsed % 1 == 0 ? parsed.toInt().toString() : parsed.toStringAsFixed(2);
+        price = parsed % 1 == 0
+            ? parsed.toInt().toString()
+            : parsed.toStringAsFixed(2);
       } else {
         price = rawPrice.toString();
       }
@@ -57,7 +65,9 @@ class ScheduleBooking {
       id: json['id']?.toString() ?? '',
       bookingId: json['booking_id']?.toString() ?? '',
       clientName: json['client_name']?.toString() ?? 'Client',
-      clientPicture: ApiServices.formatImageUrl(json['client_picture']?.toString()),
+      clientPicture: ApiServices.formatImageUrl(
+        json['client_picture']?.toString(),
+      ),
       serviceName: json['service_name']?.toString() ?? '',
       clientAvgRating: json['client_avg_rating']?.toString() ?? '0',
       status: json['status']?.toString() ?? '',
@@ -75,12 +85,14 @@ class ScheduleBooking {
   String get cardStatus {
     final s = status.toLowerCase();
     if (s == 'working') return 'Working';
-    if (s == 'on_way' || s == 'on_the_way' || s == 'on-the-way') return 'On the Way';
+    if (s == 'on_way' || s == 'on_the_way' || s == 'on-the-way')
+      return 'On the Way';
     if (s == 'arrived') return 'Arrived';
     if (s == 'completed') return 'Completed';
     if (s == 'cancelled') return 'Cancelled';
     if (s == 'rejected') return 'Rejected';
-    if (s == 'requested' || s == 'confirmed' || s == 'accepted') return 'Accept by you';
+    if (s == 'requested' || s == 'confirmed' || s == 'accepted')
+      return 'Accept by you';
     return 'Upcoming';
   }
 
@@ -126,7 +138,10 @@ class WorkerHomeController extends GetxController {
     // First load — show spinner
     fetchTodaySchedule();
     // Subsequent silent polls every 30 s — cards update without flash
-    _scheduleTimer = Timer.periodic(_pollInterval, (_) => _silentRefreshSchedule());
+    _scheduleTimer = Timer.periodic(
+      _pollInterval,
+      (_) => _silentRefreshSchedule(),
+    );
   }
 
   @override
@@ -158,7 +173,9 @@ class WorkerHomeController extends GetxController {
         userName.value = data['full_name'] ?? '';
         userEmail.value = data['email'] ?? '';
         phoneNumber.value = data['phone'] ?? '';
-        profilePicture.value = ApiServices.formatImageUrl(data['profile_picture']?.toString());
+        profilePicture.value = ApiServices.formatImageUrl(
+          data['profile_picture']?.toString(),
+        );
 
         final artisan = data['artisan_profile'];
         if (artisan != null) {
@@ -192,39 +209,112 @@ class WorkerHomeController extends GetxController {
         return;
       }
 
-      final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final String cleanToken = token
+          .trim()
+          .replaceAll('"', '')
+          .replaceAll('Bearer ', '');
       final url = ApiServices.artisan_today_schedule;
       print("DEBUG: Fetching today schedule from: $url");
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $cleanToken',
-          'Accept': 'application/json',
-          'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
-        },
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'Authorization': 'Bearer $cleanToken',
+              'Accept': 'application/json',
+              'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
 
       print("DEBUG: Schedule response status: ${response.statusCode}");
-      print("DEBUG: Schedule response body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}");
+      print(
+        "DEBUG: Schedule response body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}",
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List<dynamic> results =
-            (data is List) ? data : (data['results'] as List? ?? []);
+        final List<dynamic> results = (data is List)
+            ? data
+            : (data['results'] as List? ?? []);
 
         print("DEBUG: Parsed ${results.length} bookings from today schedule");
 
-        final newBookings = results
-            .map((e) => ScheduleBooking.fromJson(e as Map<String, dynamic>))
+        final List<Map<String, dynamic>> processedResults = [];
+
+        for (var e in results) {
+          final map = Map<String, dynamic>.from(e);
+
+          // Geocode fallback and live distance calculation if backend sends null distance_km
+          if (map['distance_km'] == null || map['distance_km'] == 'null') {
+            double? destLat;
+            double? destLng;
+
+            final rawLat = map['address_lat'] ?? map['lat'];
+            final rawLng = map['address_lng'] ?? map['lng'];
+
+            if (rawLat != null) destLat = double.tryParse(rawLat.toString());
+            if (rawLng != null) destLng = double.tryParse(rawLng.toString());
+
+            if (destLat == null && map['full_address'] != null) {
+              try {
+                final locations = await locationFromAddress(
+                  map['full_address'].toString(),
+                );
+                if (locations.isNotEmpty) {
+                  destLat = locations.first.latitude;
+                  destLng = locations.first.longitude;
+                }
+              } catch (_) {}
+            }
+
+            if (destLat != null &&
+                destLng != null &&
+                Get.isRegistered<LocationController>()) {
+              final locCtrl = Get.find<LocationController>();
+              final currentPos = locCtrl.currentPosition.value;
+              if (currentPos != null) {
+                final dist = Geolocator.distanceBetween(
+                  currentPos.latitude,
+                  currentPos.longitude,
+                  destLat,
+                  destLng,
+                );
+                map['distance_km'] = (dist / 1000.0).toStringAsFixed(1);
+              }
+            }
+          }
+
+          processedResults.add(map);
+        }
+
+        final DateTime now = DateTime.now();
+        final String todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+        final newBookings = processedResults
+            .map((e) => ScheduleBooking.fromJson(e))
+            .where((b) {
+              final status = b.status.toLowerCase();
+              if (status == 'requested') return false;
+              if (status == 'completed') return false;
+              if (status == 'cancelled' || status == 'rejected') return false;
+              
+              if (b.scheduledDate.isEmpty) return true;
+              final String bookingDate = b.scheduledDate.split('T')[0];
+              return bookingDate == todayStr;
+            })
             .toList();
 
         if (_hasChanges(newBookings)) {
           scheduleBookings.assignAll(newBookings);
-          print("DEBUG: Updated scheduleBookings with ${newBookings.length} items");
+          print(
+            "DEBUG: Updated scheduleBookings with ${newBookings.length} items",
+          );
         }
       } else {
-        print("DEBUG: fetchTodaySchedule non-200: ${response.statusCode} ${response.body}");
+        print(
+          "DEBUG: fetchTodaySchedule non-200: ${response.statusCode} ${response.body}",
+        );
       }
     } catch (e) {
       print("DEBUG: fetchTodaySchedule error: $e");
@@ -241,6 +331,30 @@ class WorkerHomeController extends GetxController {
       }
     }
     return false;
+  }
+
+  void updateBookingStatusLocally(String targetId, String newStatus) {
+    int index = scheduleBookings.indexWhere((b) => b.id == targetId || b.bookingId == targetId);
+    if (index != -1) {
+      final old = scheduleBookings[index];
+      scheduleBookings[index] = ScheduleBooking(
+        id: old.id,
+        bookingId: old.bookingId,
+        clientName: old.clientName,
+        clientPicture: old.clientPicture,
+        serviceName: old.serviceName,
+        clientAvgRating: old.clientAvgRating,
+        status: newStatus,
+        distanceKm: old.distanceKm,
+        scheduledDate: old.scheduledDate,
+        scheduledTime: old.scheduledTime,
+        fullAddress: old.fullAddress,
+        basePrice: old.basePrice,
+        completionTime: old.completionTime,
+        createdAt: old.createdAt,
+      );
+      scheduleBookings.refresh();
+    }
   }
 
   Future<void> toggleStatus(bool value) async {
@@ -287,12 +401,13 @@ class WorkerHomeController extends GetxController {
       },
     };
 
-    if (status == 'on_way' || status == 'on_the_way' || status == 'on-the-way') {
+    if (status == 'on_way' ||
+        status == 'on_the_way' ||
+        status == 'on-the-way') {
       Get.toNamed(Routes.WORKER_NAVIGATION, arguments: args);
     } else if (status == 'arrived' || status == 'working') {
       Get.toNamed(Routes.WORKER_TRACKING, arguments: args);
     } else {
-      // requested, confirmed, accepted, completed, cancelled, etc.
       Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: args);
     }
   }
@@ -302,20 +417,8 @@ class WorkerHomeController extends GetxController {
   }
 
   final weeklySummary = [
-    {
-      'icon': '💰',
-      'value': '\$425',
-      'label': 'Earnings',
-    },
-    {
-      'icon': '✅',
-      'value': '8',
-      'label': 'Jobs Done',
-    },
-    {
-      'icon': '⭐',
-      'value': '4.9★',
-      'label': 'Avg Rating',
-    },
+    {'icon': '💰', 'value': '\$425', 'label': 'Earnings'},
+    {'icon': '✅', 'value': '8', 'label': 'Jobs Done'},
+    {'icon': '⭐', 'value': '4.9★', 'label': 'Avg Rating'},
   ].obs;
 }

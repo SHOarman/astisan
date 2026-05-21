@@ -144,17 +144,43 @@ class FeedbackView extends GetView<SupportController> {
                 Positioned(
                   bottom: 0,
                   left: 0,
-                  child: GestureDetector(
-                    onTap: controller.pickAttachment,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white.withOpacity(0.5)),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: controller.pickAttachment,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white.withOpacity(0.5)),
+                          ),
+                          child: Icon(Icons.add, color: AppColors.textColor, size: 24),
+                        ),
                       ),
-                      child: Icon(Icons.add, color: AppColors.textColor, size: 24),
-                    ),
+                      const SizedBox(width: 8),
+                      Obx(() => controller.attachedImagePath.value.isNotEmpty
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.image, size: 16, color: AppColors.primary),
+                                  const SizedBox(width: 4),
+                                  const Text("Image attached", style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () => controller.attachedImagePath.value = '',
+                                    child: const Icon(Icons.close, size: 16, color: AppColors.primary),
+                                  )
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink()),
+                    ],
                   ),
                 ),
               ],

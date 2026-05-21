@@ -36,6 +36,23 @@ class JobCompletionController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    
+    final args = Get.arguments;
+    if (args != null) {
+      if (args['jobTitle'] != null) jobTitle.value = args['jobTitle'];
+      if (args['clientName'] != null) clientName.value = args['clientName'];
+      if (args['jobDate'] != null) jobDate.value = args['jobDate'];
+      if (args['jobPrice'] != null) jobPrice.value = args['jobPrice'];
+      
+      final tasks = args['tasks'];
+      if (tasks != null && tasks is List && tasks.isNotEmpty) {
+        checklist.assignAll(tasks.map((t) => {
+          'title': t.toString(),
+          'checked': true,
+        }).toList());
+      }
+    }
+
     // Listen to signature changes
     signatureController.addListener(() {
       if (signatureController.isEmpty != isSignatureEmpty.value) {
@@ -70,6 +87,12 @@ class JobCompletionController extends GetxController {
       return;
     }
 
+    final signatureBytes = await signatureController.toPngBytes();
+    if (signatureBytes == null) {
+      Get.snackbar("Error", "Failed to capture signature image.");
+      return;
+    }
+
     final args = Get.arguments;
     final bookingId = args != null ? args['bookingId'] : "";
 
@@ -101,19 +124,41 @@ class JobCompletionController extends GetxController {
       print("DEBUG: Completion Response: ${response.statusCode}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // 3. Show the Success Dialog properly
-        Get.dialog(
-          const SuccessDialog(
-            message: "Job completed successfully!",
-          ),
-          barrierDismissible: false,
-        );
+        // Now upload the signature
+        final sigUrl = "${ApiServices.artisan_upload_signature}$bookingId/signature/";
+        final sigRequest = http.MultipartRequest('POST', Uri.parse(sigUrl));
+        sigRequest.headers['Authorization'] = 'Bearer $cleanToken';
+        sigRequest.files.add(http.MultipartFile.fromBytes(
+          'signature',
+          signatureBytes,
+          filename: 'signature.png',
+        ));
+        
+        final sigResponse = await sigRequest.send();
+        print("DEBUG: Signature Upload Response: ${sigResponse.statusCode}");
 
-        // 4. Wait for the user to see the success message
-        await Future.delayed(const Duration(milliseconds: 2000));
+        if (sigResponse.statusCode == 200 || sigResponse.statusCode == 201) {
+          Get.snackbar(
+            "Success",
+            "Job completed and signature uploaded successfully!",
+            backgroundColor: const Color(0xFF4CAE79),
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(16),
+          );
 
-        // 5. Navigate away
-        Get.offAllNamed(Routes.worker_deshbord_user);
+          await Future.delayed(const Duration(milliseconds: 1500));
+          Get.offAllNamed(Routes.worker_deshbord_user);
+        } else {
+          Get.snackbar(
+            "Warning",
+            "Job marked as completed, but signature upload failed.",
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+          );
+          await Future.delayed(const Duration(milliseconds: 1500));
+          Get.offAllNamed(Routes.worker_deshbord_user);
+        }
       } else {
         Get.snackbar("Error", "Failed to complete job: ${response.statusCode}");
       }

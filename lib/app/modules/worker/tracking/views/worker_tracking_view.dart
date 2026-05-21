@@ -427,9 +427,9 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
         child: Obx(() {
           final s = controller.status.value;
           final step = controller.currentStep.value;
-          final isArrived = s == 'arrived' && step < 2;
-          final isWorking = s == 'working' || step == 2;
-          final isCompleted = step == 3;
+          final isArrived = s == 'arrived';
+          final isWorking = s == 'working';
+          final isCompleted = s == 'completed' || step == 3;
 
           String buttonText;
           VoidCallback? onPressed;

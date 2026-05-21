@@ -348,7 +348,7 @@ class WorkerVerificationView extends GetView<WorkerVerificationController> {
   }
 
   Widget _buildStep3() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,20 +418,27 @@ class WorkerVerificationView extends GetView<WorkerVerificationController> {
               Obx(() {
                 if (controller.pickedImage.value != null) {
                   return Container(
-                    width: 340.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 24.0),
                     height: 220.0,
+                    width: double.infinity,
                     decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 2.0),
                       borderRadius: BorderRadius.circular(12.0),
-                      image: DecorationImage(
-                        image: FileImage(controller.pickedImage.value!),
-                        fit: BoxFit.cover,
+                      color: Colors.black45,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Image.file(
+                        controller.pickedImage.value!,
+                        fit: BoxFit.contain, // Perfectly fits any image size
                       ),
                     ),
                   );
                 }
                 return Container(
-                  width: 340.0,
+                  margin: const EdgeInsets.symmetric(horizontal: 24.0),
                   height: 220.0,
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.white, width: 1.5),
                     borderRadius: BorderRadius.circular(12.0),

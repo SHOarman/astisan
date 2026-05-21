@@ -24,14 +24,16 @@ class TrackingView extends GetView<TrackingController> {
     }
 
     return Obx(() {
-      final bool isOnWay = ['on_way', 'on_the_way', 'on-the-way'].contains(controller.status.value);
-      if (!isOnWay) {
+      final String lowerStatus = controller.status.value.toLowerCase();
+      final bool isTrackingValid = ['on_way', 'on_the_way', 'on-the-way', 'arrived', 'working'].contains(lowerStatus);
+      
+      if (!isTrackingValid) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (Get.currentRoute == Routes.TRACKING) {
+          if (Get.currentRoute == Routes.TRACKING || Get.currentRoute == Routes.TRACKINGSCREEN) {
             Get.back();
             Get.snackbar(
               "Status Update",
-              "Artisan is no longer on the way.",
+              "Tracking is no longer available.",
               snackPosition: SnackPosition.BOTTOM,
             );
           }
@@ -43,10 +45,10 @@ class TrackingView extends GetView<TrackingController> {
         );
       }
 
-      if (controller.isLoading.value == false) {
-        return _buildMapState(context);
-      } else {
+      if (['arrived', 'working'].contains(lowerStatus)) {
         return _buildTimelineState(context);
+      } else {
+        return _buildMapState(context);
       }
     });
   }
@@ -379,7 +381,7 @@ class TrackingView extends GetView<TrackingController> {
           const SizedBox(height: 12.0),
           _buildDetailRow('Location', '123 Main St, NY'),
           const SizedBox(height: 12.0),
-          _buildDetailRow(AppStrings.estimatedCost.tr, '\$65 - \$120'),
+          _buildDetailRow(AppStrings.estimatedCost.tr, controller.estimatedCost.value),
           const SizedBox(height: 12.0),
           _buildDetailRow(AppStrings.jobStart.tr, '10:18 AM'),
         ],
@@ -486,25 +488,31 @@ class TrackingView extends GetView<TrackingController> {
           ),
         ),
         body: Obx(() {
-          // Dynamic coordinates extraction
           final double cLat = controller.clientLatitude.value;
           final double cLng = controller.clientLongitude.value;
           final double wLat = controller.workerLatitude.value;
           final double wLng = controller.workerLongitude.value;
 
-          // Fallback coordinates to avoid showing the loading spinner forever
-          final double finalCLat = cLat == 0.0 ? 23.8103 : cLat;
-          final double finalCLng = cLng == 0.0 ? 90.4125 : cLng;
-          final double finalWLat = wLat == 0.0 ? finalCLat - 0.0012 : wLat;
-          final double finalWLng = wLng == 0.0 ? finalCLng - 0.0015 : wLng;
+          if (cLat == 0.0 || cLng == 0.0 || wLat == 0.0 || wLng == 0.0 || cLat.isNaN || cLng.isNaN || wLat.isNaN || wLng.isNaN) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: AppColors.primary),
+                  SizedBox(height: 16),
+                  Text("Acquiring live location...", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            );
+          }
 
           return Stack(
             children: [
               FlutterMap(
                 options: MapOptions(
                   initialCenter: LatLng(
-                      (finalCLat + finalWLat) / 2,
-                      (finalCLng + finalWLng) / 2),
+                      (cLat + wLat) / 2,
+                      (cLng + wLng) / 2),
                   initialZoom: 14.0,
                   interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.all,
@@ -521,8 +529,8 @@ class TrackingView extends GetView<TrackingController> {
                         points: controller.routePoints.isNotEmpty
                             ? controller.routePoints
                             : [
-                          LatLng(finalWLat, finalWLng),
-                          LatLng(finalCLat, finalCLng),
+                          LatLng(wLat, wLng),
+                          LatLng(cLat, cLng),
                         ],
                         color: AppColors.primary,
                         strokeWidth: 4.0,
@@ -532,7 +540,7 @@ class TrackingView extends GetView<TrackingController> {
                   MarkerLayer(
                     markers: [
                       Marker(
-                        point: LatLng(finalCLat, finalCLng),
+                        point: LatLng(cLat, cLng),
                         width: 48,
                         height: 48,
                         child: PulsingMarker(
@@ -552,7 +560,7 @@ class TrackingView extends GetView<TrackingController> {
                         ),
                       ),
                       Marker(
-                        point: LatLng(finalWLat, finalWLng),
+                        point: LatLng(wLat, wLng),
                         width: 60,
                         height: 100,
                         alignment: Alignment.topCenter,

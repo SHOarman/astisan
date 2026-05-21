@@ -222,6 +222,7 @@ class WorkerTrackingController extends GetxController {
         },
         body: json.encode({
           "new_status": newStatus,
+          "note": "",
         }),
       ).timeout(const Duration(seconds: 15));
 
@@ -256,13 +257,15 @@ class WorkerTrackingController extends GetxController {
     }
   }
 
-  void markAsComplete() async {
-    final success = await updateStatus("completed");
-    if (success) {
-      status.value = 'completed';
-      currentStep.value = 3;
-      Get.toNamed(Routes.JOB_COMPLETION, arguments: {'bookingId': bookingId.value});
-    }
+  void markAsComplete() {
+    Get.toNamed(Routes.JOB_COMPLETION, arguments: {
+      'bookingId': bookingId.value,
+      'jobTitle': serviceName.value,
+      'clientName': artisanName.value,
+      'jobPrice': double.tryParse(estimatedCost.value.replaceAll('\$', '')) ?? 0.0,
+      'jobDate': jobStartTime.value,
+      'tasks': booking.value?['tasks'] ?? [],
+    });
   }
 
   void goToChat() {

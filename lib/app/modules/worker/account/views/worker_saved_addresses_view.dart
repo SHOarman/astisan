@@ -6,6 +6,8 @@ import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/components/address_tile.dart';
 import '../../../../core/components/dashed_container.dart';
 import '../controllers/worker_saved_addresses_controller.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
   const WorkerSavedAddressesView({super.key});
@@ -44,7 +46,7 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
-                      "Saved Addresses",
+                      "Current Service Location",
                       style: GoogleFonts.poppins(
                         fontSize: 18.0,
                         fontWeight: FontWeight.w700,
@@ -53,25 +55,22 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  Obx(() => ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    itemCount: controller.savedAddresses.length,
-                    itemBuilder: (context, index) {
-                      final addr = controller.savedAddresses[index];
-                      return AddressTile(
-                        title: addr['title'],
-                        address: addr['address'],
-                        isDefault: addr['isDefault'],
-                        icon: addr['icon'],
-                        isSelected: index == 0, // Mockup shows first one selected
+                  Obx(() {
+                    if (controller.isLoading.value && controller.currentAddress.value.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: AddressTile(
+                        title: 'Service Area',
+                        address: controller.currentAddress.value.isNotEmpty ? controller.currentAddress.value : "Tap 'Use Current Location' above to set your area.",
+                        isDefault: true,
+                        icon: Icons.my_location,
+                        isSelected: true,
                         onTap: () {},
-                      );
-                    },
-                  )),
-                  const SizedBox(height: 12.0),
-                  _buildAddNewButton(),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -98,134 +97,118 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
         ),
         child: Stack(
           children: [
-            // Dashed Route and Pin Logic (Simplified for pixel-perfect UI look)
-            Center(
-              child: Stack(
-                alignment: Alignment.center,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: FlutterMap(
+                mapController: controller.mapController,
+                options: MapOptions(
+                  initialCenter: controller.selectedLocation.value,
+                  initialZoom: 15.0,
+                  onPositionChanged: (position, hasGesture) {
+                    if (hasGesture && position.center != null) {
+                      controller.selectedLocation.value = position.center!;
+                    }
+                  },
+                  onTap: (tapPosition, point) {
+                    controller.mapController.move(point, controller.mapController.camera.zoom);
+                    controller.selectedLocation.value = point;
+                  },
+                ),
                 children: [
-                  const Icon(Icons.location_on, color: AppColors.primary, size: 40),
-                  Positioned(
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        "New York, NY",
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
+                  TileLayer(
+                    urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=GPXbdZO7XpRukMLD8Bz1',
+                    userAgentPackageName: 'com.example.app',
                   ),
                 ],
               ),
             ),
-            // Use Current Location Button
-            Positioned(
-              left: 16,
-              bottom: 16,
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.my_location, color: AppColors.primary, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Use Current Location",
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 40.0), // Points exactly to center
+                child: Icon(Icons.location_on, size: 40, color: Colors.red),
               ),
             ),
+            // Use Current Location Button
+            Obx(() {
+              if (controller.hasSavedAddress.value) {
+                return const SizedBox.shrink();
+              }
+              return Positioned(
+                left: 16,
+                bottom: 16,
+                child: GestureDetector(
+                  onTap: controller.useCurrentLocation,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.my_location, color: AppColors.primary, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Use Current Location",
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAddNewButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: GestureDetector(
-        onTap: controller.addNewAddress,
-        child: DashedContainer(
-          color: const Color(0xFFD1D5DB),
-          dashWidth: 4,
-          dashSpace: 4,
-          borderRadius: 20,
-          padding: const EdgeInsets.symmetric(vertical: 18.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.add, color: Color(0xFF374B71), size: 22),
-              const SizedBox(width: 10.0),
-              Text(
-                "Add New Address",
-                style: GoogleFonts.poppins(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF374B71),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildSaveButton() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: ElevatedButton(
-          onPressed: controller.saveChanges,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            minimumSize: const Size(double.infinity, 56.0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-            elevation: 0,
-          ),
-          child: Text(
-            "Save Changes",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.w600,
+    return Obx(() {
+      if (controller.hasSavedAddress.value) {
+        return const SizedBox.shrink();
+      }
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: ElevatedButton(
+            onPressed: controller.isLoading.value ? null : controller.saveChanges,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              minimumSize: const Size(double.infinity, 56.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+              elevation: 0,
             ),
+            child: controller.isLoading.value
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                )
+              : Text(
+                  "Save Changes",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

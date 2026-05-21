@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../views/faqs_view.dart';
-import '../views/feedback_view.dart';
-import '../views/terms_of_service_view.dart';
-import '../views/privacy_policy_view.dart';
+import '../../../support/views/faqs_view.dart' as support_faqs;
+import '../../../support/views/feedback_view.dart' as support_feedback;
+import '../../../support/views/terms_of_service_view.dart' as support_terms;
+import '../../../support/views/privacy_policy_view.dart' as support_privacy;
 
 class HelpSupportController extends GetxController {
   final TextEditingController subjectController = TextEditingController();
@@ -11,19 +11,19 @@ class HelpSupportController extends GetxController {
   final TextEditingController messageController = TextEditingController();
 
   void goToFaqs() {
-    Get.to(() => const FaqsView());
+    Get.to(() => const support_faqs.FaqsView());
   }
 
   void goToFeedback() {
-    Get.to(() => const FeedbackView());
+    Get.to(() => const support_feedback.FeedbackView());
   }
 
   void goToTermsOfService() {
-    Get.to(() => const TermsOfServiceView());
+    Get.to(() => const support_terms.TermsOfServiceView());
   }
 
   void goToPrivacyPolicy() {
-    Get.to(() => const PrivacyPolicyView());
+    Get.to(() => const support_privacy.PrivacyPolicyView());
   }
 
   void submitFeedback() {

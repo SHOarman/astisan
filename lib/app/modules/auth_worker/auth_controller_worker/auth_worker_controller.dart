@@ -266,6 +266,11 @@ class AuthWorkerController extends GetxController {
     Get.back();
   }
 
+  void navigateForgotPassword() {
+    Get.focusScope?.unfocus();
+    Get.toNamed(Routes.FORGOT_PASSWORD);
+  }
+
   void togglePasswordVisibility() =>
       obscurePassword.value = !obscurePassword.value;
   void toggleConfirmPasswordVisibility() =>

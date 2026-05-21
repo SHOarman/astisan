@@ -62,4 +62,36 @@ class WorkerBookingHistoryController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  void updateBookingStatusLocally(String targetId, String newStatus) {
+    bool updated = false;
+    
+    for (var list in [acceptedBookings, completedBookings, cancelledBookings]) {
+      int idx = list.indexWhere((b) => b['id'].toString() == targetId || b['booking_id'].toString() == targetId);
+      if (idx != -1) {
+        list[idx] = { ...list[idx], 'status': newStatus };
+        updated = true;
+      }
+    }
+    
+    if (updated) {
+      final allBookings = [
+        ...acceptedBookings,
+        ...completedBookings,
+        ...cancelledBookings
+      ];
+      
+      acceptedBookings.assignAll(allBookings.where((b) => 
+        ['confirmed', 'accepted', 'on_way', 'on_the_way', 'arrived', 'working'].contains(b['status'])
+      ).toList());
+      
+      completedBookings.assignAll(allBookings.where((b) => 
+        b['status'] == 'completed'
+      ).toList());
+      
+      cancelledBookings.assignAll(allBookings.where((b) => 
+        b['status'] == 'cancelled'
+      ).toList());
+    }
+  }
 }

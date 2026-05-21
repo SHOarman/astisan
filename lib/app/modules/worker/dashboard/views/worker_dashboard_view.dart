@@ -37,7 +37,11 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                       const SizedBox(height: 24.0),
 
                       // Schedule Section
-                      _buildSectionHeader("Today's Schedule", "See all"),
+                      _buildSectionHeader(
+                        "Today's Schedule",
+                        "See all",
+                        onActionTap: () => Get.toNamed(Routes.WORKER_ORDER_HISTORY),
+                      ),
                       const SizedBox(height: 16.0),
                       _buildScheduleList(),
 
@@ -334,7 +338,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
     );
   }
 
-  Widget _buildSectionHeader(String title, String actionText) {
+  Widget _buildSectionHeader(String title, String actionText, {VoidCallback? onActionTap}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -346,12 +350,15 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
             color: AppColors.textColor,
           ),
         ),
-        Text(
-          actionText,
-          style: GoogleFonts.poppins(
-            fontSize: 14.0,
-            fontWeight: FontWeight.w600,
-            color: AppColors.primary,
+        GestureDetector(
+          onTap: onActionTap,
+          child: Text(
+            actionText,
+            style: GoogleFonts.poppins(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
           ),
         ),
       ],
@@ -390,7 +397,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
     }
 
     return Column(
-      children: controller.scheduleBookings.map((booking) {
+      children: controller.scheduleBookings.take(3).map((booking) {
         // Format distance from server
         String distanceStr = '--';
         if (booking.distanceKm.isNotEmpty) {

@@ -5,6 +5,8 @@ import '../../../../core/components/custom_button.dart';
 import '../../../../core/components/custom_text_field.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../controllers/add_address_controller.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class AddAddressView extends GetView<AddAddressController> {
   const AddAddressView({super.key});
@@ -46,56 +48,55 @@ class AddAddressView extends GetView<AddAddressController> {
                     ),
                   )
                 : const SizedBox.shrink()),
-              CustomTextField(
-                labelText: "Address Line",
-                hintText: "Street address, Apartment, etc.",
-                controller: controller.addressController,
-                validator: (v) => v!.isEmpty ? 'Enter address' : null,
+              const SizedBox(height: 16.0),
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Stack(
+                    children: [
+                      FlutterMap(
+                        mapController: controller.mapController,
+                        options: MapOptions(
+                          initialCenter: controller.selectedLocation.value,
+                          initialZoom: 15.0,
+                          onPositionChanged: (position, hasGesture) {
+                            if (hasGesture && position.center != null) {
+                              controller.selectedLocation.value = position.center!;
+                            }
+                          },
+                          onTap: (tapPosition, point) {
+                            controller.mapController.move(point, controller.mapController.camera.zoom);
+                            controller.selectedLocation.value = point;
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=GPXbdZO7XpRukMLD8Bz1',
+                            userAgentPackageName: 'com.example.app',
+                          ),
+                        ],
+                      ),
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 40.0), // Points exactly to center
+                          child: Icon(Icons.location_on, size: 40, color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      labelText: "City",
-                      hintText: "New York",
-                      controller: controller.cityController,
-                      validator: (v) => v!.isEmpty ? 'Enter city' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16.0),
-                  Expanded(
-                    child: CustomTextField(
-                      labelText: "State",
-                      hintText: "NY",
-                      controller: controller.stateController,
-                      validator: (v) => v!.isEmpty ? 'Enter state' : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      labelText: "Zip Code",
-                      hintText: "10001",
-                      controller: controller.zipController,
-                      validator: (v) => v!.isEmpty ? 'Enter zip' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16.0),
-                  Expanded(
-                    child: CustomTextField(
-                      labelText: "Country",
-                      hintText: "USA",
-                      controller: controller.countryController,
-                      validator: (v) => v!.isEmpty ? 'Enter country' : null,
-                    ),
-                  ),
-                ],
-              ),
+              Obx(() => Text(
+                "Selected Location: ${controller.selectedLocation.value.latitude.toStringAsFixed(4)}, ${controller.selectedLocation.value.longitude.toStringAsFixed(4)}",
+                style: GoogleFonts.poppins(fontSize: 12, color: AppColors.greyText),
+              )),
               const SizedBox(height: 24.0),
               _buildDefaultSwitch(),
               const SizedBox(height: 40.0),

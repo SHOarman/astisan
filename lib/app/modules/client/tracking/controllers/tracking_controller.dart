@@ -7,9 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
+import '../../activity/controllers/activity_controller.dart';
 
 class TrackingController extends GetxController {
   final booking = Rxn<Map<String, dynamic>>();
@@ -110,26 +112,17 @@ class TrackingController extends GetxController {
                            
     serviceName.value = b['service_name'] ?? "Service";
     location.value = b['address'] ?? "N/A";
-    estimatedCost.value = "\$${b['total_amount'] ?? '0'}";
+    final String totalAmt = b['total_amount']?.toString() ?? '0';
+    if (totalAmt == '0' || totalAmt == 'null' || totalAmt.isEmpty) {
+      estimatedCost.value = "Pending";
+    } else {
+      estimatedCost.value = "\$$totalAmt";
+    }
     jobStartTime.value = b['scheduled_time'] ?? b['scheduled_date'] ?? "N/A";
     status.value = (b['status'] ?? "").toString().toLowerCase();
 
-    final double parsedCLat = double.tryParse(b['address_lat']?.toString() ?? b['client_latitude']?.toString() ?? b['latitude']?.toString() ?? '') ?? 0.0;
-    final double parsedCLng = double.tryParse(b['address_lng']?.toString() ?? b['client_longitude']?.toString() ?? b['longitude']?.toString() ?? '') ?? 0.0;
-
-    if (parsedCLat != 0.0 && parsedCLng != 0.0 && _isValidLatLng(parsedCLat, parsedCLng)) {
-      if (clientLatitude.value != parsedCLat || clientLongitude.value != parsedCLng) {
-        clientLatitude.value = parsedCLat;
-        clientLongitude.value = parsedCLng;
-        _calculateDistanceAndETA();
-      }
-    } else {
-      if (clientLatitude.value == 0.0) {
-        clientLatitude.value = 23.8103;
-        clientLongitude.value = 90.4125;
-        _calculateDistanceAndETA();
-      }
-    }
+    // Set up location asynchronously
+    _resolveClientLocation();
 
     // Set times based on availability or current status using real-time dates
     if (isStatusAtLeast('confirmed')) {
@@ -212,17 +205,8 @@ class TrackingController extends GetxController {
     final bookingId = (b['id'] ?? b['booking_id'] ?? '').toString();
     if (bookingId.isEmpty) return;
 
-    // Set static client location from booking data, not the device location
-    final double parsedCLat = double.tryParse(b['address_lat']?.toString() ?? b['client_latitude']?.toString() ?? b['latitude']?.toString() ?? '') ?? 0.0;
-    final double parsedCLng = double.tryParse(b['address_lng']?.toString() ?? b['client_longitude']?.toString() ?? b['longitude']?.toString() ?? '') ?? 0.0;
-
-    if (parsedCLat != 0.0 && parsedCLng != 0.0 && _isValidLatLng(parsedCLat, parsedCLng)) {
-      clientLatitude.value = parsedCLat;
-      clientLongitude.value = parsedCLng;
-    } else {
-      clientLatitude.value = 23.8103;
-      clientLongitude.value = 90.4125;
-    }
+    // 1. Resolve client location
+    await _resolveClientLocation();
 
     // 2. Fetch initial location fallback from API
     await _fetchInitialLocation(bookingId);
@@ -235,6 +219,39 @@ class TrackingController extends GetxController {
     _refreshTimer = Timer.periodic(const Duration(seconds: 7), (timer) {
       _refreshBookingDetails(bookingId);
     });
+  }
+
+  Future<void> _resolveClientLocation() async {
+    final b = booking.value;
+    if (b == null) return;
+
+    double parsedCLat = double.tryParse(b['address_lat']?.toString() ?? b['client_latitude']?.toString() ?? b['latitude']?.toString() ?? '') ?? 0.0;
+    double parsedCLng = double.tryParse(b['address_lng']?.toString() ?? b['client_longitude']?.toString() ?? b['longitude']?.toString() ?? '') ?? 0.0;
+
+    if (parsedCLat.isNaN) parsedCLat = 0.0;
+    if (parsedCLng.isNaN) parsedCLng = 0.0;
+
+    if (parsedCLat == 0.0 || parsedCLng == 0.0) {
+      final addressStr = b['address']?.toString() ?? b['full_address']?.toString() ?? '';
+      if (addressStr.isNotEmpty && addressStr != "N/A") {
+        try {
+          final locations = await locationFromAddress(addressStr);
+          if (locations.isNotEmpty) {
+            parsedCLat = locations.first.latitude;
+            parsedCLng = locations.first.longitude;
+            print("TrackingController: Geocoded client address to $parsedCLat, $parsedCLng");
+          }
+        } catch (e) {
+          print("TrackingController: Geocoding failed: $e");
+        }
+      }
+    }
+
+    if (parsedCLat != 0.0 && parsedCLng != 0.0 && _isValidLatLng(parsedCLat, parsedCLng)) {
+      clientLatitude.value = parsedCLat;
+      clientLongitude.value = parsedCLng;
+    }
+    _calculateDistanceAndETA();
   }
 
   Future<void> _refreshBookingDetails(String bookingId) async {
@@ -284,8 +301,10 @@ class TrackingController extends GetxController {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['lat'] != null && data['lng'] != null) {
-          workerLatitude.value = double.tryParse(data['lat'].toString()) ?? workerLatitude.value;
-          workerLongitude.value = double.tryParse(data['lng'].toString()) ?? workerLongitude.value;
+          double wLat = double.tryParse(data['lat'].toString()) ?? 0.0;
+          double wLng = double.tryParse(data['lng'].toString()) ?? 0.0;
+          if (!wLat.isNaN && wLat != 0.0) workerLatitude.value = wLat;
+          if (!wLng.isNaN && wLng != 0.0) workerLongitude.value = wLng;
           _calculateDistanceAndETA();
         }
       }
@@ -322,8 +341,10 @@ class TrackingController extends GetxController {
             isLive.value = true;
           } else if (data['type'] == 'location_update') {
             if (data['lat'] != null && data['lng'] != null) {
-              workerLatitude.value = double.tryParse(data['lat'].toString()) ?? workerLatitude.value;
-              workerLongitude.value = double.tryParse(data['lng'].toString()) ?? workerLongitude.value;
+              double wLat = double.tryParse(data['lat'].toString()) ?? 0.0;
+              double wLng = double.tryParse(data['lng'].toString()) ?? 0.0;
+              if (!wLat.isNaN && wLat != 0.0) workerLatitude.value = wLat;
+              if (!wLng.isNaN && wLng != 0.0) workerLongitude.value = wLng;
               isLive.value = true;
               _calculateDistanceAndETA();
             }
@@ -335,16 +356,23 @@ class TrackingController extends GetxController {
           } else {
             // Legacy / Direct coordinates fallback
             if (data['lat'] != null && data['lng'] != null) {
-              workerLatitude.value = double.tryParse(data['lat'].toString()) ?? workerLatitude.value;
-              workerLongitude.value = double.tryParse(data['lng'].toString()) ?? workerLongitude.value;
+              double wLat = double.tryParse(data['lat'].toString()) ?? 0.0;
+              double wLng = double.tryParse(data['lng'].toString()) ?? 0.0;
+              if (!wLat.isNaN && wLat != 0.0) workerLatitude.value = wLat;
+              if (!wLng.isNaN && wLng != 0.0) workerLongitude.value = wLng;
               isLive.value = true;
               _calculateDistanceAndETA();
             }
           }
 
           if (data['status'] != null) {
-            status.value = data['status'].toString().toLowerCase();
+            String newStatus = data['status'].toString().toLowerCase();
+            status.value = newStatus;
             _updateFields();
+            
+            if (Get.isRegistered<ActivityController>()) {
+               Get.find<ActivityController>().updateBookingStatusLocally(bookingId, newStatus);
+            }
           }
         } catch (err) {
           print("TrackingController: Error parsing WebSocket event: $err");
@@ -363,16 +391,13 @@ class TrackingController extends GetxController {
 
   void _calculateDistanceAndETA() {
     try {
-      final double safeCLat = clientLatitude.value == 0.0 ? 23.8103 : clientLatitude.value;
-      final double safeCLng = clientLongitude.value == 0.0 ? 90.4125 : clientLongitude.value;
-      final double safeWLat = workerLatitude.value == 0.0 ? safeCLat - 0.0012 : workerLatitude.value;
-      final double safeWLng = workerLongitude.value == 0.0 ? safeCLng - 0.0015 : workerLongitude.value;
+      if (clientLatitude.value == 0.0 || workerLatitude.value == 0.0) return;
 
       double distanceInMeters = Geolocator.distanceBetween(
-        safeCLat,
-        safeCLng,
-        safeWLat,
-        safeWLng,
+        clientLatitude.value,
+        clientLongitude.value,
+        workerLatitude.value,
+        workerLongitude.value,
       );
 
       distanceKm.value = double.parse((distanceInMeters / 1000.0).toStringAsFixed(2));
@@ -385,7 +410,7 @@ class TrackingController extends GetxController {
       print("TrackingController: Calculated distance: ${distanceKm.value} km, ETA: ${etaMinutes.value} minutes");
 
       // Asynchronously fetch street routing points
-      _fetchRoute(safeWLat, safeWLng, safeCLat, safeCLng);
+      _fetchRoute(workerLatitude.value, workerLongitude.value, clientLatitude.value, clientLongitude.value);
     } catch (e) {
       print("TrackingController: Error calculating distance/ETA: $e");
     }

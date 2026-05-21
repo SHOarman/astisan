@@ -170,10 +170,11 @@ class SignUpView extends GetView<SignUpController> {
             ],
           ),
           SizedBox(height: 24.0),
-          CustomButton(
+          Obx(() => CustomButton(
             text: AppStrings.signUp.tr,
+            isLoading: controller.isLoading.value,
             onPressed: controller.signUp,
-          ),
+          )),
         ],
       ),
     );

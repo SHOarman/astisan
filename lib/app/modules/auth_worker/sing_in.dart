@@ -92,7 +92,7 @@ class SingIn extends GetView<AuthWorkerController> {
               ],
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => controller.navigateForgotPassword(),
               child: Text(AppStrings.forgotPassword.tr, style: GoogleFonts.poppins(color: AppColors.textColor)),
             ),
           ],

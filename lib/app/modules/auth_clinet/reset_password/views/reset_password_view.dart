@@ -118,8 +118,9 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
           )),
           SizedBox(height: 32.0),
           Obx(() => CustomButton(
-            text: controller.isLoading.value ? 'Loading...' : AppStrings.changePassword.tr,
-            onPressed: controller.isLoading.value ? null : controller.confirmReset,
+            text: AppStrings.changePassword.tr,
+            isLoading: controller.isLoading.value,
+            onPressed: controller.confirmReset,
           )),
         ],
       ),

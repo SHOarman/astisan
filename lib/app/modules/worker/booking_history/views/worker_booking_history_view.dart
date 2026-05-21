@@ -197,7 +197,18 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: {'bookingId': booking['id']}),
+              onPressed: () {
+                final status = (booking['status'] ?? '').toString().toLowerCase();
+                final args = {'bookingId': booking['id']};
+                
+                if (status == 'on_way' || status == 'on_the_way' || status == 'on-the-way') {
+                  Get.toNamed(Routes.WORKER_NAVIGATION, arguments: args);
+                } else if (status == 'arrived' || status == 'working') {
+                  Get.toNamed(Routes.WORKER_TRACKING, arguments: args);
+                } else {
+                  Get.toNamed(Routes.WORKER_JOB_DETAILS, arguments: args);
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF1F4F8),
                 foregroundColor: AppColors.primary,

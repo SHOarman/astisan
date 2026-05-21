@@ -41,7 +41,7 @@ class BookingListView extends StatelessWidget {
         final String status = (booking['status'] ?? '').toString().toLowerCase();
         final bool isRequested = status == 'requested';
 
-        String displayAmount = "\$40 - \$100";
+        String displayAmount = "Pending";
         final basePrice = booking['base_price']?.toString() ?? '';
         final totalAmount = booking['total_amount']?.toString() ?? '';
 
@@ -54,6 +54,24 @@ class BookingListView extends StatelessWidget {
           displayAmount = booking['service_price_range'].toString();
         }
 
+        String buttonText = "View Details";
+        VoidCallback? onTapAction;
+
+        if (isRequested) {
+          onTapAction = null; 
+        } else if (['on_way', 'on_the_way'].contains(status)) {
+          buttonText = "Track Artisan";
+          onTapAction = () => Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
+        } else if (['arrived', 'working'].contains(status)) {
+          buttonText = "View Timeline";
+          onTapAction = () => Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
+        } else if (status == 'completed') {
+          buttonText = "Work Overview";
+          onTapAction = () => Get.toNamed(Routes.WORK_OVERVIEW, arguments: booking);
+        } else {
+          onTapAction = () => Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
+        }
+
         return CustomBookingCard(
           title: booking['service_name'] ?? 'Service',
           providerName: booking['artisan_name'] ?? 'Artisan',
@@ -64,10 +82,8 @@ class BookingListView extends StatelessWidget {
           statusText: booking['status'] ?? 'Unknown',
           statusBgColor: _getStatusBgColor(status),
           statusTextColor: _getStatusTextColor(status),
-          // Hide View Details button in Upcoming/Requested tab by setting tap to null
-          onViewDetailsTap: isRequested ? null : () {
-            Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
-          },
+          viewDetailsButtonText: buttonText,
+          onViewDetailsTap: onTapAction,
         );
       },
     );

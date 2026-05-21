@@ -8,12 +8,15 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../../../core/Services/api_services.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/components/success_dialog.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../views/worker_image_view.dart';
 import '../views/start_work_dialog.dart';
+import '../../dashboard/controllers/worker_home_controller.dart';
+import '../../booking_history/controllers/worker_booking_history_controller.dart';
 
 class WorkerJobDetailsController extends GetxController {
   final isLoading = false.obs;
@@ -136,6 +139,9 @@ class WorkerJobDetailsController extends GetxController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print("====== DEBUG JOB DETAILS ======");
+        print("Raw Job Details Data: $data");
+
         if (data['id'] != null) {
           bookingId.value = data['id'].toString();
         }
@@ -150,18 +156,36 @@ class WorkerJobDetailsController extends GetxController {
         clientAddress.value = data['full_address'] ?? '';
 
         // ── Safe parse client coordinates ──────────────────────────────────
-        final double parsedCLat = double.tryParse(
+        double parsedCLat = double.tryParse(
             data['address_lat']?.toString() ?? data['client_latitude']?.toString() ?? data['latitude']?.toString() ?? ''
         ) ?? 0.0;
-        final double parsedCLng = double.tryParse(
+        double parsedCLng = double.tryParse(
             data['address_lng']?.toString() ?? data['client_longitude']?.toString() ?? data['longitude']?.toString() ?? ''
         ) ?? 0.0;
+        
+        print("DEBUG: Parsed Coordinates from API: lat=$parsedCLat, lng=$parsedCLng");
+
+        // Geocoding fallback if server sends address but no coordinates
+        if (parsedCLat == 0.0 && parsedCLng == 0.0 && clientAddress.value.isNotEmpty) {
+           print("DEBUG: Server did not send coordinates. Geocoding address: ${clientAddress.value}");
+           try {
+              final locations = await locationFromAddress(clientAddress.value);
+              if (locations.isNotEmpty) {
+                 parsedCLat = locations.first.latitude;
+                 parsedCLng = locations.first.longitude;
+                 print("DEBUG: Geocoded successfully: lat=$parsedCLat, lng=$parsedCLng");
+              }
+           } catch (e) {
+              print("DEBUG: Geocoding failed: $e");
+           }
+        }
 
         // Only write if valid — never let NaN into the observables
         if (_isValidLatLng(parsedCLat, parsedCLng) && parsedCLat != 0.0 && parsedCLng != 0.0) {
           clientLatitude.value = parsedCLat;
           clientLongitude.value = parsedCLng;
         } else {
+          print("DEBUG: Invalid or zero coordinates, falling back to Dhaka defaults.");
           // Dhaka fallback if API gave us nothing
           clientLatitude.value = 23.8103;
           clientLongitude.value = 90.4125;
@@ -210,14 +234,19 @@ class WorkerJobDetailsController extends GetxController {
             'checked': e['is_done'],
             'id': e['id'],
           }).toList());
-        }
-      } else {
-        print("WorkerJobDetailsController: Non-200 response: ${response.statusCode}");
-      }
+        }}
     } catch (e) {
       print("Error fetching job details: $e");
     } finally {
       isLoading.value = false;
+      
+      // Auto-start location sharing if we land directly on navigation view
+      final statusStr = bookingStatus.value;
+      if (statusStr == 'on_way' || statusStr == 'on_the_way' || statusStr == 'on-the-way') {
+        if (!isSharingLocation.value) {
+          startLocationSharing();
+        }
+      }
     }
   }
 
@@ -231,11 +260,10 @@ class WorkerJobDetailsController extends GetxController {
       final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
       final String url = "${ApiServices.artisan_update_status}${bookingId.value}/status/";
 
-      // API docs: field = "new_status", values = confirmed, on_way, arrived, working, completed, cancelled
       final Map<String, dynamic> payload = {
         "new_status": status,
+        "note": note,
       };
-      if (note.isNotEmpty) payload["note"] = note;
 
       print("DEBUG: Status update → $url | payload: $payload | current status: ${bookingStatus.value}");
 
@@ -256,6 +284,14 @@ class WorkerJobDetailsController extends GetxController {
         Get.snackbar("Success", "Status updated successfully",
             backgroundColor: const Color(0xFF4CAE79),
             colorText: const Color(0xFFFFFFFF));
+        
+        if (Get.isRegistered<WorkerHomeController>()) {
+          Get.find<WorkerHomeController>().updateBookingStatusLocally(bookingId.value, status);
+        }
+        if (Get.isRegistered<WorkerBookingHistoryController>()) {
+          Get.find<WorkerBookingHistoryController>().updateBookingStatusLocally(bookingId.value, status);
+        }
+        
         fetchJobDetails();
         return true;
       } else {
@@ -323,7 +359,6 @@ class WorkerJobDetailsController extends GetxController {
           if (data['type'] == 'location_update') {
             final double lat = double.tryParse(data['lat']?.toString() ?? '') ?? double.nan;
             final double lng = double.tryParse(data['lng']?.toString() ?? '') ?? double.nan;
-            // ── Only update if server sends valid coords ──
             if (_isValidLatLng(lat, lng)) {
               currentLatitude.value = lat;
               currentLongitude.value = lng;
@@ -353,7 +388,7 @@ class WorkerJobDetailsController extends GetxController {
         permission = await Geolocator.requestPermission();
       }
 
-      // ── Safe fallback starting coords (slightly offset from client) ───────
+
       final double defaultCLat = _safeCoord(
         clientLatitude.value == 0.0 ? null : clientLatitude.value,
         23.8103,
@@ -364,7 +399,6 @@ class WorkerJobDetailsController extends GetxController {
       );
       final double defaultWLat = defaultCLat - 0.0012;
       final double defaultWLng = defaultCLng - 0.0015;
-      // ─────────────────────────────────────────────────────────────────────
 
       // Only write if the computed defaults are actually valid
       if (_isValidLatLng(defaultWLat, defaultWLng)) {

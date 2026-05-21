@@ -275,7 +275,7 @@ class JobCompletionView extends GetView<JobCompletionController> {
                     const Icon(Icons.check_circle, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      AppStrings.markAsComplete.tr,
+                      "Client Confirmation",
                       style: GoogleFonts.poppins(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,

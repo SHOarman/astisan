@@ -91,12 +91,16 @@ class FixedBottomActionBar extends StatelessWidget {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            buttonText,
-                            style: GoogleFonts.poppins(
-                              color: AppColors.white,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: Text(
+                              buttonText,
+                              style: GoogleFonts.poppins(
+                                color: AppColors.white,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           SizedBox(width: 8.0),
