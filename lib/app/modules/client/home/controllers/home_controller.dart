@@ -26,7 +26,6 @@ class HomeController extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
       
-      // Robust token cleaning
       if (token != null) {
         token = token.trim().replaceAll('"', '');
         if (token.isEmpty || token.toLowerCase() == 'null') {
@@ -36,11 +35,11 @@ class HomeController extends GetxController {
       
       final response = await http.get(
         Uri.parse(ApiServices.popular_services),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
-      ).timeout(const Duration(seconds: 30));
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
@@ -60,9 +59,13 @@ class HomeController extends GetxController {
           'reviews': e['review_count'] ?? 0,
           'priceRange': '\$${e['price_range_min'] ?? '0'}-\$${e['price_range_max'] ?? '0'}',
         }).toList());
+      } else {
+        print("HomeController: Popular services status code ${response.statusCode}, falling back to dummy");
+        _useDummyPopularServices();
       }
     } catch (e) {
-      print("Error fetching popular services: $e");
+      print("Error fetching popular services, falling back to dummy: $e");
+      _useDummyPopularServices();
     } finally {
       isLoadingPopular.value = false;
     }
@@ -73,8 +76,8 @@ class HomeController extends GetxController {
     try {
       final response = await http.get(
         Uri.parse(ApiServices.services_categories),
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 30));
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
@@ -86,24 +89,25 @@ class HomeController extends GetxController {
           dataList = decodedData['results'] ?? [];
         }
 
-        // Map API categories to the format expected by the UI
         forYouCategories.assignAll(dataList.map((e) => {
           'id': e['id'],
           'title': e['name'] ?? 'Category',
           'icon': ApiServices.formatImageUrl(e['icon']?.toString()),
         }).toList());
+      } else {
+        print("HomeController: Categories status code ${response.statusCode}, falling back to dummy");
+        _useDummyCategories();
       }
     } catch (e) {
-      print("Error fetching categories: $e");
+      print("Error fetching categories, falling back to dummy: $e");
+      _useDummyCategories();
     } finally {
       isLoadingCategories.value = false;
     }
   }
   
   final forYouCategories = <Map<String, dynamic>>[].obs;
-
   final popularServices = <Map<String, dynamic>>[].obs;
-
   final recommendedArtisans = <Map<String, dynamic>>[].obs;
   final isLoadingArtisans = false.obs;
 
@@ -129,11 +133,11 @@ class HomeController extends GetxController {
 
       final response = await http.get(
         uri,
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 30));
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final dynamic decodedData = json.decode(response.body);
@@ -145,7 +149,6 @@ class HomeController extends GetxController {
         }
 
         if (dataList.isNotEmpty) {
-          // Client-side sorting: Nearest first, then highest rating
           dataList.sort((a, b) {
             final double distA = double.tryParse(a['distance_km']?.toString() ?? '999') ?? 999;
             final double distB = double.tryParse(b['distance_km']?.toString() ?? '999') ?? 999;
@@ -154,7 +157,7 @@ class HomeController extends GetxController {
 
             final double ratA = double.tryParse(a['avg_rating']?.toString() ?? '0') ?? 0;
             final double ratB = double.tryParse(b['avg_rating']?.toString() ?? '0') ?? 0;
-            return ratB.compareTo(ratA); // Higher rating first
+            return ratB.compareTo(ratA);
           });
 
           final verifiedList = dataList.where((e) {
@@ -209,8 +212,11 @@ class HomeController extends GetxController {
           return;
         }
       }
+      print("HomeController: Recommended artisans empty or response fail, falling back to dummy");
+      _useDummyArtisans();
     } catch (e) {
-      print("Error fetching recommended artisans: $e");
+      print("Error fetching recommended artisans, falling back to dummy: $e");
+      _useDummyArtisans();
     } finally {
       isLoadingArtisans.value = false;
     }
@@ -243,17 +249,89 @@ class HomeController extends GetxController {
     return '0';
   }
 
+  void _useDummyPopularServices() {
+    popularServices.assignAll([
+      {
+        'id': 'popular_dummy_1',
+        'title': 'AC Service & Repair',
+        'image': AppImages.popAcService,
+        'rating': 4.8,
+        'reviews': 120,
+        'priceRange': '\$50-\$150',
+      },
+      {
+        'id': 'popular_dummy_2',
+        'title': 'Deep House Cleaning',
+        'image': AppImages.popDeepCleaning,
+        'rating': 4.9,
+        'reviews': 240,
+        'priceRange': '\$30-\$90',
+      },
+      {
+        'id': 'popular_dummy_3',
+        'title': 'Electrical Wiring',
+        'image': AppImages.popElectricalWiring,
+        'rating': 4.7,
+        'reviews': 95,
+        'priceRange': '\$40-\$120',
+      },
+      {
+        'id': 'popular_dummy_4',
+        'title': 'Pipe Leak Repair',
+        'image': AppImages.popPipeLeak,
+        'rating': 4.6,
+        'reviews': 80,
+        'priceRange': '\$45-\$130',
+      },
+    ]);
+  }
+
+  void _useDummyCategories() {
+    forYouCategories.assignAll([
+      {
+        'id': 'cat_dummy_1',
+        'title': 'Cleaning',
+        'icon': AppImages.iconCleaningService,
+      },
+      {
+        'id': 'cat_dummy_2',
+        'title': 'Repair',
+        'icon': AppImages.iconRepairMaintenance,
+      },
+      {
+        'id': 'cat_dummy_3',
+        'title': 'Installation',
+        'icon': AppImages.iconInstallationService,
+      },
+      {
+        'id': 'cat_dummy_4',
+        'title': 'Improvement',
+        'icon': AppImages.iconHomeImprovement,
+      },
+      {
+        'id': 'cat_dummy_5',
+        'title': 'Moving',
+        'icon': AppImages.iconMovingShifting,
+      },
+      {
+        'id': 'cat_dummy_6',
+        'title': 'Garden',
+        'icon': AppImages.iconGardenCleaning,
+      },
+    ]);
+  }
+
   void _useDummyArtisans() {
     recommendedArtisans.assignAll([
       {
         'id': '1',
         'name': 'Marcus Johnson',
         'role': 'Plumber',
-        'avatar': AppImages.homeMarcusJohnson,
+        'avatar': AppImages.homeDanielCarter,
         'isVerified': true,
         'rating': 4.9,
         'reviews': 127,
-        'pricePerHour': '35',
+        'price': '35',
         'distanceOrTime': 'Nearby',
       },
       {
@@ -264,7 +342,7 @@ class HomeController extends GetxController {
         'isVerified': true,
         'rating': 4.8,
         'reviews': 89,
-        'pricePerHour': '28',
+        'price': '28',
         'distanceOrTime': '2.1 km',
       },
     ]);

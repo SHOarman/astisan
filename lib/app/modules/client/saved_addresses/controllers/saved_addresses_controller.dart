@@ -34,7 +34,7 @@ class SavedAddressesController extends GetxController {
 
       final response = await http.get(
         Uri.parse(ApiServices.client_addresses),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -91,7 +91,7 @@ class SavedAddressesController extends GetxController {
       
       final response = await http.delete(
         Uri.parse("${ApiServices.client_addresses}$id/"),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
         },
       );

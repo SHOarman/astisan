@@ -55,7 +55,7 @@ class EditProfileController extends GetxController {
       print("DEBUG: EditProfile fetching from $endpoint (isWorker: ${isWorker.value})");
       final response = await http.get(
         Uri.parse(endpoint),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
@@ -72,7 +72,7 @@ class EditProfileController extends GetxController {
         final String altUrl = isWorker.value ? ApiServices.client_profile : ApiServices.artisan_profile;
         final altResponse = await http.get(
           Uri.parse(altUrl),
-          headers: {'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
         ).timeout(const Duration(seconds: 15));
 
         if (altResponse.statusCode == 200) {
@@ -145,7 +145,7 @@ class EditProfileController extends GetxController {
     try {
       final servicesResponse = await http.get(
         Uri.parse(ApiServices.artisan_my_services),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
@@ -214,7 +214,7 @@ class EditProfileController extends GetxController {
             final rateResponse = await (method == 'PATCH'
                 ? http.patch(
                     Uri.parse(rateUpdateUrl),
-                    headers: {
+                    headers: { 'Accept-Language': ApiServices.currentLanguage, 
                       'Authorization': 'Bearer $cleanToken',
                       'Content-Type': 'application/json',
                       'Accept': 'application/json',
@@ -225,7 +225,7 @@ class EditProfileController extends GetxController {
                   )
                 : http.post(
                     Uri.parse(rateUpdateUrl),
-                    headers: {
+                    headers: { 'Accept-Language': ApiServices.currentLanguage, 
                       'Authorization': 'Bearer $cleanToken',
                       'Content-Type': 'application/json',
                       'Accept': 'application/json',

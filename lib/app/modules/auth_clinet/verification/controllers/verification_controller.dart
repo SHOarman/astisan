@@ -91,7 +91,7 @@ class VerificationController extends GetxController {
 
         final response = await http.post(
           Uri.parse(url),
-          headers: {
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
@@ -138,7 +138,7 @@ class VerificationController extends GetxController {
         print("Verifying [${role.value}] at $verifyUrl");
         final response = await http.post(
           Uri.parse(verifyUrl),
-          headers: {
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },

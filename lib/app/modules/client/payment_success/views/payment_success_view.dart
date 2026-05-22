@@ -118,30 +118,30 @@ class PaymentSuccessView extends GetView<PaymentSuccessController> {
         ),
 
         SizedBox(height: 12.0),
-        Text(
-          AppStrings.paymentMsg.tr.replaceFirst('%s', '\$121.25'),
+        Obx(() => Text(
+          AppStrings.paymentMsg.tr.replaceFirst('%s', controller.amountPaid.value),
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
             color: AppColors.greyText,
             fontSize: 14.0,
           ),
-        ),
+        )),
       ],
     );
   }
 
   Widget _buildReceiptCard() {
-    return TransactionReceiptCard(
+    return Obx(() => TransactionReceiptCard(
       transactionId: 'TXN-2026-FX4821-7283',
       details: {
-        'Service': 'Pipe Repair',
-        'Artisan': 'James Wilson',
+        'Service': controller.serviceName.value,
+        'Artisan': controller.artisanName.value,
         'Date': 'April 7, 2026',
         'Time': '10:18 AM - 11:54 AM',
         'Payment Method': 'Visa...4242',
       },
-      amountPaid: '\$121.25',
-    );
+      amountPaid: controller.amountPaid.value,
+    ));
   }
 
   Widget _buildRatingPrompt() {
@@ -168,13 +168,13 @@ class PaymentSuccessView extends GetView<PaymentSuccessController> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  'Rate James Wilson and the service',
+                Obx(() => Text(
+                  'Rate ${controller.artisanName.value} and the service',
                   style: GoogleFonts.poppins(
                     color: AppColors.ratingStar.withAlpha(150),
                     fontSize: 12.0,
                   ),
-                ),
+                )),
               ],
             ),
           ),

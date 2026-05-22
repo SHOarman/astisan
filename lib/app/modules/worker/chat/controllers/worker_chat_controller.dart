@@ -142,7 +142,7 @@ class UniversalChatController extends GetxController {
 
       // First, try to get the actual chat room using the booking ID
       String roomUrl = "$baseurl/api/chat/$role/booking/$roomId/";
-      final roomResponse = await http.get(Uri.parse(roomUrl), headers: {"Authorization": "Bearer $token"});
+      final roomResponse = await http.get(Uri.parse(roomUrl), headers: { 'Accept-Language': ApiServices.currentLanguage, "Authorization": "Bearer $token"});
       
       String realRoomId = roomId;
       if (roomResponse.statusCode == 200 || roomResponse.statusCode == 201) {
@@ -161,7 +161,7 @@ class UniversalChatController extends GetxController {
 
       // If messages weren't included, fetch them using the real room ID
       String url = "$baseurl/api/chat/$role/$realRoomId/messages/";
-      final response = await http.get(Uri.parse(url), headers: {"Authorization": "Bearer $token"});
+      final response = await http.get(Uri.parse(url), headers: { 'Accept-Language': ApiServices.currentLanguage, "Authorization": "Bearer $token"});
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -257,7 +257,7 @@ class UniversalChatController extends GetxController {
       
       final response = await http.post(
         Uri.parse("$baseurl/api/chat/$role/$roomId/messages/read/"),
-        headers: {"Authorization": "Bearer $token"},
+        headers: { 'Accept-Language': ApiServices.currentLanguage, "Authorization": "Bearer $token"},
       );
       
       if (response.statusCode == 404) {

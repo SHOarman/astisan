@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_images.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../controllers/edit_profile_controller.dart';
 
 class EditProfileView extends GetView<EditProfileController> {
@@ -15,7 +16,7 @@ class EditProfileView extends GetView<EditProfileController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Edit Profile", // Mockup title
+          AppStrings.editProfile.tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -114,25 +115,25 @@ class EditProfileView extends GetView<EditProfileController> {
     return Obx(() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabeledField("Full Name", controller.fullNameController),
+        _buildLabeledField(AppStrings.fullName.tr, controller.fullNameController),
         const SizedBox(height: 24.0),
-        _buildLabeledField("Email", controller.emailController, readOnly: true),
+        _buildLabeledField(AppStrings.email.tr, controller.emailController, readOnly: true),
         const SizedBox(height: 24.0),
-        _buildLabeledField("Number", controller.phoneController),
+        _buildLabeledField(AppStrings.number.tr, controller.phoneController),
         
         if (controller.isWorker.value) ...[
           const SizedBox(height: 24.0),
-          _buildLabeledField("Occupation", controller.occupationController),
+          _buildLabeledField(AppStrings.occupation.tr, controller.occupationController),
           const SizedBox(height: 24.0),
-          _buildLabeledField("Bio", controller.bioController, maxLines: 3),
+          _buildLabeledField(AppStrings.bio.tr, controller.bioController, maxLines: 3),
           const SizedBox(height: 24.0),
-          _buildLabeledField("Experience (Years)", controller.experienceController, keyboardType: TextInputType.number),
+          _buildLabeledField(AppStrings.experienceYears.tr, controller.experienceController, keyboardType: TextInputType.number),
           const SizedBox(height: 24.0),
-          _buildLabeledField("Rate ()", controller.rateController, keyboardType: TextInputType.number),
+          _buildLabeledField(AppStrings.rate.tr, controller.rateController, keyboardType: TextInputType.number),
           const SizedBox(height: 24.0),
-          _buildLabeledField("Skills (comma separated)", controller.skillsController),
+          _buildLabeledField(AppStrings.skillsList.tr, controller.skillsController),
           const SizedBox(height: 24.0),
-          _buildLabeledField("Service Areas (comma separated)", controller.areasController),
+          _buildLabeledField(AppStrings.serviceAreasList.tr, controller.areasController),
         ],
       ],
     ));
@@ -202,7 +203,7 @@ class EditProfileView extends GetView<EditProfileController> {
                   ),
                 )
               : Text(
-                  "Save Changes",
+                  AppStrings.saveChanges.tr,
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 16.0,

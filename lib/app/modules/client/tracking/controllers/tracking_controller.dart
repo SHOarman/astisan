@@ -65,17 +65,9 @@ class TrackingController extends GetxController {
     ever(status, (currentStatus) {
       final String lowerStatus = currentStatus.toLowerCase();
       if (lowerStatus == 'completed') {
-        final String route = Get.currentRoute;
-        if (route.contains(Routes.TRACKING) || route.contains(Routes.TRACKINGSCREEN)) {
-          Get.offNamed(Routes.WORK_OVERVIEW, arguments: booking.value);
-          Get.snackbar(
-            "Job Completed",
-            "The artisan has completed the job successfully!",
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-          );
-        }
+        // Timeline updates automatically via Obx.
+        // "View Completion work" button becomes enabled.
+        // Client will manually click it to proceed to payment.
       } else {
         final bool isOnWay = ['on_way', 'on_the_way', 'on-the-way'].contains(lowerStatus);
         if (!isOnWay) {
@@ -111,7 +103,7 @@ class TrackingController extends GetxController {
     artisanImageUrl.value = ApiServices.formatImageUrl(rawImageUrl);
                            
     serviceName.value = b['service_name'] ?? "Service";
-    location.value = b['address'] ?? "N/A";
+    location.value = b['address'] ?? b['full_address'] ?? b['client_address'] ?? "N/A";
     final String totalAmt = b['total_amount']?.toString() ?? '0';
     if (totalAmt == '0' || totalAmt == 'null' || totalAmt.isEmpty) {
       estimatedCost.value = "Pending";
@@ -216,7 +208,7 @@ class TrackingController extends GetxController {
 
     // 4. Start periodic background polling timer to pull fresh booking details & transition times
     await _refreshBookingDetails(bookingId);
-    _refreshTimer = Timer.periodic(const Duration(seconds: 7), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       _refreshBookingDetails(bookingId);
     });
   }
@@ -264,7 +256,7 @@ class TrackingController extends GetxController {
       final url = "${ApiServices.client_booking_detail}$bookingId/";
       final response = await http.get(
         Uri.parse(url),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -274,6 +266,13 @@ class TrackingController extends GetxController {
         final data = json.decode(response.body);
         booking.value = data;
         _updateFields();
+
+        // Stop polling once job is completed or cancelled
+        final String newStatus = (data['status'] ?? '').toString().toLowerCase();
+        if (newStatus == 'completed' || newStatus == 'cancelled') {
+          _refreshTimer?.cancel();
+          _refreshTimer = null;
+        }
       }
     } catch (e) {
       print("TrackingController: Error refreshing booking: $e");
@@ -292,7 +291,7 @@ class TrackingController extends GetxController {
 
       final response = await http.get(
         Uri.parse(url),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -327,7 +326,7 @@ class TrackingController extends GetxController {
 
       _wsChannel = IOWebSocketChannel.connect(
         Uri.parse(wsUrl),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
         },
       );
@@ -369,7 +368,8 @@ class TrackingController extends GetxController {
             String newStatus = data['status'].toString().toLowerCase();
             status.value = newStatus;
             _updateFields();
-            
+            // Immediately trigger a booking refresh to get completed_at timestamp etc.
+            _refreshBookingDetails(bookingId);
             if (Get.isRegistered<ActivityController>()) {
                Get.find<ActivityController>().updateBookingStatusLocally(bookingId, newStatus);
             }
@@ -472,7 +472,57 @@ class TrackingController extends GetxController {
   }
 
   void viewCompletionWork() {
-    Get.toNamed(Routes.WORK_OVERVIEW, arguments: booking.value);
+    final b = booking.value ?? {};
+    Get.toNamed(Routes.WORK_OVERVIEW, arguments: {
+      ...b,
+      '_fromTracking': true,
+    });
+  }
+
+  Future<void> respondToAdditionalCost(String costId, String action) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? rawToken = prefs.getString('token');
+      if (rawToken == null) return;
+      final String token = rawToken.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+
+      final b = booking.value;
+      if (b == null) return;
+      final bookingId = (b['id'] ?? b['booking_id'] ?? '').toString();
+
+      final url = "${ApiServices.baseurl}/api/bookings/client/$bookingId/costs/$costId/respond/";
+      
+      final bool isApprove = action == 'approve';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          "approve": isApprove,
+        }),
+      );
+
+      print("DEBUG: Respond to cost response status=${response.statusCode} body=${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar("Success", "Response submitted successfully",
+            backgroundColor: const Color(0xFF4CAE79),
+            colorText: const Color(0xFFFFFFFF));
+        _refreshBookingDetails(bookingId);
+      } else {
+        Get.snackbar("Error", "Failed to respond: ${response.body}",
+            backgroundColor: const Color(0xFFFF0000),
+            colorText: const Color(0xFFFFFFFF));
+      }
+    } catch (e) {
+      print("Error responding to cost: $e");
+      Get.snackbar("Error", "An error occurred: $e",
+          backgroundColor: const Color(0xFFFF0000),
+          colorText: const Color(0xFFFFFFFF));
+    }
   }
 
   bool _isValidLatLng(double lat, double lng) {

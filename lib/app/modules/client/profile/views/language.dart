@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/global_controllers/role_controller.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../dashboard/controllers/dashboard_controller.dart';
 
 class Language extends StatefulWidget {
   const Language({super.key});
@@ -11,6 +13,43 @@ class Language extends StatefulWidget {
 
 class _LanguageState extends State<Language> {
   final RoleController roleController = Get.find<RoleController>();
+
+  Future<void> _changeLanguage(String langCode) async {
+    // Show loading
+    Get.dialog(
+      const Center(child: CircularProgressIndicator(color: Colors.white)),
+      barrierDismissible: false,
+    );
+
+    // Set language
+    roleController.setLanguage(langCode);
+
+    // Small delay
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // Dismiss loading
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+
+    // Success snackbar
+    Get.snackbar(
+      "Success", 
+      "Language changed successfully", 
+      backgroundColor: Colors.green.withOpacity(0.9), 
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+    );
+
+    // Ensure dashboard is on the home tab
+    if (Get.isRegistered<DashboardController>()) {
+      Get.find<DashboardController>().changePage(0);
+    }
+    
+    // Redirect to Dashboard (automatically routes to client/worker based on role)
+    Get.offAllNamed(Routes.DASHBOARD);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +100,7 @@ class _LanguageState extends State<Language> {
 
   Widget _buildLanguageTile(String title, String langCode, bool isSelected) {
     return GestureDetector(
-      onTap: () {
-        roleController.setLanguage(langCode);
-      },
+      onTap: () => _changeLanguage(langCode),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(

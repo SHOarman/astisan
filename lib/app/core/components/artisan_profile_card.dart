@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
-import '../constants/static/app_colors.dart';
 import '../Services/api_services.dart';
+import '../constants/static/app_colors.dart';
 
 class ArtisanProfileCard extends StatelessWidget {
   final String name;

@@ -109,35 +109,55 @@ class LoginView extends GetView<LoginController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Obx(() => Checkbox(
-                    value: controller.rememberMe.value,
-                    onChanged: controller.toggleRememberMe,
-                    activeColor: AppColors.checkboxActive,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0),
+              Expanded(
+                flex: 3,
+                child: Row(
+                  children: [
+                    Obx(() => Checkbox(
+                      value: controller.rememberMe.value,
+                      onChanged: controller.toggleRememberMe,
+                      activeColor: AppColors.checkboxActive,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      side: const BorderSide(color: AppColors.border),
+                    )),
+                    Flexible(
+                      child: Text(
+                        AppStrings.rememberMe.tr,
+                        style: GoogleFonts.poppins(
+                          color: AppColors.textColor,
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    side: const BorderSide(color: AppColors.border),
-                  )),
-                  Text(
-                    AppStrings.rememberMe.tr,
-                    style: GoogleFonts.poppins(
-                      color: AppColors.textColor,
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              TextButton(
-                onPressed: () => controller.navigateForgotPassword(),
-                child: Text(
-                  AppStrings.forgotPassword.tr,
-                  style: GoogleFonts.poppins(
-                    color: AppColors.textColor,
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w400,
+              Expanded(
+                flex: 2,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => controller.navigateForgotPassword(),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(50, 30),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      AppStrings.forgotPassword.tr,
+                      style: GoogleFonts.poppins(
+                        color: AppColors.textColor,
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.right,
+                      softWrap: false,
+                      overflow: TextOverflow.visible,
+                    ),
                   ),
                 ),
               ),

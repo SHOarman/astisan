@@ -55,7 +55,7 @@ class ResetPasswordVerificationController extends GetxController {
     try {
       final response = await http.post(
         Uri.parse(ApiServices.forgot_password_verify),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
@@ -91,7 +91,7 @@ class ResetPasswordVerificationController extends GetxController {
     try {
       final response = await http.post(
         Uri.parse(ApiServices.forgot_password_init),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },

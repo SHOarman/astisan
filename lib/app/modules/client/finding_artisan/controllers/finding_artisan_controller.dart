@@ -82,7 +82,7 @@ class FindingArtisanController extends GetxController {
       
       final response = await http.get(
         uri,
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },

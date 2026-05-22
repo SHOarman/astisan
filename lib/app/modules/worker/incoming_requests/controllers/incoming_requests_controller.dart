@@ -33,7 +33,7 @@ class IncomingRequestsController extends GetxController {
       final response = await http
           .get(
             Uri.parse(ApiServices.artisan_incoming_bookings),
-            headers: {
+            headers: { 'Accept-Language': ApiServices.currentLanguage, 
               'Authorization': 'Bearer $cleanToken',
               'Accept': 'application/json',
             },
@@ -72,7 +72,7 @@ class IncomingRequestsController extends GetxController {
         // Update verification status
         final profileResponse = await http.get(
           Uri.parse(ApiServices.artisan_profile),
-          headers: {
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 
             'Authorization': 'Bearer $cleanToken',
             'Accept': 'application/json',
           },
@@ -138,7 +138,7 @@ class IncomingRequestsController extends GetxController {
       var response = await http
           .post(
             Uri.parse(url),
-            headers: {
+            headers: { 'Accept-Language': ApiServices.currentLanguage, 
               'Authorization': 'Bearer $cleanToken',
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -161,7 +161,7 @@ class IncomingRequestsController extends GetxController {
         response = await http
             .post(
               Uri.parse(url),
-              headers: {
+              headers: { 'Accept-Language': ApiServices.currentLanguage, 
                 'Authorization': 'Bearer $cleanToken',
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -187,7 +187,7 @@ class IncomingRequestsController extends GetxController {
         response = await http
             .post(
               Uri.parse(url),
-              headers: {
+              headers: { 'Accept-Language': ApiServices.currentLanguage, 
                 'Authorization': 'Bearer $cleanToken',
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',

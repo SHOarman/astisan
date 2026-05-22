@@ -38,7 +38,7 @@ class ActivityController extends GetxController {
 
       final response = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -90,7 +90,7 @@ class ActivityController extends GetxController {
 
       final response = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -135,9 +135,11 @@ class ActivityController extends GetxController {
       
       if (status == 'requested') {
         upcomingBookings.add(booking);
-      } else if (['confirmed', 'on_way', 'arrived', 'working'].contains(status)) {
+      } else if (['confirmed', 'on_way', 'arrived', 'working', 'completed'].contains(status)) {
+        // 'completed' stays in Confirmed tab until client confirms via payment
         confirmedBookings.add(booking);
-      } else if (status == 'completed') {
+      } else if (status == 'client_paid') {
+        // Locally set after client finishes payment flow
         completedBookings.add(booking);
       } else if (status == 'cancelled' || status == 'rejected') {
         cancelledBookings.add(booking);

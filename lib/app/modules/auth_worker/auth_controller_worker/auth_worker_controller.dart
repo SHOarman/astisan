@@ -291,7 +291,7 @@ class AuthWorkerController extends GetxController {
         final response = await http
             .post(
               Uri.parse(ApiServices.artisan_login),
-              headers: {
+              headers: { 'Accept-Language': ApiServices.currentLanguage, 
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
               },
@@ -343,7 +343,7 @@ class AuthWorkerController extends GetxController {
     try {
       final response = await http.get(
         Uri.parse(ApiServices.artisan_profile),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -378,7 +378,7 @@ class AuthWorkerController extends GetxController {
         final response = await http
             .post(
               Uri.parse(ApiServices.artisan_sendotp),
-              headers: {'Content-Type': 'application/json'},
+              headers: { 'Accept-Language': ApiServices.currentLanguage, 'Content-Type': 'application/json'},
               body: json.encode({
                 "full_name": nameController.text.trim(),
                 "email": emailController.text.trim().toLowerCase(),
@@ -432,7 +432,7 @@ class AuthWorkerController extends GetxController {
 
       final response = await http.post(
         Uri.parse(ApiServices.artisan_my_services),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $cleanToken',

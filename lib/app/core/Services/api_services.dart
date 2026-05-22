@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:get/get.dart';
+import '../global_controllers/role_controller.dart';
 
 class RouteData {
   final List<LatLng> points;
@@ -18,6 +20,39 @@ class ApiServices {
   ApiServices._();
 
   static const String baseurl = "https://7b2k279j-80.aue.devtunnels.ms";
+
+  /// Gets default headers including Accept-Language dynamically based on role
+  static Map<String, String> getHeaders({String? token, Map<String, String>? additionalHeaders}) {
+    String lang = currentLanguage;
+
+    final headers = {
+      'Accept-Language': lang,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+
+    if (token != null && token.isNotEmpty && token != 'null') {
+      final cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      headers['Authorization'] = 'Bearer $cleanToken';
+    }
+
+    if (additionalHeaders != null) {
+      headers.addAll(additionalHeaders);
+    }
+    return headers;
+  }
+
+  static String get currentLanguage {
+    try {
+      if (Get.isRegistered<RoleController>()) {
+        final rc = Get.find<RoleController>();
+        return rc.isClient ? rc.clientLanguage.value : rc.workerLanguage.value;
+      }
+    } catch (_) {}
+    return 'en';
+  }
+
+
 
   // ========================== Auth - Client ==========================
   static const String client_sendotp = "$baseurl/api/user/client/register/initiate/";

@@ -42,6 +42,8 @@ class WorkerJobDetailsController extends GetxController {
 
   final checklist = <Map<String, dynamic>>[].obs;
   final bookingStatus = "".obs;
+  final hasSignature = false.obs;
+  final completedTime = "".obs;
 
   // Location Tracking Fields
   final currentLatitude = 0.0.obs;
@@ -130,7 +132,7 @@ class WorkerJobDetailsController extends GetxController {
 
       final response = await http.get(
         Uri.parse("${ApiServices.artisan_booking_detail}${bookingId.value}/"),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
           'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
@@ -234,12 +236,35 @@ class WorkerJobDetailsController extends GetxController {
             'checked': e['is_done'],
             'id': e['id'],
           }).toList());
-        }}
+        }
+
+        final String? sig = data['completion_signature'];
+        hasSignature.value = sig != null &&
+            sig.isNotEmpty &&
+            sig.toLowerCase() != 'null' &&
+            sig.toLowerCase() != 'string';
+
+        final String? completedAt = data['completed_at'];
+        if (completedAt != null && completedAt.isNotEmpty && completedAt.toLowerCase() != 'null') {
+          try {
+            final dt = DateTime.parse(completedAt).toLocal();
+            final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+            final minute = dt.minute.toString().padLeft(2, '0');
+            final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+            completedTime.value = "Completed at $hour:$minute $ampm";
+          } catch (_) {
+            completedTime.value = "Completed";
+          }
+        } else {
+          completedTime.value = "";
+        }
+      }
     } catch (e) {
       print("Error fetching job details: $e");
     } finally {
       isLoading.value = false;
-      
+      fetchCurrentLocationOnce();
+
       // Auto-start location sharing if we land directly on navigation view
       final statusStr = bookingStatus.value;
       if (statusStr == 'on_way' || statusStr == 'on_the_way' || statusStr == 'on-the-way') {
@@ -269,7 +294,7 @@ class WorkerJobDetailsController extends GetxController {
 
       final response = await http.post(
         Uri.parse(url),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -309,9 +334,73 @@ class WorkerJobDetailsController extends GetxController {
     }
   }
 
-  void toggleCheck(int index) {
-    checklist[index]['checked'] = !checklist[index]['checked'];
+  Future<void> toggleCheck(int index) async {
+    final item = checklist[index];
+    final String itemId = item['id']?.toString() ?? '';
+    if (itemId.isEmpty || bookingId.value.isEmpty) return;
+
+    final bool newChecked = !item['checked'];
+    checklist[index]['checked'] = newChecked;
     checklist.refresh();
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      if (token == null) return;
+
+      final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final String url = "${ApiServices.baseurl}/api/bookings/artisan/${bookingId.value}/checklist/$itemId/";
+
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
+          'Authorization': 'Bearer $cleanToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          'label': item['title'],
+          'is_done': newChecked,
+        }),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        checklist[index]['checked'] = !newChecked;
+        checklist.refresh();
+        Get.snackbar("Error", "Failed to update item status");
+      }
+    } catch (e) {
+      checklist[index]['checked'] = !newChecked;
+      checklist.refresh();
+      print("Error toggling checklist item: $e");
+    }
+  }
+
+  Future<void> fetchCurrentLocationOnce() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (serviceEnabled &&
+          (permission == LocationPermission.always ||
+              permission == LocationPermission.whileInUse)) {
+        Position pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        ).timeout(const Duration(seconds: 3));
+
+        if (_isValidLatLng(pos.latitude, pos.longitude)) {
+          currentLatitude.value = pos.latitude;
+          currentLongitude.value = pos.longitude;
+          locationReady.value = true;
+          _updateDistanceAndETA();
+        }
+      }
+    } catch (e) {
+      print("Error fetching location once: $e");
+    }
   }
 
   void startNavigation() async {
@@ -350,7 +439,7 @@ class WorkerJobDetailsController extends GetxController {
 
       _trackingChannel = IOWebSocketChannel.connect(
         Uri.parse(wsUrl),
-        headers: {'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true'},
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true'},
       );
 
       _trackingChannel!.stream.listen((event) {
@@ -388,44 +477,50 @@ class WorkerJobDetailsController extends GetxController {
         permission = await Geolocator.requestPermission();
       }
 
-
-      final double defaultCLat = _safeCoord(
-        clientLatitude.value == 0.0 ? null : clientLatitude.value,
-        23.8103,
-      );
-      final double defaultCLng = _safeCoord(
-        clientLongitude.value == 0.0 ? null : clientLongitude.value,
-        90.4125,
-      );
-      final double defaultWLat = defaultCLat - 0.0012;
-      final double defaultWLng = defaultCLng - 0.0015;
-
-      // Only write if the computed defaults are actually valid
-      if (_isValidLatLng(defaultWLat, defaultWLng)) {
-        currentLatitude.value = defaultWLat;
-        currentLongitude.value = defaultWLng;
-        locationReady.value = true;
-        _updateDistanceAndETA();
-      }
-
+      bool hasRealGps = false;
       if (serviceEnabled &&
           (permission == LocationPermission.always ||
               permission == LocationPermission.whileInUse)) {
+        try {
+          Position initialPos = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          ).timeout(const Duration(seconds: 3));
 
-        Position initialPos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
+          if (_isValidLatLng(initialPos.latitude, initialPos.longitude)) {
+            currentLatitude.value = initialPos.latitude;
+            currentLongitude.value = initialPos.longitude;
+            _pendingRouteFetchOrigin = LatLng(initialPos.latitude, initialPos.longitude);
+            locationReady.value = true;
+            _updateDistanceAndETA();
+            _sendCoordinate(initialPos.latitude, initialPos.longitude,
+                initialPos.heading, initialPos.speed);
+            hasRealGps = true;
+          }
+        } catch (e) {
+          print("Failed getting current position, falling back to simulation: $e");
+        }
+      }
+
+      if (!hasRealGps) {
+        final double defaultCLat = _safeCoord(
+          clientLatitude.value == 0.0 ? null : clientLatitude.value,
+          23.8103,
         );
+        final double defaultCLng = _safeCoord(
+          clientLongitude.value == 0.0 ? null : clientLongitude.value,
+          90.4125,
+        );
+        final double defaultWLat = defaultCLat - 0.0012;
+        final double defaultWLng = defaultCLng - 0.0015;
 
-        // ── Guard real GPS too ──
-        if (_isValidLatLng(initialPos.latitude, initialPos.longitude)) {
-          currentLatitude.value = initialPos.latitude;
-          currentLongitude.value = initialPos.longitude;
-          _pendingRouteFetchOrigin = LatLng(initialPos.latitude, initialPos.longitude);
+        // Only write if the computed defaults are actually valid
+        if (_isValidLatLng(defaultWLat, defaultWLng)) {
+          currentLatitude.value = defaultWLat;
+          currentLongitude.value = defaultWLng;
           locationReady.value = true;
           _updateDistanceAndETA();
-          _sendCoordinate(initialPos.latitude, initialPos.longitude,
-              initialPos.heading, initialPos.speed);
         }
+      }
 
         _gpsStreamSubscription = Geolocator.getPositionStream(
           locationSettings: const LocationSettings(
@@ -446,12 +541,11 @@ class WorkerJobDetailsController extends GetxController {
         }, onError: (err) {
           print("WorkerJobDetailsController: Geolocator stream error: $err");
         });
+      } catch (e) {
+        print("WorkerJobDetailsController: Location sharing error: $e");
+        isSharingLocation.value = false;
       }
-    } catch (e) {
-      print("WorkerJobDetailsController: Location sharing error: $e");
-      isSharingLocation.value = false;
     }
-  }
 
   void _sendCoordinate(double lat, double lng, double heading, double speed) {
     if (_trackingChannel == null) return;
@@ -638,13 +732,31 @@ class WorkerJobDetailsController extends GetxController {
       Get.toNamed(Routes.REPORT_ISSUE, arguments: {'bookingId': bookingId.value});
 
   Future<void> completeJob() async {
-    await updateStatus("completed");
-    Get.dialog(
-      const SuccessDialog(message: "Job completed successfully!"),
-      barrierDismissible: false,
-    );
-    await Future.delayed(const Duration(milliseconds: 2000));
-    Get.offAllNamed(Routes.worker_deshbord_user);
+    if (!hasSignature.value) {
+      Get.toNamed(Routes.JOB_COMPLETION, arguments: {
+        'bookingId': bookingId.value,
+        'jobTitle': serviceName.value,
+        'clientName': clientName.value,
+        'jobPrice': paymentAmount.value,
+        'jobDate': scheduledTime.value,
+        'tasks': checklist.map((t) => t['title'] ?? '').toList(),
+      });
+      return;
+    }
+
+    final success = await updateStatus("completed");
+    if (success) {
+      Get.snackbar(
+        "Success",
+        "Job completed successfully!",
+        backgroundColor: const Color(0xFF4CAE79),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+      await Future.delayed(const Duration(milliseconds: 1500));
+      Get.offAllNamed(Routes.worker_deshbord_user);
+    }
   }
 
   void showCancellationDialog() {}

@@ -65,22 +65,43 @@ class MyReviewsView extends GetView<MyReviewsController> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Obx(() => ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: controller.reviews.length,
-                    itemBuilder: (context, index) {
-                      final review = controller.reviews[index];
-                      return ReviewTile(
-                        clientName: review['name'],
-                        date: review['date'],
-                        rating: review['rating'],
-                        comment: review['comment'],
-                        serviceName: review['service'],
-                        payment: review['payment'],
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: CircularProgressIndicator(color: AppColors.primary),
+                        ),
                       );
-                    },
-                  )),
+                    }
+                    if (controller.reviews.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Text(
+                            "No reviews yet.",
+                            style: GoogleFonts.poppins(color: AppColors.greyText),
+                          ),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: controller.reviews.length,
+                      itemBuilder: (context, index) {
+                        final review = controller.reviews[index];
+                        return ReviewTile(
+                          clientName: review['name'],
+                          date: review['date'],
+                          rating: review['rating'],
+                          comment: review['comment'],
+                          serviceName: review['service'],
+                          payment: review['payment'],
+                        );
+                      },
+                    );
+                  }),
                 ],
               ),
             ),
@@ -146,11 +167,11 @@ class MyReviewsView extends GetView<MyReviewsController> {
                 Expanded(
                   child: Column(
                     children: [
-                      _buildRatingBar('5', 0.75),
-                      _buildRatingBar('4', 0.20),
-                      _buildRatingBar('3', 0.05),
-                      _buildRatingBar('2', 0.01),
-                      _buildRatingBar('1', 0.01),
+                      Obx(() => _buildRatingBar('5', controller.totalReviews.value > 0 ? (controller.ratingBreakdown['5'] ?? 0) / controller.totalReviews.value : 0)),
+                      Obx(() => _buildRatingBar('4', controller.totalReviews.value > 0 ? (controller.ratingBreakdown['4'] ?? 0) / controller.totalReviews.value : 0)),
+                      Obx(() => _buildRatingBar('3', controller.totalReviews.value > 0 ? (controller.ratingBreakdown['3'] ?? 0) / controller.totalReviews.value : 0)),
+                      Obx(() => _buildRatingBar('2', controller.totalReviews.value > 0 ? (controller.ratingBreakdown['2'] ?? 0) / controller.totalReviews.value : 0)),
+                      Obx(() => _buildRatingBar('1', controller.totalReviews.value > 0 ? (controller.ratingBreakdown['1'] ?? 0) / controller.totalReviews.value : 0)),
                     ],
                   ),
                 ),

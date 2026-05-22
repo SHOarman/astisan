@@ -67,7 +67,7 @@ class WorkerAccountController extends GetxController {
       
       final response = await http.get(
         Uri.parse(ApiServices.artisan_profile),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
@@ -144,7 +144,7 @@ class WorkerAccountController extends GetxController {
     try {
       final response = await http.get(
         Uri.parse(ApiServices.artisan_my_services),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },

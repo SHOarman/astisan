@@ -96,23 +96,30 @@ class RatingView extends GetView<PaymentSuccessController> {
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-            child: ElevatedButton(
-              onPressed: controller.submitReview,
+            child: Obx(() => ElevatedButton(
+              onPressed: controller.isSubmittingReview.value ? null : controller.submitReview,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 minimumSize: Size(double.infinity, 56.0),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                 elevation: 0,
+                disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
               ),
-              child: Text(
-                'Submit Review',
-                style: GoogleFonts.poppins(
-                  color: AppColors.white,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+              child: controller.isSubmittingReview.value
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : Text(
+                    'Submit Review',
+                    style: GoogleFonts.poppins(
+                      color: AppColors.white,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+            )),
           ),
         ],
       ),

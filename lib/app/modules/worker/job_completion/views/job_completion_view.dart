@@ -155,31 +155,85 @@ class JobCompletionView extends GetView<JobCompletionController> {
           Obx(() => Column(
             children: List.generate(controller.checklist.length, (index) {
               final item = controller.checklist[index];
+              final bool isChecked = item['checked'] == true;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle_outline_rounded,
-                      color: item['checked'] ? const Color(0xFF4CAF50) : Colors.grey[300],
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        item['title'],
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          color: AppColors.textColor.withOpacity(0.8),
-                          fontWeight: FontWeight.w500,
+                child: InkWell(
+                  onTap: () => controller.toggleCheck(index),
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isChecked
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          color: isChecked ? const Color(0xFF4CAF50) : Colors.grey[400],
+                          size: 24,
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            item['title'] ?? '',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              color: isChecked 
+                                  ? AppColors.textColor.withOpacity(0.5) 
+                                  : AppColors.textColor.withOpacity(0.8),
+                              fontWeight: FontWeight.w500,
+                              decoration: isChecked ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               );
             }),
           )),
+          const Divider(height: 32, color: Color(0xFFE5E7EB)),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller.newItemController,
+                  decoration: InputDecoration(
+                    hintText: "Add completed work item...",
+                    hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 13),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                  style: GoogleFonts.poppins(fontSize: 14, color: AppColors.textColor),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () {
+                  final text = controller.newItemController.text;
+                  if (text.isNotEmpty) {
+                    controller.addChecklistItem(text);
+                    controller.newItemController.clear();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                child: const Icon(Icons.add, color: Colors.white),
+              ),
+            ],
+          ),
         ],
       ),
     );

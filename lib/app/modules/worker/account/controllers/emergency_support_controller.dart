@@ -51,7 +51,7 @@ class EmergencySupportController extends GetxController {
         token = token.trim().replaceAll('"', '');
         final response = await http.get(
           Uri.parse(ApiServices.artisan_profile),
-          headers: {
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
           },
@@ -94,7 +94,7 @@ class EmergencySupportController extends GetxController {
 
       final response = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/chat/ai/artisan/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -143,7 +143,7 @@ class EmergencySupportController extends GetxController {
 
       final response = await http.post(
         Uri.parse('${ApiServices.baseurl}/api/chat/ai/artisan/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',

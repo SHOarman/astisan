@@ -73,6 +73,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                 children: [
                   _buildClientHeader(),
                   const SizedBox(height: 24),
+                  _buildAdditionalCosts(),
                   _buildProgressCard(),
                   const SizedBox(height: 24),
                   _buildServiceDetailsCard(),
@@ -82,7 +83,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
               ),
             ),
           ),
-          _buildBottomActionButton(),
+          _buildBottomActionButton(context),
         ],
       ),
     );
@@ -409,7 +410,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
     );
   }
 
-  Widget _buildBottomActionButton() {
+  Widget _buildBottomActionButton(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: const BoxDecoration(
@@ -453,25 +454,227 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
             bgColor = const Color(0xFFE5E7EB);
           }
 
-          return ElevatedButton(
-            onPressed: onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: bgColor,
-              minimumSize: const Size(double.infinity, 56.0),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-              elevation: 0,
-            ),
-            child: Text(
-              buttonText,
-              style: GoogleFonts.poppins(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-                color: onPressed != null ? Colors.white : AppColors.greyText,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isArrived || isWorking) ...[
+                ElevatedButton(
+                  onPressed: () => _showAddCostDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    minimumSize: const Size(double.infinity, 56.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    "Request Additional Cost",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12.0),
+              ],
+              ElevatedButton(
+                onPressed: onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: bgColor,
+                  minimumSize: const Size(double.infinity, 56.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  buttonText,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: onPressed != null ? Colors.white : AppColors.greyText,
+                  ),
+                ),
               ),
-            ),
+            ],
           );
         }),
       ),
     );
+  }
+
+  void _showAddCostDialog(BuildContext context) {
+    final reasonCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+        title: Text(
+          "Request Additional Cost",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textColor,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: reasonCtrl,
+              decoration: InputDecoration(
+                hintText: "Reason (e.g. Extra materials)",
+                hintStyle: GoogleFonts.poppins(color: AppColors.greyText),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            TextField(
+              controller: amountCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                hintText: "Amount (e.g. 25.50)",
+                hintStyle: GoogleFonts.poppins(color: AppColors.greyText),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                prefixText: "\$ ",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              "Cancel",
+              style: GoogleFonts.poppins(color: AppColors.greyText, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final reason = reasonCtrl.text.trim();
+              final amountStr = amountCtrl.text.trim();
+              final amount = double.tryParse(amountStr);
+
+              if (reason.isEmpty) {
+                Get.snackbar("Error", "Please enter a reason");
+                return;
+              }
+              if (amount == null || amount <= 0) {
+                Get.snackbar("Error", "Please enter a valid amount");
+                return;
+              }
+
+              Get.back();
+              await controller.requestAdditionalCost(reason, amount);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+            ),
+            child: Text(
+              "Submit",
+              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdditionalCosts() {
+    return Obx(() {
+      final b = controller.booking.value;
+      if (b == null) return const SizedBox.shrink();
+
+      final List costs = b['additional_costs'] as List? ?? [];
+      if (costs.isEmpty) return const SizedBox.shrink();
+
+      return Column(
+        children: costs.map<Widget>((cost) {
+          final String reason = cost['reason']?.toString() ?? 'Extra Charge';
+          final String amount = cost['amount']?.toString() ?? '0.00';
+          final String status = (cost['status'] ?? 'pending').toString().toLowerCase();
+
+          Color statusColor;
+          String statusText;
+
+          if (status == 'approved') {
+            statusColor = Colors.green;
+            statusText = "Approved";
+          } else if (status == 'rejected' || status == 'declined') {
+            statusColor = Colors.red;
+            statusText = "Declined";
+          } else {
+            statusColor = Colors.orange;
+            statusText = "Pending Client Approval";
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16.0),
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.0),
+              border: Border.all(color: const Color(0xFFF1F4F8)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Requested Cost",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15.0,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: GoogleFonts.poppins(
+                          color: statusColor,
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                Text(
+                  "Reason: $reason",
+                  style: GoogleFonts.poppins(
+                    color: AppColors.greyText,
+                    fontSize: 13.0,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  "Amount: \$$amount",
+                  style: GoogleFonts.poppins(
+                    color: AppColors.textColor,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    });
   }
 }

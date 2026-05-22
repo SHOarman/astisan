@@ -93,7 +93,7 @@ class AddAddressController extends GetxController {
 
         final response = await http.post(
           Uri.parse(ApiServices.client_addresses),
-          headers: {
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 
             if (token != null) 'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
             'Ac'

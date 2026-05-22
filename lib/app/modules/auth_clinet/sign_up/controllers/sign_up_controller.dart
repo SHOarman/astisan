@@ -60,7 +60,7 @@ class SignUpController extends GetxController {
 
         final response = await http.post(
           Uri.parse(ApiServices.client_sendotp),
-          headers: {
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },

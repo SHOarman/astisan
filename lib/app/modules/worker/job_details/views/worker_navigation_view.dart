@@ -276,7 +276,11 @@ class WorkerNavigationView extends GetView<WorkerJobDetailsController> {
                   children: [
                     _buildSummaryRow("Service", controller.serviceName.value),
                     const SizedBox(height: 8.0),
-                    _buildSummaryRow("Time", "10:00 AM"), // Hardcoded for design match, can be dynamic
+                    Obx(() => _buildSummaryRow("Time", 
+                      controller.bookingStatus.value.toLowerCase() == 'completed' && controller.completedTime.value.isNotEmpty
+                          ? controller.completedTime.value
+                          : controller.scheduledTime.value
+                    )),
                     const SizedBox(height: 8.0),
                     _buildSummaryRow("Payment", "\$${controller.paymentAmount.value.toStringAsFixed(2)}", valueColor: const Color(0xFF4CAF50)),
                   ],

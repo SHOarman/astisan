@@ -40,7 +40,7 @@ class WorkerSavedAddressesController extends GetxController {
 
       final response = await http.get(
         Uri.parse(ApiServices.artisan_home_address),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -177,7 +177,7 @@ class WorkerSavedAddressesController extends GetxController {
 
       final response = await http.post(
         Uri.parse(ApiServices.artisan_home_address),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
           'Accept': 'application/json',

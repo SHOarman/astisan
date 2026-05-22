@@ -162,7 +162,7 @@ class PaymentView extends GetView<PaymentController> {
   }
 
   Widget _buildTotalDueCard() {
-    return Container(
+    return Obx(() => Container(
       width: double.infinity,
       padding: EdgeInsets.all(32.0),
       decoration: BoxDecoration(
@@ -180,7 +180,7 @@ class PaymentView extends GetView<PaymentController> {
           ),
           SizedBox(height: 8.0),
           Text(
-            '\$100.00',
+            controller.totalAmount.value,
             style: GoogleFonts.poppins(
               color: AppColors.white,
               fontSize: 40.0,
@@ -189,7 +189,7 @@ class PaymentView extends GetView<PaymentController> {
           ),
           SizedBox(height: 16.0),
           Text(
-            'Job #FX-2024-0892 Â· Pipe Leak Repair',
+            'Job #${controller.jobId.value} · ${controller.serviceName.value}',
             style: GoogleFonts.poppins(
               color: AppColors.white.withAlpha(150),
               fontSize: 12.0,
@@ -197,60 +197,71 @@ class PaymentView extends GetView<PaymentController> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildCostSummary() {
-    return Container(
-      padding: EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.costBreakdown.tr,
-            style: GoogleFonts.poppins(
-              color: AppColors.textColor,
-              fontSize: 16.0,
-              fontWeight: FontWeight.w700,
+    return Obx(() {
+      final List<Widget> summaryRows = [];
+      
+      for (var item in controller.costItems) {
+        final title = item['title'] ?? '';
+        final amount = item['amount'] ?? '';
+        summaryRows.add(_buildSummaryRow(title, amount));
+        summaryRows.add(const SizedBox(height: 12.0));
+      }
+      
+      summaryRows.add(_buildSummaryRow(AppStrings.platformFee.tr, controller.platformFee.value));
+
+      return Container(
+        padding: EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppStrings.costBreakdown.tr,
+              style: GoogleFonts.poppins(
+                color: AppColors.textColor,
+                fontSize: 16.0,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          SizedBox(height: 16.0),
-          _buildSummaryRow('Service (Pipe Leak Repair)', '\$95.00'),
-          SizedBox(height: 12.0),
-          _buildSummaryRow(AppStrings.platformFee.tr, '\$5.00'),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.0),
-            child: Divider(color: AppColors.border),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppStrings.total.tr,
-                style: GoogleFonts.poppins(
-                  color: AppColors.textColor,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w700,
+            SizedBox(height: 16.0),
+            ...summaryRows,
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0),
+              child: Divider(color: AppColors.border),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppStrings.total.tr,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.textColor,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              Text(
-                '\$100.00',
-                style: GoogleFonts.poppins(
-                  color: AppColors.primary,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.w700,
+                Text(
+                  controller.totalAmount.value,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.primary,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+              ],
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildSummaryRow(String label, String value) {

@@ -53,7 +53,7 @@ class SupportController extends GetxController {
       final token = await _getToken();
       final response = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/supports/faqs/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -77,7 +77,7 @@ class SupportController extends GetxController {
       final token = await _getToken();
       final response = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/supports/terms/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -116,7 +116,7 @@ class SupportController extends GetxController {
       final token = await _getToken();
       final response = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/supports/privacy/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -138,7 +138,7 @@ class SupportController extends GetxController {
       final token = await _getToken();
       final response = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/supports/about-us/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },

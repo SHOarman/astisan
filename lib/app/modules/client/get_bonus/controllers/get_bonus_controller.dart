@@ -27,7 +27,7 @@ class GetBonusController extends GetxController {
       // Fetch code
       final codeRes = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/user/referral/code/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -41,7 +41,7 @@ class GetBonusController extends GetxController {
       // Fetch history
       final historyRes = await http.get(
         Uri.parse('${ApiServices.baseurl}/api/user/referral/history/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },

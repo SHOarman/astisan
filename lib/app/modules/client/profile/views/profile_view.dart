@@ -26,7 +26,7 @@ class ProfileView extends GetView<ProfileController> {
         children: [
           // 1. Blue Header Background
           Container(
-            height: 320.0,
+            height: 350.0,
             width: double.infinity,
             color: AppColors.primary,
           ),
@@ -39,7 +39,8 @@ class ProfileView extends GetView<ProfileController> {
                 children: [
                   _buildHeaderActions(),
                   _buildUserInfo(),
-                  const SizedBox(height: 24.0),
+                  _buildStatsRow(),
+                  // const SizedBox(height: 16.0),
 
                   // White Card Section (raised)
                   Container(
@@ -83,7 +84,7 @@ class ProfileView extends GetView<ProfileController> {
 
   Widget _buildHeaderActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -194,6 +195,54 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
+  Widget _buildStatsRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20.0),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        child: Obx(() {
+          final bookings = controller.stats['bookings']?.toString() ?? '0';
+          final reviews = controller.stats['reviews']?.toString() ?? '0';
+          final rating = double.tryParse(controller.stats['rating']?.toString() ?? '0.0') ?? 0.0;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatItem(bookings, 'Bookings'),
+              _buildStatItem(reviews, 'Reviews'),
+              _buildStatItem('${rating.toStringAsFixed(1)} ★', 'Rating Given'),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 18.0,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4.0),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: Colors.white.withOpacity(0.8),
+            fontSize: 12.0,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildMenuCard() {
     return Container(

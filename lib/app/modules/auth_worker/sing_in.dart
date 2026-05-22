@@ -77,23 +77,48 @@ class SingIn extends GetView<AuthWorkerController> {
           ),
           validator: (value) => (value == null || value.isEmpty) ? 'Enter your password' : null,
         )),
-        const SizedBox(height: 16.0),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Obx(() => Checkbox(
-                  value: controller.rememberMe.value,
-                  onChanged: (val) => controller.toggleRememberMe(val),
-                  activeColor: AppColors.checkboxActive,
-                )),
-                Text(AppStrings.rememberMe.tr, style: GoogleFonts.poppins(fontSize: 14.0)),
-              ],
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  Obx(() => Checkbox(
+                    value: controller.rememberMe.value,
+                    onChanged: (val) => controller.toggleRememberMe(val),
+                    activeColor: AppColors.checkboxActive,
+                  )),
+                  Flexible(
+                    child: Text(
+                      AppStrings.rememberMe.tr,
+                      style: GoogleFonts.poppins(fontSize: 13.0),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            TextButton(
-              onPressed: () => controller.navigateForgotPassword(),
-              child: Text(AppStrings.forgotPassword.tr, style: GoogleFonts.poppins(color: AppColors.textColor)),
+            Expanded(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => controller.navigateForgotPassword(),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(50, 30),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    AppStrings.forgotPassword.tr,
+                    style: GoogleFonts.poppins(color: AppColors.textColor, fontSize: 13.0),
+                    textAlign: TextAlign.right,
+                    softWrap: false,
+                    overflow: TextOverflow.visible,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

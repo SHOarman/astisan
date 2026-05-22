@@ -83,7 +83,7 @@ class BookingController extends GetxController {
 
       final response = await http.get(
         Uri.parse(ApiServices.client_addresses),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           if (token != null) 'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
@@ -295,7 +295,7 @@ class BookingController extends GetxController {
               Uri.parse(
                 "${ApiServices.artisan_public_profile}$artisanId/public/",
               ),
-              headers: {
+              headers: { 'Accept-Language': ApiServices.currentLanguage, 
                 if (token != null) 'Authorization': 'Bearer $token',
                 'Accept': 'application/json',
               },
@@ -336,7 +336,7 @@ class BookingController extends GetxController {
               Uri.parse(
                 "${ApiServices.artisan_public_profile}$artisanId/public/",
               ),
-              headers: {
+              headers: { 'Accept-Language': ApiServices.currentLanguage, 
                 if (token != null) 'Authorization': 'Bearer $token',
                 'Accept': 'application/json',
               },
@@ -370,7 +370,7 @@ class BookingController extends GetxController {
         try {
           final res2 = await http.get(
             Uri.parse(ApiServices.popular_services),
-            headers: {
+            headers: { 'Accept-Language': ApiServices.currentLanguage, 
               'Accept': 'application/json',
               if (token != null) 'Authorization': 'Bearer $token',
             },

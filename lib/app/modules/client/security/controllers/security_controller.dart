@@ -55,7 +55,7 @@ class SecurityController extends GetxController {
 
       final response = await http.post(
         Uri.parse('${ApiServices.baseurl}/api/user/password/change/'),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',

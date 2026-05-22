@@ -3,17 +3,64 @@ import 'package:get/get.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/routes/app_routes.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../../core/Services/api_services.dart';
 import '../views/rating_view.dart';
+import '../../activity/controllers/activity_controller.dart';
+import '../../../dashboard/controllers/dashboard_controller.dart';
 
 class PaymentSuccessController extends GetxController {
   final RxInt rating = 0.obs;
   final RxBool isReviewSubmitted = false.obs;
   final RxBool isLoadingHome = false.obs;
+  final RxBool isSubmittingReview = false.obs;
   final TextEditingController reviewController = TextEditingController();
+
+  final booking = Rxn<Map<String, dynamic>>();
+  final serviceName = "Service".obs;
+  final artisanName = "Artisan".obs;
+  final amountPaid = "0.00".obs;
+  final bookingId = "".obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (Get.arguments != null) {
+      booking.value = Get.arguments;
+      _parseBookingData();
+    }
+  }
+
+  void _parseBookingData() {
+    final b = booking.value;
+    if (b == null) return;
+    
+    // The review API requires the UUID of the booking. Usually this is 'id'.
+    // If 'id' is a UUID, use it. Otherwise fallback to 'booking_id'.
+    final idVal = b['id']?.toString() ?? "";
+    final bookingIdVal = b['booking_id']?.toString() ?? "";
+    bookingId.value = idVal.length > 20 ? idVal : bookingIdVal;
+    
+    serviceName.value = b['service_name'] ?? "Service";
+    
+    final artisan = b['artisan'] is Map ? b['artisan'] : b;
+    artisanName.value = b['artisan_name'] ?? artisan['name'] ?? artisan['full_name'] ?? "Artisan";
+    
+    double rawAmount = double.tryParse(b['total_amount']?.toString() ?? '0') ?? 0.0;
+    rawAmount = rawAmount.abs();
+    double pFee = rawAmount * 0.05;
+    double tDue = rawAmount + pFee;
+    amountPaid.value = "\$${tDue.toStringAsFixed(2)}";
+  }
 
   Future<void> backToHome() async {
     isLoadingHome.value = true;
+
+    // Move booking card to Completed tab locally
+    _markBookingClientPaid();
     
     // Simulate API delay
     await Future.delayed(const Duration(milliseconds: 1800));
@@ -28,8 +75,23 @@ class PaymentSuccessController extends GetxController {
       borderRadius: 12,
     );
     
+    // Ensure dashboard starts at home
+    if (Get.isRegistered<DashboardController>()) {
+      Get.find<DashboardController>().changePage(0);
+    }
+    
     Get.offAllNamed(Routes.DASHBOARD);
     isLoadingHome.value = false;
+  }
+
+  /// Locally marks this booking as 'client_paid' so the ActivityController
+  /// moves it from the Confirmed tab to the Completed tab.
+  void _markBookingClientPaid() {
+    final id = bookingId.value;
+    if (id.isEmpty) return;
+    if (Get.isRegistered<ActivityController>()) {
+      Get.find<ActivityController>().updateBookingStatusLocally(id, 'client_paid');
+    }
   }
 
   Future<void> downloadOrPrintReceipt() async {
@@ -107,14 +169,54 @@ class PaymentSuccessController extends GetxController {
     Get.to(() => const RatingView(), fullscreenDialog: true);
   }
 
-  void submitReview() {
+  Future<void> submitReview() async {
     if (rating.value == 0) {
       Get.snackbar('Oops', 'Please provide a star rating.');
       return;
     }
-    // Unfocus before changing state to avoid "attached: is not true" assertion error
+    
+    isSubmittingReview.value = true;
     FocusManager.instance.primaryFocus?.unfocus();
-    isReviewSubmitted.value = true;
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      if (token != null) token = token.trim().replaceAll('"', '');
+
+      final url = Uri.parse('${ApiServices.baseurl}/api/reviews/client/submit/');
+      final response = await http.post(
+        url,
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
+          'Content-Type': 'application/json',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'booking_id': bookingId.value,
+          'rating': rating.value,
+          'comment': reviewController.text,
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        isReviewSubmitted.value = true;
+        // Move booking card to Completed tab locally after review
+        _markBookingClientPaid();
+        Get.snackbar(
+          'Success', 
+          'Review submitted successfully!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        print("Review API Error: ${response.statusCode} - ${response.body}");
+        Get.snackbar('Error', 'Failed to submit review: ${response.body}');
+      }
+    } catch (e) {
+      print("Review API Exception: $e");
+      Get.snackbar('Error', 'An error occurred while submitting the review: $e');
+    } finally {
+      isSubmittingReview.value = false;
+    }
   }
 }
 

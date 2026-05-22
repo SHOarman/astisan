@@ -19,7 +19,12 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
         : Stack(
             children: [
               SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 120.0),
+                padding: EdgeInsets.only(
+                  bottom: (controller.bookingStatus.value.toLowerCase() == 'completed' ||
+                          controller.bookingStatus.value.toLowerCase() == 'cancelled')
+                      ? 24.0
+                      : 120.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -442,6 +447,10 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
   }
 
   Widget _buildBottomAction() {
+    final status = controller.bookingStatus.value.toLowerCase();
+    if (status == 'completed' || status == 'cancelled') {
+      return const SizedBox.shrink();
+    }
     return Positioned(
       left: 0,
       right: 0,

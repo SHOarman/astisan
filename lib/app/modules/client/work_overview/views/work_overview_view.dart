@@ -83,8 +83,6 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
                   SizedBox(height: 16.0),
                   _buildWorkCompleted(),
                   SizedBox(height: 16.0),
-                  _buildPhotosSection(),
-                  SizedBox(height: 16.0),
                   _buildCostBreakdown(),
                   SizedBox(height: 16.0),
                   _buildGuaranteeBox(),
@@ -92,7 +90,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
               ),
             ),
           ),
-          _buildBottomActions(),
+          Obx(() => controller.showGoToPay.value ? _buildBottomActions() : const SizedBox.shrink()),
         ],
       ),
     );
@@ -129,7 +127,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
                   ),
                 ),
                 Text(
-                  'Completed at ${controller.completedTime.value} · Duration: ${controller.duration.value}',
+                  'Completed at ${controller.completedTime.value}\nLocation: ${controller.location.value}\nDuration: ${controller.duration.value}',
                   style: GoogleFonts.poppins(
                     color: AppColors.white.withAlpha(200),
                     fontSize: 12.0,
@@ -201,7 +199,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
                     Icon(Icons.star, color: AppColors.ratingStar, size: 14.0),
                     SizedBox(width: 4.0),
                     Text(
-                      '${controller.rating.value > 0 ? controller.rating.value : "4.9"} · Expert',
+                      '${controller.rating.value > 0 ? controller.rating.value.toStringAsFixed(1) : "0.0"} · ${controller.profession.value.isEmpty ? "Expert" : controller.profession.value}',
                       style: GoogleFonts.poppins(
                         color: AppColors.textColor,
                         fontSize: 12.0,
@@ -273,50 +271,28 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
     ));
   }
 
-  Widget _buildPhotosSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          AppStrings.photos.tr,
-          style: GoogleFonts.poppins(
-            color: AppColors.textColor,
-            fontSize: 16.0,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: 12.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            PhotoThumbnailTile(child: Icon(Icons.build, color: AppColors.greyText, size: 24.0)),
-            PhotoThumbnailTile(child: Icon(Icons.water_drop, color: Colors.blue, size: 24.0)),
-            PhotoThumbnailTile(child: Icon(Icons.check_box, color: Colors.green, size: 24.0)),
-          ],
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          '3 photos captured by artisan',
-          style: GoogleFonts.poppins(
-            color: AppColors.greyText,
-            fontSize: 12.0,
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildCostBreakdown() {
-    return Obx(() => CostBreakdownCard(
-      icon: Icons.credit_card_outlined,
-      cardTitle: 'Cost Breakdown',
-      items: [
-        CostBreakdownItem(title: 'Service base fee', amount: controller.totalAmount.value),
-        CostBreakdownItem(title: 'Platform fee (0%)', amount: '\$0.00'),
-      ],
-      totalLabel: 'Total Due',
-      totalAmount: controller.totalAmount.value,
-    ));
+    return Obx(() {
+      final List<CostBreakdownItem> breakdown = controller.costItems.map((item) => CostBreakdownItem(
+        title: item['title'] ?? '',
+        amount: item['amount'] ?? '',
+      )).toList();
+      
+      breakdown.add(CostBreakdownItem(
+        title: 'Platform fee (5%)',
+        amount: controller.platformFee.value,
+      ));
+
+      return CostBreakdownCard(
+        icon: Icons.credit_card_outlined,
+        cardTitle: 'Cost Breakdown',
+        items: breakdown,
+        totalLabel: 'Total Due',
+        totalAmount: controller.totalAmount.value,
+      );
+    });
   }
 
   Widget _buildGuaranteeBox() {
@@ -365,7 +341,9 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: () => controller.goToHome(),
+          onPressed: () {
+            Get.toNamed(Routes.PAYMENT, arguments: controller.booking.value);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             padding: EdgeInsets.symmetric(vertical: 16.0),
@@ -376,7 +354,7 @@ class WorkOverviewView extends GetView<WorkOverviewController> {
             elevation: 0,
           ),
           child: Text(
-            "Back to Home",
+            "Go to pay",
             style: GoogleFonts.poppins(
               color: AppColors.white,
               fontSize: 16.0,

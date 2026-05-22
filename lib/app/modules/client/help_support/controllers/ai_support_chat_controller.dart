@@ -27,7 +27,7 @@ class AiSupportChatController extends GetxController {
 
       final response = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/chat/ai/client/"),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
         },
@@ -67,7 +67,7 @@ class AiSupportChatController extends GetxController {
 
       final response = await http.post(
         Uri.parse("${ApiServices.baseurl}/api/chat/ai/client/"),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',

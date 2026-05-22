@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,14 +19,10 @@ class ReportIssueView extends GetView<ReportIssueController> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.white,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
           onPressed: () => Get.back(),
         ),
-        title: Column(
+        title: Obx(() => Column(
           children: [
             Text(
               AppStrings.reportAnIssue.tr,
@@ -35,15 +32,16 @@ class ReportIssueView extends GetView<ReportIssueController> {
                 color: Colors.white,
               ),
             ),
-            Text(
-              "Job #J1 Â· Pipe Leak Repair",
-              style: GoogleFonts.poppins(
-                fontSize: 12.0,
-                color: Colors.white.withOpacity(0.7),
+            if (controller.serviceName.value.isNotEmpty)
+              Text(
+                controller.serviceName.value,
+                style: GoogleFonts.poppins(
+                  fontSize: 12.0,
+                  color: Colors.white.withOpacity(0.75),
+                ),
               ),
-            ),
           ],
-        ),
+        )),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -64,7 +62,9 @@ class ReportIssueView extends GetView<ReportIssueController> {
             const SizedBox(height: 12),
             _buildDescriptionField(),
             const SizedBox(height: 32),
-            _buildAttachmentTile(),
+            _buildLabel("Photos / Documents (optional)"),
+            const SizedBox(height: 12),
+            _buildAttachmentSection(),
             const SizedBox(height: 48),
             _buildSubmitButton(),
           ],
@@ -84,33 +84,19 @@ class ReportIssueView extends GetView<ReportIssueController> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: Color(0xFFD48806),
-            size: 24,
-          ),
+          const Icon(Icons.warning_amber_rounded, color: Color(0xFFD48806), size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: const Color(0xFF7A5900),
-                  height: 1.5,
-                ),
+                style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF7A5900), height: 1.5),
                 children: [
                   const TextSpan(text: "In an emergency, call "),
                   TextSpan(
                     text: "911",
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFC0392B),
-                    ),
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: const Color(0xFFC0392B)),
                   ),
-                  const TextSpan(
-                    text:
-                        " immediately. Use this form to report non-emergency job issues.",
-                  ),
+                  const TextSpan(text: " immediately. Use this form to report non-emergency job issues."),
                 ],
               ),
             ),
@@ -123,70 +109,45 @@ class ReportIssueView extends GetView<ReportIssueController> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textColor,
-      ),
+      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textColor),
     );
   }
 
   Widget _buildDropdown() {
-    return Obx(
-      () => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: controller.selectedIssueType.value.isEmpty
-                ? null
-                : controller.selectedIssueType.value,
-            hint: Text(
-              AppStrings.selectIssueType.tr,
-              style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
-            ),
-            isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-            items: controller.issueTypes.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: GoogleFonts.poppins(fontSize: 14)),
-              );
-            }).toList(),
-            onChanged: controller.selectIssue,
-          ),
+    return Obx(() => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: controller.selectedIssueType.value.isEmpty ? null : controller.selectedIssueType.value,
+          hint: Text(AppStrings.selectIssueType.tr, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+          items: controller.issueTypes.map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value, style: GoogleFonts.poppins(fontSize: 14)),
+            );
+          }).toList(),
+          onChanged: controller.selectIssue,
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildUrgencySelector() {
-    return Obx(
-      () => Row(
-        children: [
-          _buildUrgencyOption(
-            AppStrings.low.tr,
-            const Color(0xFF4CAF50),
-            controller.urgencyLevel.value == "Low",
-          ),
-          const SizedBox(width: 12),
-          _buildUrgencyOption(
-            AppStrings.medium.tr,
-            const Color(0xFFFFC107),
-            controller.urgencyLevel.value == "Medium",
-          ),
-          const SizedBox(width: 12),
-          _buildUrgencyOption(
-            AppStrings.high.tr,
-            const Color(0xFFF44336),
-            controller.urgencyLevel.value == "High",
-          ),
-        ],
-      ),
-    );
+    return Obx(() => Row(
+      children: [
+        _buildUrgencyOption(AppStrings.low.tr, const Color(0xFF4CAF50), controller.urgencyLevel.value == "Low"),
+        const SizedBox(width: 12),
+        _buildUrgencyOption(AppStrings.medium.tr, const Color(0xFFFFC107), controller.urgencyLevel.value == "Medium"),
+        const SizedBox(width: 12),
+        _buildUrgencyOption(AppStrings.high.tr, const Color(0xFFF44336), controller.urgencyLevel.value == "High"),
+      ],
+    ));
   }
 
   Widget _buildUrgencyOption(String label, Color color, bool isSelected) {
@@ -196,13 +157,9 @@ class ReportIssueView extends GetView<ReportIssueController> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected
-                ? color.withOpacity(0.1)
-                : const Color(0xFFF9FAFB),
+            color: isSelected ? color.withOpacity(0.1) : const Color(0xFFF9FAFB),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? color : const Color(0xFFE5E7EB),
-            ),
+            border: Border.all(color: isSelected ? color : const Color(0xFFE5E7EB)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -249,36 +206,98 @@ class ReportIssueView extends GetView<ReportIssueController> {
           ),
         ),
         const SizedBox(height: 8),
-        Obx(
-          () => Text(
-            "${controller.characterCount.value}/500",
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
-          ),
-        ),
+        Obx(() => Text(
+          "${controller.characterCount.value}/500",
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+        )),
       ],
     );
   }
 
-  Widget _buildAttachmentTile() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Row(
+  Widget _buildAttachmentSection() {
+    return Obx(() {
+      final files = controller.attachedFiles;
+      return Column(
         children: [
-          const Icon(Icons.attachment, color: Colors.grey),
-          const SizedBox(width: 12),
-          Text(
-            AppStrings.addPhotosDocs.tr,
-            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
+          // Thumbnail grid of added files
+          if (files.isNotEmpty) ...[
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1,
+              ),
+              itemCount: files.length,
+              itemBuilder: (context, index) {
+                return Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        File(files[index].path),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => controller.removeFile(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, color: Colors.white, size: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+          // Add button
+          GestureDetector(
+            onTap: controller.pickImage,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFFD1D5DB),
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary, size: 22),
+                  const SizedBox(width: 10),
+                  Text(
+                    files.isEmpty ? "Add Photo or Document" : "Add More",
+                    style: GoogleFonts.poppins(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildSubmitButton() {
@@ -286,25 +305,15 @@ class ReportIssueView extends GetView<ReportIssueController> {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: controller.submitReport,
-        icon: const Icon(
-          Icons.check_circle_outline,
-          color: Colors.white,
-          size: 20,
-        ),
+        icon: const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
         label: Text(
           AppStrings.submitReport.tr,
-          style: GoogleFonts.poppins(
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           minimumSize: const Size(double.infinity, 56.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
           elevation: 0,
         ),
       ),

@@ -12,6 +12,17 @@ class AppStrings extends Translations {
   static const trackService = 'Track Your Service in Real-Time';
   static const trackServiceSub = 'Stay updated with live location tracking and know exactly when your artisan will arrive.';
 
+  // Edit Profile / Dashboard added keys
+  static const editProfile = 'Edit Profile';
+  static const saveChanges = 'Save Changes';
+  static const occupation = 'Occupation';
+  static const bio = 'Bio';
+  static const experienceYears = 'Experience (Years)';
+  static const rate = 'Rate';
+  static const skillsList = 'Skills (comma separated)';
+  static const serviceAreasList = 'Service Areas (comma separated)';
+  static const welcomeBackHeader = 'Welcome back,';
+
   // Page 3
   static const securePayments = 'Hassle-Free & Secure Payments';
   static const securePaymentsSub = 'Pay safely through the app with multiple payment options and complete transparency.';
@@ -107,7 +118,7 @@ class AppStrings extends Translations {
   static const completed = 'Completed';
   static const cancelled = 'Cancelled';
   static const upcoming = 'Upcoming';
-  static const rate = 'Rate';
+  static const rates = 'Rate';
   static const rebook = 'Rebook';
   static const by = 'by ';
   // Profile
@@ -205,8 +216,8 @@ class AppStrings extends Translations {
   static const rateNow = 'Rate Now';
   static const downloadReceipt = 'Download Receipt';
   static const backToHome = 'Back to Home';
-  static const editProfile = 'Edit Profile';
-  static const saveChanges = 'Save Changes';
+  static const editProfiles = 'Edit Profile';
+  static const saveChangess = 'Save Changes';
   static const labor = 'Labor';
   static const parts = 'Parts';
   static const platformFeePercent = 'Platform fee (5%)';
@@ -483,6 +494,15 @@ class AppStrings extends Translations {
   Map<String, Map<String, String>> get keys => {
 
         'fr_FR': {
+          editProfile: 'Modifier le profil',
+          saveChanges: 'Enregistrer les modifications',
+          occupation: 'Profession',
+          bio: 'Biographie',
+          experienceYears: 'Expérience (Années)',
+          rate: 'Taux Horaire',
+          skillsList: 'Compétences (séparées par des virgules)',
+          serviceAreasList: 'Zones de service (séparées par des virgules)',
+          welcomeBackHeader: 'Bon retour,',
           findTrustedHelp: 'Trouvez des artisans de confiance près de chez vous',
           findTrustedHelpSub: 'Parcourez des professionnels de confiance pour la plomberie, l\'électricité, les réparations, et plus encore — tout au même endroit.',
           trackService: 'Suivez votre service en temps réel',

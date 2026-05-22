@@ -118,7 +118,7 @@ class ProfileController extends GetxController {
 
       final response = await http.get(
         Uri.parse(endpoint),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
@@ -137,12 +137,14 @@ class ProfileController extends GetxController {
           stats['bookings'] = artisan['total_jobs_done'] ?? 0;
           stats['reviews'] = 0;
           stats['rating'] = double.tryParse(artisan['average_rating']?.toString() ?? '0.0') ?? 0.0;
+        } else if (!isWorker) {
+          fetchClientStats();
         }
       } else if (response.statusCode == 403) {
         final String alternativeUrl = isWorker ? ApiServices.client_profile : ApiServices.artisan_profile;
         final altResponse = await http.get(
           Uri.parse(alternativeUrl),
-          headers: {'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 'Authorization': 'Bearer $cleanToken', 'Accept': 'application/json'},
         ).timeout(const Duration(seconds: 15));
 
         if (altResponse.statusCode == 200) {
@@ -164,6 +166,50 @@ class ProfileController extends GetxController {
       }
     } catch (e) {
       userName.value = 'Error Loading Profile';
+    }
+  }
+
+  Future<void> fetchClientStats() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      if (token == null) return;
+      token = token.trim().replaceAll('"', '');
+      
+      // Fetch bookings to count completed ones
+      final bookingResp = await http.get(
+        Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+      if (bookingResp.statusCode == 200) {
+        final data = jsonDecode(bookingResp.body);
+        final results = (data is Map && data.containsKey('results')) ? data['results'] as List : (data is List ? data : []);
+        int completedCount = results.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'completed').length;
+        stats['bookings'] = completedCount;
+      }
+      
+      // Fetch reviews
+      final reviewResp = await http.get(
+        Uri.parse("${ApiServices.baseurl}/api/reviews/client/"),
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+      if (reviewResp.statusCode == 200) {
+        final data = jsonDecode(reviewResp.body);
+        stats['reviews'] = data['count'] ?? 0;
+        final results = (data is Map && data.containsKey('results')) ? data['results'] as List : (data is List ? data : []);
+        if (results.isNotEmpty) {
+           double sum = 0;
+           for(var r in results) {
+               sum += double.tryParse(r['rating']?.toString() ?? '0') ?? 0;
+           }
+           stats['rating'] = sum / results.length;
+        } else {
+           stats['rating'] = 0.0;
+        }
+      }
+      stats.refresh();
+    } catch(e) {
+      print("Error fetching client stats: $e");
     }
   }
 

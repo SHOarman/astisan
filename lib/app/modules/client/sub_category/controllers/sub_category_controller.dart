@@ -27,7 +27,7 @@ class SubCategoryController extends GetxController {
     try {
       final response = await http.get(
         Uri.parse("${ApiServices.category_services}$categoryId/"),
-        headers: {'Accept': 'application/json'},
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json'},
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -47,7 +47,7 @@ class SubCategoryController extends GetxController {
       
       final response = await http.get(
         Uri.parse(url),
-        headers: {'Accept': 'application/json'},
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json'},
       ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {

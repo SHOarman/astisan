@@ -71,7 +71,7 @@ class WorkerTrackingController extends GetxController {
 
       final response = await http.get(
         Uri.parse(url),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
@@ -215,7 +215,7 @@ class WorkerTrackingController extends GetxController {
 
       final response = await http.post(
         Uri.parse(url),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -275,5 +275,55 @@ class WorkerTrackingController extends GetxController {
       'profile': artisanImageUrl.value,
       'isClient': false,
     });
+  }
+
+  Future<bool> requestAdditionalCost(String reason, double amount) async {
+    isLoading.value = true;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      if (token == null) return false;
+
+      final String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
+      final String url = "${ApiServices.baseurl}/api/bookings/artisan/${bookingId.value}/costs/";
+
+      print("DEBUG: Requesting additional cost of $amount for reason: $reason to $url");
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
+          'Authorization': 'Bearer $cleanToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          "reason": reason,
+          "amount": amount.toString(),
+        }),
+      ).timeout(const Duration(seconds: 15));
+
+      print("DEBUG: Request Additional Cost Response: ${response.statusCode} ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar("Success", "Additional cost requested successfully",
+            backgroundColor: const Color(0xFF4CAE79),
+            colorText: const Color(0xFFFFFFFF));
+        fetchBookingDetails();
+        return true;
+      } else {
+        Get.snackbar("Error", "Failed to request additional cost: ${response.body}",
+            backgroundColor: const Color(0xFFFF0000),
+            colorText: const Color(0xFFFFFFFF));
+        return false;
+      }
+    } catch (e) {
+      print("Error in requesting additional cost: $e");
+      Get.snackbar("Error", "An error occurred: $e",
+          backgroundColor: const Color(0xFFFF0000),
+          colorText: const Color(0xFFFFFFFF));
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

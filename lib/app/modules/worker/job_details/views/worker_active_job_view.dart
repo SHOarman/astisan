@@ -71,27 +71,31 @@ class WorkerActiveJobView extends GetView<WorkerJobDetailsController> {
                 ),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Job Details",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Obx(
-                    () => Text(
-                      controller.bookingId.value,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Job Details",
                       style: GoogleFonts.poppins(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 14.0,
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                ],
+                    Obx(
+                      () => Text(
+                        controller.bookingId.value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -126,11 +130,15 @@ class WorkerActiveJobView extends GetView<WorkerJobDetailsController> {
                             ),
                           ),
                         ),
-                        Text(
-                          "10:00 AM",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 13.0,
+                        Obx(
+                          () => Text(
+                            controller.bookingStatus.value.toLowerCase() == 'completed' && controller.completedTime.value.isNotEmpty
+                                ? controller.completedTime.value
+                                : controller.scheduledTime.value,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 13.0,
+                            ),
                           ),
                         ),
                       ],
@@ -396,36 +404,57 @@ class WorkerActiveJobView extends GetView<WorkerJobDetailsController> {
             ),
           ),
           const SizedBox(height: 20),
-          Obx(
-            () => Column(
+          Obx(() {
+            if (controller.checklist.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  "No checklist items added",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: AppColors.textColor.withOpacity(0.4),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+            return Column(
               children: List.generate(controller.checklist.length, (index) {
                 final item = controller.checklist[index];
+                final bool isChecked = item['checked'] == true;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: const Color(0xFF4CAF50),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          item['title'],
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            color: AppColors.textColor.withOpacity(0.6),
-                            fontWeight: FontWeight.w500,
+                  child: InkWell(
+                    onTap: () => controller.toggleCheck(index),
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isChecked ? Icons.check_circle : Icons.radio_button_unchecked,
+                          color: isChecked ? const Color(0xFF4CAF50) : Colors.grey[300],
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            item['title'] ?? '',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              color: isChecked
+                                  ? AppColors.textColor.withOpacity(0.6)
+                                  : AppColors.textColor.withOpacity(0.8),
+                              fontWeight: FontWeight.w500,
+                              decoration: isChecked ? TextDecoration.lineThrough : null,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );

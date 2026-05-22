@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/components/schedule_card.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../controllers/worker_home_controller.dart';
 
@@ -18,7 +19,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Obx(
-        () => RefreshIndicator(
+            () => RefreshIndicator(
           onRefresh: () async {
             await controller.fetchCurrentStatus();
             await controller.fetchTodaySchedule();
@@ -77,107 +78,109 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
           // Header Row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Row(
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        image: controller.profilePicture.value.isNotEmpty
-                            ? (controller.profilePicture.value.startsWith('http')
-                                ? DecorationImage(
-                                    image: NetworkImage(controller.profilePicture.value),
-                                    fit: BoxFit.cover,
-                                  )
-                                : DecorationImage(
-                                    image: FileImage(File(controller.profilePicture.value)),
-                                    fit: BoxFit.cover,
-                                  ))
-                            : const DecorationImage(
-                                image: AssetImage(AppImages.homeMarcusJohnson),
-                                fit: BoxFit.cover,
-                              ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 14,
-                        height: 14,
+            child: Obx(
+                  () => Row(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: 54,
+                        height: 54,
                         decoration: BoxDecoration(
-                          color: controller.isOnline.value
-                              ? AppColors.onlineGreen
-                              : AppColors.urgentRed,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.primary,
-                            width: 2,
+                          borderRadius: BorderRadius.circular(16),
+                          image: controller.profilePicture.value.isNotEmpty
+                              ? (controller.profilePicture.value.startsWith('http')
+                              ? DecorationImage(
+                            image: NetworkImage(controller.profilePicture.value),
+                            fit: BoxFit.cover,
+                          )
+                              : DecorationImage(
+                            image: FileImage(File(controller.profilePicture.value)),
+                            fit: BoxFit.cover,
+                          ))
+                              : const DecorationImage(
+                            image: AssetImage(AppImages.homeMarcusJohnson),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 16.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Welcome back,",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 14.0,
-                        ),
-                      ),
-                      Text(
-                        controller.userName.value,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.w700,
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: controller.isOnline.value
+                                ? AppColors.onlineGreen
+                                : AppColors.urgentRed,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                GestureDetector(
-                  onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
-
-                  child: Container(
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Stack(
+                  const SizedBox(width: 16.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: 24,
+                        Text(
+                          AppStrings.welcomeBackHeader.tr,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 14.0,
+                          ),
                         ),
-                        Positioned(
-                          right: 2,
-                          top: 2,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.urgentRed,
-                              shape: BoxShape.circle,
-                            ),
+                        Text(
+                          controller.userName.value.isNotEmpty ? controller.userName.value : 'Worker',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Get.toNamed(Routes.NOTIFICATIONS),
+                    child: Container(
+                      padding: const EdgeInsets.all(10.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Stack(
+                        children: [
+                          const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          Positioned(
+                            right: 2,
+                            top: 2,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.urgentRed,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -186,63 +189,65 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
           // Online/Offline Toggle Card
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: controller.isOnline.value
-                          ? AppColors.onlineGreen
-                          : AppColors.urgentRed,
-                      shape: BoxShape.circle,
+            child: Obx(
+                  () => Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: controller.isOnline.value
+                            ? AppColors.onlineGreen
+                            : AppColors.urgentRed,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          controller.isOnline.value
-                              ? "You are Online"
-                              : "You are Offline",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            controller.isOnline.value
+                                ? "You are Online"
+                                : "You are Offline",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        Text(
-                          controller.isOnline.value
-                              ? "Receiving new requests"
-                              : "Not accepting requests",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 13.0,
+                          Text(
+                            controller.isOnline.value
+                                ? "Receiving new requests"
+                                : "Not accepting requests",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 13.0,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Transform.scale(
-                    scale: 0.85,
-                    child: Switch(
-                      value: controller.isOnline.value,
-                      onChanged: controller.toggleStatus,
-                      activeTrackColor: AppColors.onlineGreen,
-                      activeThumbColor: Colors.white,
-                      inactiveTrackColor: Colors.white.withOpacity(0.3),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Transform.scale(
+                      scale: 0.85,
+                      child: Switch(
+                        value: controller.isOnline.value,
+                        onChanged: controller.toggleStatus,
+                        activeTrackColor: AppColors.onlineGreen,
+                        activeThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.white.withOpacity(0.3),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -278,12 +283,12 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
   }
 
   Widget _buildCompactStatCard(
-    String title,
-    String value,
-    String subtitle,
-    Color subtitleColor,
-    IconData? icon,
-  ) {
+      String title,
+      String value,
+      String subtitle,
+      Color subtitleColor,
+      IconData? icon,
+      ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16.0),

@@ -28,7 +28,7 @@ class WorkerBookingHistoryController extends GetxController {
       
       final response = await http.get(
         Uri.parse(ApiServices.artisan_bookings),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },

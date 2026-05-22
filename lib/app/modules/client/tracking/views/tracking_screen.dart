@@ -22,6 +22,7 @@ class TrackingScreen extends GetView<TrackingController> {
           children: [
             _buildProfileSection(),
             const SizedBox(height: 16),
+            _buildAdditionalCosts(),
             _buildProgressCard(),
             const SizedBox(height: 16),
             _buildTimelineCard(),
@@ -409,14 +410,19 @@ class TrackingScreen extends GetView<TrackingController> {
   Widget _buildDetailRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: Colors.black87,
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Colors.black87,
+            ),
           ),
         ),
       ],
@@ -462,21 +468,51 @@ class TrackingScreen extends GetView<TrackingController> {
             SizedBox(
               width: double.infinity,
               height: 52,
-              child: ElevatedButton(
-                onPressed: controller.status.value == 'completed' ? () => controller.viewCompletionWork() : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: controller.status.value == 'completed' ? const Color(0xFF4A7EAF) : const Color(0xFFBDC3D1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: controller.status.value == 'completed'
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF4A7EAF).withOpacity(0.45),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
                 ),
-                child: const Text(
-                  "View Completion work",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                child: ElevatedButton.icon(
+                  onPressed: controller.status.value == 'completed'
+                      ? () => controller.viewCompletionWork()
+                      : null,
+                  icon: Icon(
+                    controller.status.value == 'completed'
+                        ? Icons.check_circle_outline
+                        : Icons.hourglass_empty,
                     color: Colors.white,
+                    size: 20,
+                  ),
+                  label: Text(
+                    controller.status.value == 'completed'
+                        ? "View Completion Work →"
+                        : "View Completion Work",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: controller.status.value == 'completed'
+                          ? Colors.white
+                          : Colors.white70,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: controller.status.value == 'completed'
+                        ? const Color(0xFF4A7EAF)
+                        : const Color(0xFFBDC3D1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
                   ),
                 ),
               ),
@@ -555,5 +591,145 @@ class TrackingScreen extends GetView<TrackingController> {
       ),
       child: child,
     );
+  }
+
+  Widget _buildAdditionalCosts() {
+    return Obx(() {
+      final b = controller.booking.value;
+      if (b == null) return const SizedBox.shrink();
+
+      final List costs = b['additional_costs'] as List? ?? [];
+      if (costs.isEmpty) return const SizedBox.shrink();
+
+      return Column(
+        children: costs.map<Widget>((cost) {
+          final String costId = cost['id']?.toString() ?? '';
+          final String reason = cost['reason']?.toString() ?? 'Extra Charge';
+          final String amount = cost['amount']?.toString() ?? '0.00';
+          final String status = (cost['status'] ?? 'pending').toString().toLowerCase();
+
+          Color statusColor;
+          String statusText;
+          bool isPending = status == 'pending';
+
+          if (status == 'approved') {
+            statusColor = Colors.green;
+            statusText = "Approved";
+          } else if (status == 'rejected' || status == 'declined') {
+            statusColor = Colors.red;
+            statusText = "Declined";
+          } else {
+            statusColor = Colors.orange;
+            statusText = "Pending Approval";
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16.0),
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.0),
+              border: Border.all(
+                color: isPending ? Colors.orange.withOpacity(0.5) : Colors.grey.shade200,
+                width: isPending ? 1.5 : 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Additional Cost Request",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                Text(
+                  "Reason: $reason",
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 13.0,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  "Amount: \$$amount",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (isPending) ...[
+                  const SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => controller.respondToAdditionalCost(costId, "reject"),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          ),
+                          child: const Text(
+                            "Decline",
+                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => controller.respondToAdditionalCost(costId, "approve"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          ),
+                          child: const Text(
+                            "Approve",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    });
   }
 }

@@ -160,7 +160,7 @@ class WorkerHomeController extends GetxController {
 
       final response = await http.get(
         Uri.parse(ApiServices.artisan_profile),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },
@@ -219,7 +219,7 @@ class WorkerHomeController extends GetxController {
       final response = await http
           .get(
             Uri.parse(url),
-            headers: {
+            headers: { 'Accept-Language': ApiServices.currentLanguage, 
               'Authorization': 'Bearer $cleanToken',
               'Accept': 'application/json',
               'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
@@ -368,7 +368,7 @@ class WorkerHomeController extends GetxController {
 
       final response = await http.post(
         Uri.parse(ApiServices.artisan_toggle_online),
-        headers: {
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 
           'Authorization': 'Bearer $cleanToken',
           'Accept': 'application/json',
         },

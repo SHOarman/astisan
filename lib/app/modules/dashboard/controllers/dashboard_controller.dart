@@ -8,14 +8,12 @@ class DashboardController extends GetxController {
   void changePage(int index) {
     currentIndex.value = index;
     
-    // Refresh Worker Account when opening the Account tab (index 3)
     if (index == 3) {
       if (Get.isRegistered<WorkerAccountController>()) {
         Get.find<WorkerAccountController>().fetchProfile();
       }
     }
     
-    // Refresh Worker Dashboard when opening the Dashboard tab (index 0)
     if (index == 0) {
       if (Get.isRegistered<WorkerHomeController>()) {
         Get.find<WorkerHomeController>().fetchCurrentStatus();

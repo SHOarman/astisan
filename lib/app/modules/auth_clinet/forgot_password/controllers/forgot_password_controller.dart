@@ -24,7 +24,7 @@ class ForgotPasswordController extends GetxController {
         final roleController = Get.find<RoleController>();
         final response = await http.post(
           Uri.parse(ApiServices.forgot_password_init),
-          headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+          headers: { 'Accept-Language': ApiServices.currentLanguage, 'Content-Type': 'application/json', 'Accept': 'application/json'},
           body: json.encode({
             "email": emailController.text.trim(),
             "role": roleController.currentRole.value

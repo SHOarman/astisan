@@ -20,7 +20,7 @@ class ServicesController extends GetxController {
     try {
       final response = await http.get(
         Uri.parse(ApiServices.services_categories),
-        headers: {'Accept': 'application/json'},
+        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json'},
       );
 
       print("DEBUG: ServicesController - Status Code: ${response.statusCode}");
