@@ -508,18 +508,18 @@ class TrackingController extends GetxController {
       print("DEBUG: Respond to cost response status=${response.statusCode} body=${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Response submitted successfully",
+        Get.snackbar("Success".tr, "Response submitted successfully".tr,
             backgroundColor: const Color(0xFF4CAE79),
             colorText: const Color(0xFFFFFFFF));
         _refreshBookingDetails(bookingId);
       } else {
-        Get.snackbar("Error", "Failed to respond: ${response.body}",
+        Get.snackbar("Error".tr, "Failed to respond: ${response.body}".tr,
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
       }
     } catch (e) {
       print("Error responding to cost: $e");
-      Get.snackbar("Error", "An error occurred: $e",
+      Get.snackbar("Error".tr, "An error occurred: $e".tr,
           backgroundColor: const Color(0xFFFF0000),
           colorText: const Color(0xFFFFFFFF));
     }

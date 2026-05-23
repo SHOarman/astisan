@@ -4,10 +4,14 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../core/Services/api_services.dart';
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/constants/static/app_images.dart';
 import '../../../../core/components/profile_menu_tile.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../dashboard/controllers/dashboard_controller.dart';
+import '../../activity/controllers/activity_controller.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -68,6 +72,8 @@ class ProfileView extends GetView<ProfileController> {
                           _buildRecentBookingsList(),
                           const SizedBox(height: 40.0),
                           _buildSignOutButton(),
+                          const SizedBox(height: 16.0),
+                          _buildDeleteAccountButton(),
                           const SizedBox(height: 40.0),
                         ],
                       ),
@@ -211,9 +217,9 @@ class ProfileView extends GetView<ProfileController> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatItem(bookings, 'Bookings'),
-              _buildStatItem(reviews, 'Reviews'),
-              _buildStatItem('${rating.toStringAsFixed(1)} ★', 'Rating Given'),
+              _buildStatItem(bookings, AppStrings.bookings.tr),
+              _buildStatItem(reviews, AppStrings.reviews.tr),
+              _buildStatItem('${rating.toStringAsFixed(1)} ★', AppStrings.ratingGiven.tr),
             ],
           );
         }),
@@ -296,7 +302,9 @@ class ProfileView extends GetView<ProfileController> {
           ),
         ),
         TextButton(
-          onPressed: () {}, // Navigate to all bookings
+          onPressed: () {
+            Get.toNamed(Routes.RECENT_BOOKINGS);
+          },
           child: Text(
             AppStrings.seeAll.tr,
             style: GoogleFonts.poppins(
@@ -311,17 +319,29 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   Widget _buildRecentBookingsList() {
+    final activityController = Get.isRegistered<ActivityController>() 
+        ? Get.find<ActivityController>() 
+        : Get.put(ActivityController());
+
     return Obx(() {
-      if (controller.recentBookings.isEmpty) {
+      if (activityController.isLoading.value && activityController.completedBookings.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (activityController.completedBookings.isEmpty) {
         return Center(
-          child: Text(
-            "No recent bookings",
-            style: GoogleFonts.poppins(color: AppColors.greyText),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              "No recent bookings",
+              style: GoogleFonts.poppins(color: AppColors.greyText),
+            ),
           ),
         );
       }
+      
+      final recentOrders = activityController.completedBookings.take(3).toList();
       return Column(
-        children: controller.recentBookings.map((order) {
+        children: recentOrders.map((order) {
           return _buildBookingTile(order);
         }).toList(),
       );
@@ -329,6 +349,11 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   Widget _buildBookingTile(Map<String, dynamic> order) {
+    final String artisanName = order['artisan_name'] ?? order['client_name'] ?? 'Artisan';
+    final String picUrl = ApiServices.formatImageUrl(order['artisan_picture'] ?? order['client_picture']);
+    final String dateStr = order['scheduled_date'] ?? '';
+    final String amount = order['total_amount']?.toString() ?? order['base_price']?.toString() ?? '0.00';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16.0),
       padding: const EdgeInsets.all(16.0),
@@ -339,15 +364,20 @@ class ProfileView extends GetView<ProfileController> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 54.0,
-            height: 54.0,
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F5FA),
-              borderRadius: BorderRadius.circular(14.0),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14.0),
+            child: Image.network(
+              picUrl,
+              width: 54.0,
+              height: 54.0,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 54.0,
+                height: 54.0,
+                color: const Color(0xFFF0F5FA),
+                child: const Icon(Icons.person, color: AppColors.primary),
+              ),
             ),
-            child: _renderBookingIcon(order['icon']),
           ),
           const SizedBox(width: 16.0),
           Expanded(
@@ -355,15 +385,17 @@ class ProfileView extends GetView<ProfileController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order['title'] ?? 'Service',
+                  artisanName,
                   style: GoogleFonts.poppins(
                     fontSize: 16.0,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  order['date'] ?? '',
+                  dateStr,
                   style: GoogleFonts.poppins(
                     fontSize: 13.0,
                     color: AppColors.greyText,
@@ -376,7 +408,7 @@ class ProfileView extends GetView<ProfileController> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                order['price'] ?? '',
+                '\$$amount',
                 style: GoogleFonts.poppins(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w800,
@@ -385,7 +417,7 @@ class ProfileView extends GetView<ProfileController> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Completed',
+                AppStrings.completed.tr,
                 style: GoogleFonts.poppins(
                   fontSize: 11.0,
                   color: Colors.green,
@@ -419,21 +451,107 @@ class ProfileView extends GetView<ProfileController> {
   Widget _buildSignOutButton() {
     return SizedBox(
       width: double.infinity,
-      child: TextButton(
+      child: ElevatedButton(
         onPressed: controller.signOut,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFEF4444), // Crimson/Red
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.logout, color: Color(0xFFF87171), size: 24.0),
+            const Icon(Icons.logout, color: Colors.white, size: 22.0),
             const SizedBox(width: 12.0),
             Text(
-              'Sign Out',
+              AppStrings.signOut.tr,
               style: GoogleFonts.poppins(
-                color: const Color(0xFFF87171),
-                fontSize: 17.0,
+                color: Colors.white,
+                fontSize: 16.0,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteAccountButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () {
+          Get.dialog(
+            AlertDialog(
+              backgroundColor: Colors.white,
+              title: Text(
+                AppStrings.deleteAccount.tr,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textColor,
+                ),
+              ),
+              content: Text(
+                AppStrings.deleteAccountConfirmation.tr,
+                style: GoogleFonts.poppins(
+                  color: AppColors.greyText,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back(),
+                  child: Text(
+                    AppStrings.cancel.tr,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.greyText,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Get.back();
+                    Get.snackbar(
+                      AppStrings.deleteAccount.tr,
+                      AppStrings.deleteAccountRequestSent.tr,
+                      backgroundColor: Colors.redAccent,
+                      colorText: Colors.white,
+                    );
+                  },
+                  child: Text(
+                    AppStrings.delete.tr,
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFFEF4444),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          side: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          foregroundColor: const Color(0xFFEF4444),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.delete_forever, size: 22.0),
+            const SizedBox(width: 12.0),
+            Text(
+              AppStrings.deleteAccount.tr,
+              style: GoogleFonts.poppins(
+                fontSize: 16.0,
                 fontWeight: FontWeight.w700,
               ),
             ),

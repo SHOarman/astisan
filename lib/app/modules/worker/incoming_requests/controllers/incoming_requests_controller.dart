@@ -202,9 +202,7 @@ class IncomingRequestsController extends GetxController {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar(
-          'Success',
-          'Booking ${status == 'confirmed' ? 'Accepted' : 'Declined'} successfully',
+        Get.snackbar('Success'.tr, 'Booking ${status == '.trconfirmed' ? 'Accepted' : 'Declined'} successfully',
           snackPosition: SnackPosition.BOTTOM,
         );
 
@@ -218,14 +216,12 @@ class IncomingRequestsController extends GetxController {
         }
       } else {
         print("ERROR: Status update failed. Response: ${response.body}");
-        Get.snackbar(
-          'Error',
-          'Update failed (${response.statusCode}): ${response.body}',
+        Get.snackbar('Error'.tr, 'Update failed (${response.statusCode}): ${response.body}'.tr,
         );
       }
     } catch (e) {
       print("Error in status update: $e");
-      Get.snackbar('Error', 'Connection error or timeout');
+      Get.snackbar('Error'.tr, 'Connection error or timeout'.tr);
     } finally {
       isLoading.value = false;
     }

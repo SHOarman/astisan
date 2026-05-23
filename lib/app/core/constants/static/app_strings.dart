@@ -103,6 +103,7 @@ class AppStrings extends Translations {
   static const promoTitle = 'First Service 20% Off!';
   static const promoCode = 'Use code: FIXGO20 at checkout';
   static const claim = 'Claim';
+  static const addnew_addresh ="Add New Address";
   // Services
   static const ourAllServices = 'Our All Services';
   static const goAnywhere = 'Go anywhere, get any services.';
@@ -133,7 +134,95 @@ class AppStrings extends Translations {
   static const notifications = 'Notifications';
   static const privacySecurity = 'Privacy & Security';
   static const helpSupport = 'Help & Support';
+  
+  // Auth Strings
+  static const joinAsWorker = 'Join as a worker and provide services';
+  static const personalInformation = 'Personal Information';
+  static const yourNameHint = 'Your Name';
+  static const enterNameError = 'Enter name';
+  static const emailHint = 'example@mail.com';
+  static const enterEmailError = 'Enter email';
+  static const invalidEmailError = 'Invalid email';
+  static const phoneHint = '+1 (500) 000-0000';
+  static const enterPhoneError = 'Enter phone';
+  static const passwordHint = '***********';
+  static const passwordLengthError = 'Password must be 6+ chars';
+  static const agreeTermsPrivacy = 'Agree with terms and privacy';
+  static const enterValidEmailError = 'Enter a valid email';
+  static const enterPasswordError = 'Enter your password';
+  
+  static const completeServiceProfile = 'Complete Service Profile';
+  static const selectServiceProvide = 'Please select the service you provide. This will be visible to Admin and Clients.';
+  static const serviceCategory = 'Service Category';
+  static const selectCategoryHint = 'Select Category';
+  static const specificService = 'Specific Service';
+  static const selectServiceHint = 'Select Service';
+  static const yourHourlyRate = 'Your Hourly Rate';
+  static const recommendedRange = 'Recommended range:';
+  static const saveAndGoDashboard = 'Save & Go to Dashboard';
+  
+  static const resendIn = 'Resend in';
+  static const emailHintAlt = 'brooklynsim@gm |';
+  static const pleaseEnterName = 'Please enter your name';
+  static const pleaseEnterEmail = 'Please enter your email';
+  static const pleaseEnterPhone = 'Please enter your phone number';
+  static const pleaseEnterPassword = 'Please enter your password';
+  static const referralCodeOptional = 'Referral Code (Optional)';
+  static const enterReferralCodeHint = 'Enter referral code';
+  static const agreeWith = 'Agree with ';
+  static const terms = 'terms';
+  static const andWord = ' and ';
+  static const privacy = 'privacy';
+  
+  static const pleaseEnterNewPassword = 'Please enter a new password';
+  static const passwordMin6Chars = 'Password must be at least 6 characters';
+  static const pleaseConfirmPassword = 'Please confirm your password';
+  static const passwordsDoNotMatch = 'Passwords do not match';
+  static const signingIn = 'Signing In...';
 
+  // Additional Client App Strings
+  static const noUpcomingBookings = 'No upcoming bookings';
+  static const noConfirmedBookings = 'No confirmed bookings';
+  static const noCancelledBookings = 'No cancelled bookings';
+  
+  static const customLabel = 'Custom Label';
+  static const egGrandmasHouse = "e.g. Grandma's House";
+  static const enterLabelError = 'Enter a label';
+  static const selectedLocation = 'Selected Location:';
+  static const saveAddressAs = 'Save address as';
+  static const otherTag = 'Other';
+  static const setAsDefaultAddress = 'Set as default address';
+  static const saveAddress = 'Save Address';
+  static const not_addreshfined ="No saved addresses found";
+  
+  static const openingCamera = 'Opening Camera...';
+  static const takePhoto = 'Take a Photo';
+  static const retake = 'Retake';
+
+  static const activeNow = 'Active now';
+  static const offline = 'Offline';
+  static const noMessagesYet = 'No messages yet. Say hi!';
+  static const aiAssistant = 'FixGo AI Assistant';
+  static const howCanIHelpToday = 'How can I help you today?';
+  static const typeAMessage = 'Type a message...';
+  static const failedToGetAiResponse = 'Failed to get response from AI.';
+  static const somethingWentWrong = 'Something went wrong.';
+  static const imageAttached = 'Image attached';
+  static const noFaqsAvailable = 'No FAQs available at the moment.';
+  
+  static const cancelOrder = 'Cancel this order?';
+  static const cannotUndo = "You can't undo this later";
+  static const cancel = 'Cancel';
+  static const artisanFound = 'Artisan Found!';
+  static const noArtisanNearby = 'No Artisan Nearby';
+  static const searching = 'Searching...';
+  static const rating = 'Rating';
+  
+  static const referralHistory = 'Referral History';
+  static const noReferralsYet = "You haven't referred anyone yet.";
+  static const unknown = 'Unknown';
+  static const bonusPaid = 'Bonus Paid';
+  static const na = 'N/A';
   // Phase 4 Strings
   static const serviceDetails = 'Service Details';
   static const overview = 'Overview';
@@ -151,6 +240,17 @@ class AppStrings extends Translations {
   static const serviceAddress = 'Service Address';
   static const useCurrentLocation = 'Use Current Location';
   static const addNewAddress = 'Add New Address';
+  static const bookingInfo = 'Booking Info';
+  static const noSavedAddresses = 'No saved addresses found. Please add one.';
+  static const describeIssueHint = 'Describe your issue, specific requirements, or any other details that would help the artisan...';
+  static const noAddressSelected = 'No address selected';
+  static const noAdditionalNotes = 'No additional notes';
+  static const date = 'Date';
+  static const time = 'Time';
+  static const charactersLimit = 'characters';
+  static const serviceSelection = 'Service Selection';
+  static const matchingBestArtisan = 'Matching you with the best artisan';
+  static const priceRange = 'Price Range';
   static const additionalNotes = 'Additional Notes';
   static const addNotesHint = 'Help the artisan understand your needs better';
   static const quickAdd = 'Quick Add';
@@ -207,6 +307,9 @@ class AppStrings extends Translations {
   static const secured = 'Secured';
   static const totalAmountDue = 'Total Amount Due';
   static const cardDetails = 'Card Details';
+  static const cardNumber = 'Card Number';
+  static const expiryDate = 'Expiry date';
+  static const cvvLabel = 'CVV';
   static const cardholderName = 'Cardholder name';
   static const branchName = 'Branch name';
   static const paymentSuccessful = 'Payment Successful!';
@@ -218,6 +321,7 @@ class AppStrings extends Translations {
   static const backToHome = 'Back to Home';
   static const editProfiles = 'Edit Profile';
   static const saveChangess = 'Save Changes';
+  static const feedbook ="Feedback";
   static const labor = 'Labor';
   static const parts = 'Parts';
   static const platformFeePercent = 'Platform fee (5%)';
@@ -284,7 +388,6 @@ class AppStrings extends Translations {
   static const locationLabel = 'Location';
   static const serviceInfo = 'Service Information';
   static const iveArrived = 'I\'ve Arrived';
-  static const cancel = 'Cancel';
   static const cancelOrderTitle = 'Cancel this order?';
   static const cancelOrderSub = 'You can\'t undo this later';
   static const minElapsed = '%s min elapsed';
@@ -304,7 +407,6 @@ class AppStrings extends Translations {
   static const medium = 'Medium';
   static const high = 'High';
   static const description = 'Description';
-  static const describeIssueHint = 'Describe the issue in detail...';
   static const addPhotosDocs = 'Add photos or documents (optional)';
   static const submitReport = 'Submit Report';
   static const reportAProblem = 'Report a problem?';
@@ -340,7 +442,6 @@ class AppStrings extends Translations {
   static const subject = 'Subject';
   static const subjectHint = 'Short title of your issue or suggestion';
   static const emailAddress = 'Email Address';
-  static const emailHint = 'Write your email';
   static const message = 'Message';
   static const messageHint = 'Please explain what happened...';
 
@@ -481,6 +582,9 @@ class AppStrings extends Translations {
   static const save = 'Save';
   static const security = 'Security';
   static const deleteAccount = 'Delete Account';
+  static const deleteAccountConfirmation = 'Are you sure you want to delete your account? This action cannot be undone.';
+  static const deleteAccountRequestSent = 'Delete account request sent successfully.';
+  static const delete = 'Delete';
   static const saveCard = 'Save Card';
   static const language = 'Language';
   static const aboutMe = 'About Me';
@@ -489,13 +593,50 @@ class AppStrings extends Translations {
   static const unverifiedArtisan = 'Unverified Artisan';
   static const noBioAvailable = 'No bio available';
   static const artisan = 'Artisan';
+  static const emergencySupport = 'Emergency Support';
+  static const emergencySupportSub = '24/7 AI & Admin chat';
+  static const referAndGetBonus = 'Refer & Get Bonus';
+  static const referAndGetBonusSub = 'Invite friends, earn €15';
+  static const completedBookingsCount = 'completed bookings';
+  static const addressesSavedCount = 'addresses saved';
+  static const visaCardDesc = 'Visa **** 4242';
+  static const passwordSecured = 'Password secured';
+  static const faqContactUs = 'FAQ, contact us';
+  static const englishFrench = 'English, French';
+  static const pending = 'Pending';
+  static const viewTimeline = 'View Timeline';
+  static const viewDetails = 'View Details';
+  static const accepted = 'Accepted';
+  static const acceptByYou = 'Accept by you';
+  static const noBookingsFound = 'No bookings found';
+
 
   @override
   Map<String, Map<String, String>> get keys => {
-
+        'en_US': {
+          feedbook: "Feedback",
+          not_addreshfined: "No saved addresses found",
+          addnew_addresh: "Add New Address",
+          editProfile: 'Edit Profile',
+          saveChanges: 'Save Changes',
+          accepted: 'Accepted',
+          acceptByYou: 'Accept by you',
+          noBookingsFound: 'No bookings found',
+          activeNow: 'Active now',
+          offline: 'Offline',
+        },
         'fr_FR': {
+          feedbook: "Retour",
+          not_addreshfined: "Aucune adresse enregistrée trouvée",
+          addnew_addresh: "Ajouter une nouvelle adresse",
           editProfile: 'Modifier le profil',
           saveChanges: 'Enregistrer les modifications',
+          accepted: 'Accepté',
+          acceptByYou: 'Accepté par vous',
+          noBookingsFound: 'Aucune réservation trouvée',
+          activeNow: 'En ligne',
+          offline: 'Hors ligne',
+          viewDetails: 'Voir les détails',
           occupation: 'Profession',
           bio: 'Biographie',
           experienceYears: 'Expérience (Années)',
@@ -604,6 +745,76 @@ class AppStrings extends Translations {
           notifications: 'Notifications',
           privacySecurity: 'Confidentialité et sécurité',
           helpSupport: 'Aide et support',
+          joinAsWorker: 'Rejoignez-nous en tant que travailleur et proposez vos services',
+          personalInformation: 'Informations personnelles',
+          yourNameHint: 'Votre nom',
+          enterNameError: 'Entrez le nom',
+          emailHint: 'exemple@mail.com',
+          enterEmailError: 'Entrez l\'e-mail',
+          invalidEmailError: 'E-mail invalide',
+          phoneHint: '+1 (500) 000-0000',
+          enterPhoneError: 'Entrez le téléphone',
+          passwordHint: '***********',
+          passwordLengthError: 'Le mot de passe doit contenir plus de 6 caractères',
+          agreeTermsPrivacy: 'Accepter les conditions et la confidentialité',
+          enterValidEmailError: 'Entrez un e-mail valide',
+          enterPasswordError: 'Entrez votre mot de passe',
+          completeServiceProfile: 'Compléter le profil de service',
+          selectServiceProvide: 'Veuillez sélectionner le service que vous fournissez. Cela sera visible par l\'administrateur et les clients.',
+          serviceCategory: 'Catégorie de service',
+          selectCategoryHint: 'Sélectionner une catégorie',
+          specificService: 'Service spécifique',
+          selectServiceHint: 'Sélectionner un service',
+          yourHourlyRate: 'Votre taux horaire',
+          recommendedRange: 'Plage recommandée :',
+          saveAndGoDashboard: 'Enregistrer et aller au tableau de bord',
+          resendIn: 'Renvoyer dans',
+          emailHintAlt: 'brooklynsim@gm |',
+          pleaseEnterName: 'Veuillez entrer votre nom',
+          pleaseEnterEmail: 'Veuillez entrer votre e-mail',
+          pleaseEnterPhone: 'Veuillez entrer votre numéro de téléphone',
+          pleaseEnterPassword: 'Veuillez entrer votre mot de passe',
+          referralCodeOptional: 'Code de parrainage (Optionnel)',
+          enterReferralCodeHint: 'Entrez le code de parrainage',
+          agreeWith: 'Accepter avec ',
+          terms: 'les conditions',
+          andWord: ' et ',
+          privacy: 'la confidentialité',
+          pleaseEnterNewPassword: 'Veuillez entrer un nouveau mot de passe',
+          passwordMin6Chars: 'Le mot de passe doit comporter au moins 6 caractères',
+          pleaseConfirmPassword: 'Veuillez confirmer votre mot de passe',
+          passwordsDoNotMatch: 'Les mots de passe ne correspondent pas',
+          signingIn: 'Connexion...',
+          noUpcomingBookings: 'Aucune réservation à venir',
+          noConfirmedBookings: 'Aucune réservation confirmée',
+          noCancelledBookings: 'Aucune réservation annulée',
+          customLabel: 'Libellé personnalisé',
+          egGrandmasHouse: 'ex: Maison de grand-mère',
+          enterLabelError: 'Entrez un libellé',
+          selectedLocation: 'Emplacement sélectionné :',
+          saveAddressAs: 'Enregistrer l\'adresse sous',
+          otherTag: 'Autre',
+          setAsDefaultAddress: 'Définir comme adresse par défaut',
+          saveAddress: 'Enregistrer l\'adresse',
+          openingCamera: 'Ouverture de l\'appareil photo...',
+          takePhoto: 'Prendre une photo',
+          retake: 'Reprendre',
+          next: 'Suivant',
+          activeNow: 'En ligne',
+          offline: 'Hors ligne',
+          noMessagesYet: 'Aucun message pour le moment. Dites bonjour !',
+          cancelOrder: 'Annuler cette commande ?',
+          cannotUndo: 'Vous ne pourrez pas annuler cela plus tard',
+          cancel: 'Annuler',
+          artisanFound: 'Artisan trouvé !',
+          noArtisanNearby: 'Aucun artisan à proximité',
+          searching: 'Recherche...',
+          rating: 'Évaluation',
+          referralHistory: 'Historique de parrainage',
+          noReferralsYet: 'Vous n\'avez parrainé personne pour le moment.',
+          unknown: 'Inconnu',
+          bonusPaid: 'Bonus payé',
+          na: 'N/A',
           serviceDetails: 'Détails du service',
           overview: 'Aperçu',
           whatsIncluded: 'Ce qui est inclus',
@@ -619,6 +830,19 @@ class AppStrings extends Translations {
           serviceAddress: 'Adresse du service',
           useCurrentLocation: 'Utiliser ma position actuelle',
           addNewAddress: 'Ajouter une nouvelle adresse',
+          bookingInfo: 'Infos de réservation',
+          noSavedAddresses: 'Aucune adresse enregistrée. Veuillez en ajouter une.',
+          describeIssueHint: 'Décrivez votre problème, vos exigences spécifiques ou tout autre détail...',
+          noAddressSelected: 'Aucune adresse sélectionnée',
+          noAdditionalNotes: 'Aucune note supplémentaire',
+          date: 'Date',
+          time: 'Heure',
+          address: 'Adresse',
+          notes: 'Notes',
+          charactersLimit: 'caractères',
+          serviceSelection: 'Sélection de service',
+          matchingBestArtisan: 'Recherche du meilleur artisan pour vous',
+          priceRange: 'Gamme de prix',
           additionalNotes: 'Notes complémentaires',
           addNotesHint: 'Aidez l\'artisan à mieux comprendre vos besoins',
           quickAdd: 'Ajout rapide',
@@ -667,6 +891,9 @@ class AppStrings extends Translations {
           secured: 'Sécurisé',
           totalAmountDue: 'Montant total dû',
           cardDetails: 'Détails de la carte',
+          cardNumber: 'Numéro de carte',
+          expiryDate: 'Date d\'expiration',
+          cvvLabel: 'CVV',
           cardholderName: 'Nom du titulaire',
           branchName: 'Nom de la succursale',
           paymentSuccessful: 'Paiement réussi !',
@@ -864,6 +1091,9 @@ class AppStrings extends Translations {
           save: 'Enregistrer',
           security: 'Sécurité',
           deleteAccount: 'Supprimer le compte',
+          deleteAccountConfirmation: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.',
+          deleteAccountRequestSent: 'La demande de suppression de compte a été envoyée avec succès.',
+          delete: 'Supprimer',
           saveCard: 'Enregistrer la carte',
           completeJobAndGetPaid: 'Terminer le travail et être payé',
           emergency911: 'En cas d\'urgence, appelez immédiatement le 911.',
@@ -895,6 +1125,31 @@ class AppStrings extends Translations {
           unverifiedArtisan: 'Artisan non vérifié',
           noBioAvailable: 'Aucune biographie disponible',
           artisan: 'Artisan',
+          emergencySupport: 'Support d\'urgence',
+          emergencySupportSub: 'Chat IA et Admin 24/7',
+          referAndGetBonus: 'Parrainer et obtenir un bonus',
+          referAndGetBonusSub: 'Invitez des amis, gagnez 15 €',
+          completedBookingsCount: 'réservations terminées',
+          addressesSavedCount: 'adresses enregistrées',
+          visaCardDesc: 'Visa **** 4242',
+          passwordSecured: 'Mot de passe sécurisé',
+          faqContactUs: 'FAQ, contactez-nous',
+          englishFrench: 'Anglais, Français',
+          pending: 'En attente',
+          viewTimeline: 'Voir la chronologie',
+          viewDetails: 'Voir les détails',
+
+          'Success': 'Succès',
+          'Error': 'Erreur',
+          'Warning': 'Avertissement',
+          'Oops': 'Oups',
+          'Access Denied': 'Accès refusé',
+          'Session Expired': 'Session expirée',
+          'Something went wrong': 'Quelque chose s\'est mal passé',
+          'Something went wrong. Please try again.': 'Quelque chose s\'est mal passé. Veuillez réessayer.',
+          'Connection failed': 'La connexion a échoué',
+          'Connection failed. Please try again.': 'La connexion a échoué. Veuillez réessayer.',
+          'Please fill all fields': 'Veuillez remplir tous les champs',
 
           privacyContent1: privacyContent1,
           privacyContent2: privacyContent2,
@@ -912,7 +1167,86 @@ class AppStrings extends Translations {
           tosContent6: tosContent6,
           tosContent7: tosContent7,
           tosContent12: tosContent12,
+          'Home': 'Accueil',
+          'Services': 'Services',
+          'Activity': 'Activité',
+          'Account': 'Compte',
+          'Dashboard': 'Tableau de bord',
+          'Notifications': 'Notifications',
+          'Earnings': 'Gains',
+          'Emergency Support (AI)': 'Support d\'urgence (IA)',
+          'Privacy Policy': 'Politique de confidentialité',
+          'Terms of Service': 'Conditions d\'utilisation',
+          'FAQs': 'FAQ',
+          'Feedback': 'Commentaires',
+          'Contact Admin': 'Contacter l\'administrateur',
+          "Hi! 👋 I'm here to support your practice. What's on your mind today?": "Salut ! 👋 Je suis là pour vous accompagner. Qu'avez-vous en tête aujourd'hui ?",
+          'write your message': 'écrivez votre message',
+          'Sorry, the server returned an error.': 'Désolé, le serveur a renvoyé une erreur.',
+          'Sorry, there was an error connecting to the support chat.': 'Désolé, une erreur s\'est produite lors de la connexion au chat de support.',
+          'Referral History': 'Historique de parrainage',
+          "You haven't referred anyone yet.": "Vous n'avez encore parrainé personne.",
+          'Bonus Paid': 'Bonus payé',
+          'Requested': 'Demandé',
+          'Confirmed': 'Confirmé',
+          'On the way': 'En route',
+          'Arrived': 'Arrivé',
+          'Completed': 'Terminé',
+          'Cancelled': 'Annulé',
+          'Rejected': 'Rejeté',
+          'Artisan Details': 'Détails de l\'artisan',
+          'Average Rating': 'Note moyenne',
+          'No reviews yet': 'Aucun avis pour le moment',
+          aiAssistant: 'Assistant IA FixGo',
+          howCanIHelpToday: 'Comment puis-je vous aider aujourd\'hui ?',
+          typeAMessage: 'Écrivez un message...',
+          failedToGetAiResponse: 'Impossible d\'obtenir une réponse de l\'IA.',
+          somethingWentWrong: 'Quelque chose s\'est mal passé.',
+          imageAttached: 'Image jointe',
+          noFaqsAvailable: 'Aucune FAQ disponible pour le moment.',
+          'Arrived': 'Arrivé',
+          'Pending': 'En attente',
+          'Your booking has been accepted': 'Votre réservation a été acceptée',
+          'Service has been completed': 'Le service a été terminé',
+          'Arriving in': 'Arrivée dans',
+          'mins': 'min',
+          'min': 'min',
+          'Acquiring live location...': 'Acquisition de la position en direct...',
+          'ETA: %s minutes · %s km away': 'Arrivée : %s minutes · %s km',
+          'Additional Cost Request': 'Demande de coût supplémentaire',
+          'Approved': 'Approuvé',
+          'Declined': 'Refusé',
+          'Pending Approval': 'En attente d\'approbation',
+          'Reason:': 'Motif :',
+          'Amount:': 'Montant :',
+          'Decline': 'Décliner',
+          'Approve': 'Approuver',
+          'Started at': 'Commencé à',
+          'Arrived at Location': 'Arrivé sur les lieux',
+          'Waiting to start work': 'En attente de commencer les travaux',
+          'Service Completed': 'Service terminé',
+          'Completed at': 'Terminé à',
+          'En Route': 'En chemin',
+          'Heading to client location': 'En chemin vers le client',
+          'Service': 'Service',
+          'Location': 'Lieu',
+          'Price': 'Prix',
+          'Arrived at service location': 'Arrivé sur le lieu d\'intervention',
+          'Service in progress': 'Service en cours',
+          'min elapsed': 'min écoulées',
+          '✓ Completed': '✓ Terminé',
+          'Mark as Complete': 'Marquer comme terminé',
+          'Start Working': 'Démarrer les travaux',
+          'Request Additional Cost': 'Demander un coût supplémentaire',
+          'Reason (e.g. Extra materials)': 'Motif (ex: Matériel supplémentaire)',
+          'Amount (e.g. 25.50)': 'Montant (ex: 25.50)',
+          'Cancel': 'Annuler',
+          'Submit': 'Soumettre',
+          'Please enter a reason': 'Veuillez saisir un motif',
+          'Please enter a valid amount': 'Veuillez saisir un montant valide',
+          'Extra Charge': 'Frais supplémentaires',
+          'Requested Cost': 'Coût demandé',
+          'Pending Client Approval': 'En attente de l\'approbation du client',
         }
       };
 }
-

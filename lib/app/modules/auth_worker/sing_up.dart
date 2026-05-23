@@ -59,7 +59,7 @@ class SingUp extends GetView<AuthWorkerController> {
         ),
         const SizedBox(height: 8.0),
         Text(
-          "Join as a worker and provide services",
+          AppStrings.joinAsWorker.tr,
           style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0, fontWeight: FontWeight.w400),
         ),
       ],
@@ -70,40 +70,40 @@ class SingUp extends GetView<AuthWorkerController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle("Personal Information"),
+        _sectionTitle(AppStrings.personalInformation.tr),
         CustomTextField(
           labelText: AppStrings.fullName.tr,
-          hintText: 'Your Name',
+          hintText: AppStrings.yourNameHint.tr,
           controller: controller.nameController,
-          validator: (v) => v == null || v.isEmpty ? 'Enter name' : null,
+          validator: (v) => v == null || v.isEmpty ? AppStrings.enterNameError.tr : null,
         ),
         const SizedBox(height: 16.0),
         CustomTextField(
           labelText: AppStrings.email.tr,
-          hintText: 'example@mail.com',
+          hintText: AppStrings.emailHint.tr,
           controller: controller.emailController,
           keyboardType: TextInputType.emailAddress,
-          validator: (v) => v == null || v.isEmpty ? 'Enter email' : (v.isEmail ? null : 'Invalid email'),
+          validator: (v) => v == null || v.isEmpty ? AppStrings.enterEmailError.tr : (v.isEmail ? null : AppStrings.invalidEmailError.tr),
         ),
         const SizedBox(height: 16.0),
         CustomTextField(
           labelText: AppStrings.number.tr,
-          hintText: '+1 (500) 000-0000',
+          hintText: AppStrings.phoneHint.tr,
           controller: controller.phoneController,
           keyboardType: TextInputType.phone,
-          validator: (v) => v == null || v.isEmpty ? 'Enter phone' : null,
+          validator: (v) => v == null || v.isEmpty ? AppStrings.enterPhoneError.tr : null,
         ),
         const SizedBox(height: 16.0),
         Obx(() => CustomTextField(
           labelText: AppStrings.password.tr,
-          hintText: '***********',
+          hintText: AppStrings.passwordHint.tr,
           controller: controller.passwordController,
           obscureText: controller.obscurePassword.value,
           suffixIcon: IconButton(
             icon: Icon(controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility, color: AppColors.greyText),
             onPressed: controller.togglePasswordVisibility,
           ),
-          validator: (v) => v != null && v.length < 6 ? 'Password must be 6+ chars' : null,
+          validator: (v) => v != null && v.length < 6 ? AppStrings.passwordLengthError.tr : null,
         )),
       ],
     );
@@ -148,7 +148,7 @@ class SingUp extends GetView<AuthWorkerController> {
             onChanged: (val) => controller.toggleTermsAgreement(val),
             activeColor: AppColors.checkboxActive
         )),
-        Expanded(child: Text("Agree with terms and privacy", style: GoogleFonts.poppins(fontSize: 14))),
+        Expanded(child: Text(AppStrings.agreeTermsPrivacy.tr, style: GoogleFonts.poppins(fontSize: 14))),
       ],
     );
   }

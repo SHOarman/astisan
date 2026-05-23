@@ -20,9 +20,9 @@ class EmergencySupport extends GetView<EmergencySupportController> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Contact Admin',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          'Contact Admin'.tr,
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -195,8 +195,8 @@ class EmergencySupport extends GetView<EmergencySupportController> {
               ),
               child: TextField(
                 controller: controller.textController,
-                decoration: const InputDecoration(
-                  hintText: 'write your message',
+                decoration: InputDecoration(
+                  hintText: 'write your message'.tr,
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => controller.sendMessage(),

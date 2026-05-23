@@ -30,7 +30,7 @@ class CameraController extends GetxController {
       }
     } catch (e) {
       print("Error picking image: $e");
-      Get.snackbar('Error', 'Could not open camera.');
+      Get.snackbar('Error'.tr, 'Could not open camera.'.tr);
     }
   }
 
@@ -55,7 +55,7 @@ class CameraController extends GetxController {
         'image': imagePath.value,
       });
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong.');
+      Get.snackbar('Error'.tr, 'Something went wrong.'.tr);
     }
   }
 }

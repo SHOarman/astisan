@@ -73,10 +73,10 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your email';
+                return AppStrings.pleaseEnterEmail.tr;
               }
               if (!GetUtils.isEmail(value)) {
-                return 'Please enter a valid email';
+                return AppStrings.enterValidEmailError.tr;
               }
               return null;
             },

@@ -1,4 +1,5 @@
 import 'package:artisan/app/core/Services/api_services.dart';
+import 'package:artisan/app/core/constants/static/app_strings.dart';
 import 'package:artisan/app/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -41,7 +42,7 @@ class BookingListView extends StatelessWidget {
         final String status = (booking['status'] ?? '').toString().toLowerCase();
         final bool isRequested = status == 'requested';
 
-        String displayAmount = "Pending";
+        String displayAmount = AppStrings.pending.tr;
         final basePrice = booking['base_price']?.toString() ?? '';
         final totalAmount = booking['total_amount']?.toString() ?? '';
 
@@ -54,19 +55,19 @@ class BookingListView extends StatelessWidget {
           displayAmount = booking['service_price_range'].toString();
         }
 
-        String buttonText = "View Details";
+        String buttonText = AppStrings.viewDetails.tr;
         VoidCallback? onTapAction;
 
         if (isRequested) {
           onTapAction = null; 
         } else if (['on_way', 'on_the_way'].contains(status)) {
-          buttonText = "Track Artisan";
+          buttonText = AppStrings.trackArtisan.tr;
           onTapAction = () => Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
         } else if (['arrived', 'working'].contains(status)) {
-          buttonText = "View Timeline";
+          buttonText = AppStrings.viewTimeline.tr;
           onTapAction = () => Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
         } else if (status == 'completed') {
-          buttonText = "Work Overview";
+          buttonText = AppStrings.workOverview.tr;
           onTapAction = () => Get.toNamed(Routes.WORK_OVERVIEW, arguments: booking);
         } else {
           onTapAction = () => Get.toNamed(Routes.TRACKINGSCREEN, arguments: booking);
@@ -79,7 +80,7 @@ class BookingListView extends StatelessWidget {
           amount: displayAmount,
           imageUrl: ApiServices.formatImageUrl(booking['artisan_picture']),
           artisanAvatar: ApiServices.formatImageUrl(booking['artisan_picture']),
-          statusText: booking['status'] ?? 'Unknown',
+          statusText: _getTranslatedStatus(status),
           statusBgColor: _getStatusBgColor(status),
           statusTextColor: _getStatusTextColor(status),
           viewDetailsButtonText: buttonText,
@@ -114,6 +115,21 @@ class BookingListView extends StatelessWidget {
       case 'cancelled':
       case 'rejected': return const Color(0xFFF44336);
       default: return const Color(0xFFFF9800);
+    }
+  }
+
+  String _getTranslatedStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'requested': return 'Requested'.tr;
+      case 'confirmed': return 'Confirmed'.tr;
+      case 'on_way': 
+      case 'on_the_way': return 'On the way'.tr;
+      case 'arrived': return 'Arrived'.tr;
+      case 'working': return 'Working'.tr;
+      case 'completed': return 'Completed'.tr;
+      case 'cancelled': return 'Cancelled'.tr;
+      case 'rejected': return 'Rejected'.tr;
+      default: return status.tr;
     }
   }
 }

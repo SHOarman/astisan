@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/components/payment_card_tile.dart';
 import '../controllers/payment_method_controller.dart';
 
@@ -16,7 +17,7 @@ class PaymentMethodView extends GetView<PaymentMethodController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Payment Method",
+          AppStrings.paymentMethods.tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -37,7 +38,7 @@ class PaymentMethodView extends GetView<PaymentMethodController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Your Saved Card",
+              AppStrings.yourSavedCard.tr,
               style: GoogleFonts.poppins(
                 fontSize: 18.0,
                 fontWeight: FontWeight.w700,
@@ -87,7 +88,7 @@ class PaymentMethodView extends GetView<PaymentMethodController> {
             const Icon(Icons.add, color: Color(0xFF374B71), size: 22),
             const SizedBox(width: 10.0),
             Text(
-              "Add New Payment Method",
+              AppStrings.addNewPaymentMethod.tr,
               style: GoogleFonts.poppins(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w600,
@@ -106,9 +107,9 @@ class PaymentMethodView extends GetView<PaymentMethodController> {
       spacing: 24,
       runSpacing: 8,
       children: [
-        _buildBadge(Icons.lock, "SSL Secured"),
-        _buildBadge(Icons.shield_outlined, "256-bit Encryption"),
-        _buildBadge(Icons.check, "PCI Compliant"),
+        _buildBadge(Icons.lock, AppStrings.sslSecured.tr),
+        _buildBadge(Icons.shield_outlined, AppStrings.encryption256bit.tr),
+        _buildBadge(Icons.check, AppStrings.pciCompliant.tr),
       ],
     );
   }

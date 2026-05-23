@@ -32,7 +32,7 @@ class ForgotPasswordController extends GetxController {
         );
         final data = json.decode(response.body);
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Get.snackbar('Success', 'OTP sent to your email');
+          Get.snackbar('Success'.tr, 'OTP sent to your email'.tr);
           
           FocusManager.instance.primaryFocus?.unfocus();
           await Future.delayed(const Duration(milliseconds: 250));
@@ -46,7 +46,7 @@ class ForgotPasswordController extends GetxController {
           Get.snackbar('Error', errorMsg);
         }
       } catch (e) {
-        Get.snackbar('Error', 'Connection failed');
+        Get.snackbar('Error'.tr, 'Connection failed'.tr);
       } finally {
         isLoading.value = false;
       }

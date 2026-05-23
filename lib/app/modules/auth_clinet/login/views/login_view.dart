@@ -77,7 +77,7 @@ class LoginView extends GetView<LoginController> {
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your email';
+                return AppStrings.pleaseEnterEmail.tr;
               }
               return null;
             },
@@ -100,7 +100,7 @@ class LoginView extends GetView<LoginController> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your password';
+                return AppStrings.pleaseEnterPassword.tr;
               }
               return null;
             },
@@ -165,7 +165,7 @@ class LoginView extends GetView<LoginController> {
           ),
            SizedBox(height: 24.0),
           Obx(() => CustomButton(
-            text: controller.isLoading.value ? 'Signing In...' : AppStrings.signIn.tr,
+            text: controller.isLoading.value ? AppStrings.signingIn.tr : AppStrings.signIn.tr,
             onPressed: controller.isLoading.value ? null : () => controller.signIn(),
           )),
         ],

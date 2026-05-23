@@ -121,6 +121,8 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
                     ],
                   ),
                   const SizedBox(height: 32.0),
+                  _buildReviewsSection(context),
+                  const SizedBox(height: 32.0),
                 ],
               ),
             ),
@@ -223,5 +225,81 @@ class ArtisanProfileView extends GetView<ServiceDetailsController> {
       _buildSkillBadge('Professional'),
       _buildSkillBadge('Verified'),
     ];
+  }
+
+  Widget _buildReviewsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Reviews'.tr),
+        const SizedBox(height: 16.0),
+        Row(children: [
+          const Icon(Icons.star_rounded, color: AppColors.ratingStar, size: 24.0),
+          const SizedBox(width: 8.0),
+          Obx(() => Text(
+            '${controller.artisanData['rating'] ?? '0.0'} ${'Average Rating'.tr}',
+            style: GoogleFonts.poppins(color: AppColors.textColor, fontSize: 16.0, fontWeight: FontWeight.w700),
+          )),
+        ]),
+        const SizedBox(height: 16.0),
+        Obx(() {
+          if (controller.reviews.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24.0),
+                child: Text('No reviews yet'.tr, style: GoogleFonts.poppins(color: AppColors.greyText)),
+              ),
+            );
+          }
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: controller.reviews.length,
+            itemBuilder: (context, index) => _buildReviewCard(controller.reviews[index]),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildReviewCard(Map<String, dynamic> review) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF1F4F8)))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            CircleAvatar(
+              radius: 20.0, 
+              backgroundColor: Colors.grey[200],
+              backgroundImage: (review['image'] != null && review['image'].toString().isNotEmpty)
+                  ? NetworkImage(review['image']) 
+                  : null,
+              child: (review['image'] == null || review['image'].toString().isEmpty)
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            ),
+            const SizedBox(width: 12.0),
+            Expanded(child: Text(review['name'] ?? 'Client', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+            Row(
+              children: [
+                const Icon(Icons.star, color: AppColors.ratingStar, size: 14),
+                const SizedBox(width: 4),
+                Text('${review['rating']}', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12)),
+              ],
+            )
+          ]),
+          if (review['comment'] != null && review['comment'].toString().isNotEmpty) ...[
+            const SizedBox(height: 8.0),
+            Text(review['comment'], style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 13.0)),
+          ],
+          if (review['date'] != null && review['date'].toString().isNotEmpty) ...[
+            const SizedBox(height: 8.0),
+            Text(review['date'], style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 11.0)),
+          ]
+        ],
+      ),
+    );
   }
 }

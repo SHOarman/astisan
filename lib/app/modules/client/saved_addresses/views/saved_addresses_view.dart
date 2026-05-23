@@ -1,3 +1,4 @@
+import 'package:artisan/app/core/constants/static/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +18,7 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Saved Addresses",
+          AppStrings.saveAddress.tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -45,7 +46,7 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
-                      "Saved Addresses",
+                      AppStrings.saveAddress.tr,
                       style: GoogleFonts.poppins(
                         fontSize: 18.0,
                         fontWeight: FontWeight.w700,
@@ -67,7 +68,7 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
                         child: Padding(
                           padding: const EdgeInsets.all(40.0),
                           child: Text(
-                            "No saved addresses found",
+                           AppStrings.not_addreshfined.tr,
                             style: GoogleFonts.poppins(color: AppColors.greyText),
                           ),
                         ),
@@ -118,47 +119,7 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
             fit: BoxFit.cover,
           ),
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    "New York, NY",
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Icon(
-                  Icons.location_on,
-                  color: AppColors.primary,
-                  size: 40,
-                ),
-              ],
-            ),
-          ],
-        ),
+
       ),
     );
   }
@@ -180,7 +141,7 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
               const Icon(Icons.add, color: Color(0xFF374B71), size: 22),
               const SizedBox(width: 10.0),
               Text(
-                "Add New Address",
+              AppStrings.addNewAddress.tr,
                 style: GoogleFonts.poppins(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w600,
@@ -209,7 +170,7 @@ class SavedAddressesView extends GetView<SavedAddressesController> {
             elevation: 0,
           ),
           child: Text(
-            "Save Changes",
+            AppStrings.saveChangess.tr,
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 16.0,

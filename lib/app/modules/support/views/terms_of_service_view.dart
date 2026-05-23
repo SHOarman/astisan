@@ -26,7 +26,7 @@ class TermsOfServiceView extends GetView<SupportController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Terms of Service',
+          'Terms of Service'.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,

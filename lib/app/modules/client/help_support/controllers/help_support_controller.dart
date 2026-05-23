@@ -28,11 +28,11 @@ class HelpSupportController extends GetxController {
 
   void submitFeedback() {
     if (subjectController.text.isEmpty || emailController.text.isEmpty || messageController.text.isEmpty) {
-      Get.snackbar('Oops', 'Please fill all fields');
+      Get.snackbar('Oops'.tr, 'Please fill all fields'.tr);
       return;
     }
     Get.back();
-    Get.snackbar('Success', 'Feedback submitted successfully.');
+    Get.snackbar('Success'.tr, 'Feedback submitted successfully.'.tr);
   }
 
   @override

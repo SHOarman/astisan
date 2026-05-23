@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../controllers/worker_account_settings_controller.dart';
 
 class WorkerAccountSettingsView extends GetView<WorkerAccountSettingsController> {
@@ -13,7 +14,7 @@ class WorkerAccountSettingsView extends GetView<WorkerAccountSettingsController>
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          'Account Settings',
+          AppStrings.accountSettings.tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -33,12 +34,12 @@ class WorkerAccountSettingsView extends GetView<WorkerAccountSettingsController>
         children: [
           _buildMenuTile(
             icon: Icons.location_on_outlined,
-            title: 'Saved Addresses',
+            title: AppStrings.savedAddresses.tr,
             onTap: controller.navigateToSavedAddresses,
           ),
           _buildMenuTile(
             icon: Icons.credit_card_outlined,
-            title: 'Payment Methods',
+            title: AppStrings.paymentMethods.tr,
             onTap: controller.navigateToPaymentMethods,
           ),
         ],

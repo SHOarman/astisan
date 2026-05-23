@@ -39,8 +39,8 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
 
                       // Schedule Section
                       _buildSectionHeader(
-                        "Today's Schedule",
-                        "See all",
+                        AppStrings.todaysSchedule.tr,
+                        AppStrings.seeAll.tr,
                         onActionTap: () => Get.toNamed(Routes.WORKER_ORDER_HISTORY),
                       ),
                       const SizedBox(height: 16.0),
@@ -269,7 +269,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                 const SizedBox(width: 16.0),
                 _buildCompactStatCard(
                   "TODAY'S JOBS",
-                  "2",
+                  controller.scheduleBookings.length.toString(),
                   "Rating: 4.9",
                   AppColors.normalYellow,
                   Icons.star,
@@ -389,7 +389,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                 size: 48, color: Colors.grey.shade300),
             const SizedBox(height: 12),
             Text(
-              "No bookings scheduled for today",
+              AppStrings.noBookingsFound.tr,
               style: GoogleFonts.poppins(
                 fontSize: 14.0,
                 color: Colors.grey.shade400,

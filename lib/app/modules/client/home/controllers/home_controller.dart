@@ -11,6 +11,11 @@ class HomeController extends GetxController {
   final locationController = Get.find<LocationController>();
   final isLoadingPopular = false.obs;
   final isLoadingCategories = false.obs;
+  final showAllRecommended = false.obs;
+  
+  void toggleShowAllRecommended() {
+    showAllRecommended.value = !showAllRecommended.value;
+  }
   
   @override
   void onInit() {

@@ -45,7 +45,7 @@ class WorkerVerificationController extends GetxController {
         nextStep(); // Move to preview/camera frame step
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick image');
+      Get.snackbar('Error'.tr, 'Failed to pick image'.tr);
     }
   }
 
@@ -54,7 +54,7 @@ class WorkerVerificationController extends GetxController {
       // Validate Step 2 before moving
       if (currentStep.value == 1) {
         if (nameController.text.isEmpty || dobController.text.isEmpty || idNumberController.text.isEmpty) {
-          Get.snackbar('Required', 'Please fill all fields');
+          Get.snackbar('Required'.tr, 'Please fill all fields'.tr);
           return;
         }
       }
@@ -74,7 +74,7 @@ class WorkerVerificationController extends GetxController {
 
   Future<void> submitVerification() async {
     if (pickedImage.value == null) {
-      Get.snackbar('Error', 'Please capture or select a document image');
+      Get.snackbar('Error'.tr, 'Please capture or select a document image'.tr);
       return;
     }
 
@@ -126,12 +126,12 @@ class WorkerVerificationController extends GetxController {
           showFailure();
         }
       } else {
-        Get.snackbar('Error', 'Server Error (${response.statusCode})');
+        Get.snackbar('Error'.tr, 'Server Error (${response.statusCode})'.tr);
         showFailure();
       }
     } catch (e) {
       print("DEBUG: Verification Exception: $e");
-      Get.snackbar('Error', 'Connection failed. Please try again.');
+      Get.snackbar('Error'.tr, 'Connection failed. Please try again.'.tr);
       showFailure();
     } finally {
       isLoading.value = false;

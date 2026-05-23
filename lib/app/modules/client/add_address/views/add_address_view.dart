@@ -1,3 +1,4 @@
+import 'package:artisan/app/core/constants/static/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +18,7 @@ class AddAddressView extends GetView<AddAddressController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Add New Address",
+          AppStrings.addnew_addresh.tr,
           style: GoogleFonts.poppins(color: Colors.white, fontSize: 18.0, fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
@@ -41,10 +42,10 @@ class AddAddressView extends GetView<AddAddressController> {
                 ? Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: CustomTextField(
-                      labelText: "Custom Label",
-                      hintText: "e.g. Grandma's House",
+                      labelText: AppStrings.customLabel.tr,
+                      hintText: AppStrings.egGrandmasHouse.tr,
                       controller: controller.customLabelController,
-                      validator: (v) => v!.isEmpty ? 'Enter a label' : null,
+                      validator: (v) => v!.isEmpty ? AppStrings.enterLabelError.tr : null,
                     ),
                   )
                 : const SizedBox.shrink()),
@@ -94,14 +95,14 @@ class AddAddressView extends GetView<AddAddressController> {
               ),
               const SizedBox(height: 16.0),
               Obx(() => Text(
-                "Selected Location: ${controller.selectedLocation.value.latitude.toStringAsFixed(4)}, ${controller.selectedLocation.value.longitude.toStringAsFixed(4)}",
+                "${AppStrings.selectedLocation.tr} ${controller.selectedLocation.value.latitude.toStringAsFixed(4)}, ${controller.selectedLocation.value.longitude.toStringAsFixed(4)}",
                 style: GoogleFonts.poppins(fontSize: 12, color: AppColors.greyText),
               )),
               const SizedBox(height: 24.0),
               _buildDefaultSwitch(),
               const SizedBox(height: 40.0),
               Obx(() => CustomButton(
-                text: "Save Address",
+                text: AppStrings.saveAddress.tr,
                 isLoading: controller.isLoading.value,
                 onPressed: controller.saveAddress,
               )),
@@ -117,17 +118,17 @@ class AddAddressView extends GetView<AddAddressController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Save address as",
+          AppStrings.saveAddressAs.tr,
           style: GoogleFonts.poppins(fontSize: 16.0, fontWeight: FontWeight.w700, color: AppColors.textColor),
         ),
         const SizedBox(height: 12.0),
         Obx(() => Row(
           children: [
-            _labelChip(Icons.home_rounded, "Home", "home"),
+            _labelChip(Icons.home_rounded, AppStrings.homeTag.tr, "home"),
             const SizedBox(width: 12.0),
-            _labelChip(Icons.work_rounded, "Office", "office"),
+            _labelChip(Icons.work_rounded, AppStrings.officeTag.tr, "office"),
             const SizedBox(width: 12.0),
-            _labelChip(Icons.location_on_rounded, "Other", "other"),
+            _labelChip(Icons.location_on_rounded, AppStrings.otherTag.tr, "other"),
           ],
         )),
       ],
@@ -172,7 +173,7 @@ class AddAddressView extends GetView<AddAddressController> {
         ),
         const SizedBox(width: 8),
         Text(
-          "Set as default address",
+          AppStrings.setAsDefaultAddress.tr,
           style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textColor),
         ),
       ],

@@ -65,9 +65,7 @@ class PaymentSuccessController extends GetxController {
     // Simulate API delay
     await Future.delayed(const Duration(milliseconds: 1800));
     
-    Get.snackbar(
-      "Success",
-      "Successfully completed! Redirecting...",
+    Get.snackbar("Success".tr, "Successfully completed! Redirecting...".tr,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.green.withOpacity(0.8),
       colorText: Colors.white,
@@ -95,9 +93,7 @@ class PaymentSuccessController extends GetxController {
   }
 
   Future<void> downloadOrPrintReceipt() async {
-    Get.snackbar(
-      "Receipt",
-      "Preparing receipt...",
+    Get.snackbar("Receipt".tr, "Preparing receipt...".tr,
       snackPosition: SnackPosition.BOTTOM,
     );
 
@@ -148,7 +144,7 @@ class PaymentSuccessController extends GetxController {
         name: 'artisan_receipt_TXN-2026.pdf',
       );
     } catch (e) {
-      Get.snackbar("Error", "Could not generate receipt: $e");
+      Get.snackbar("Error".tr, "Could not generate receipt: $e".tr);
     }
   }
 
@@ -171,7 +167,7 @@ class PaymentSuccessController extends GetxController {
 
   Future<void> submitReview() async {
     if (rating.value == 0) {
-      Get.snackbar('Oops', 'Please provide a star rating.');
+      Get.snackbar('Oops'.tr, 'Please provide a star rating.'.tr);
       return;
     }
     
@@ -201,19 +197,17 @@ class PaymentSuccessController extends GetxController {
         isReviewSubmitted.value = true;
         // Move booking card to Completed tab locally after review
         _markBookingClientPaid();
-        Get.snackbar(
-          'Success', 
-          'Review submitted successfully!',
+        Get.snackbar('Success'.tr, 'Review submitted successfully!'.tr,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
       } else {
         print("Review API Error: ${response.statusCode} - ${response.body}");
-        Get.snackbar('Error', 'Failed to submit review: ${response.body}');
+        Get.snackbar('Error'.tr, 'Failed to submit review: ${response.body}'.tr);
       }
     } catch (e) {
       print("Review API Exception: $e");
-      Get.snackbar('Error', 'An error occurred while submitting the review: $e');
+      Get.snackbar('Error'.tr, 'An error occurred while submitting the review: $e'.tr);
     } finally {
       isSubmittingReview.value = false;
     }

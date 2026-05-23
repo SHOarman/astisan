@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/components/custom_chat_bubble.dart';
 import '../controllers/ai_support_chat_controller.dart';
 
@@ -36,7 +37,7 @@ class AiSupportChatView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "FixGo AI Assistant",
+                  AppStrings.aiAssistant.tr,
                   style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 16,
@@ -44,7 +45,7 @@ class AiSupportChatView extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Emergency Support',
+                  AppStrings.emergencySupport.tr,
                   style: GoogleFonts.poppins(
                     color: Colors.green,
                     fontSize: 12,
@@ -79,7 +80,7 @@ class AiSupportChatView extends StatelessWidget {
               Icon(Icons.support_agent, size: 64, color: Colors.grey.shade300),
               const SizedBox(height: 16),
               Text(
-                "How can I help you today?",
+                AppStrings.howCanIHelpToday.tr,
                 style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
               ),
             ],
@@ -142,8 +143,8 @@ class AiSupportChatView extends StatelessWidget {
                 ),
                 child: TextField(
                   controller: controller.messageController,
-                  decoration: const InputDecoration(
-                    hintText: "Type a message...",
+                  decoration: InputDecoration(
+                    hintText: AppStrings.typeAMessage.tr,
                     border: InputBorder.none,
                   ),
                   style: GoogleFonts.poppins(fontSize: 14.0),

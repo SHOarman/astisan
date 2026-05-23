@@ -40,7 +40,7 @@ class ResetPasswordVerificationController extends GetxController {
 
   Future<void> verify() async {
     if (otpCode.value.length < 6) {
-      Get.snackbar('Error', 'Please enter a valid 6-digit OTP');
+      Get.snackbar('Error'.tr, 'Please enter a valid 6-digit OTP'.tr);
       return;
     }
 
@@ -65,7 +65,7 @@ class ResetPasswordVerificationController extends GetxController {
       final data = json.decode(response.body);
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'OTP Verified Successfully');
+        Get.snackbar('Success'.tr, 'OTP Verified Successfully'.tr);
         
         // Wait for snackbar and focus state to settle before navigation
         await Future.delayed(const Duration(milliseconds: 600));
@@ -78,7 +78,7 @@ class ResetPasswordVerificationController extends GetxController {
         Get.snackbar('Error', data['message'] ?? 'Invalid OTP');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to verify OTP. Please try again.');
+      Get.snackbar('Error'.tr, 'Failed to verify OTP. Please try again.'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -102,13 +102,13 @@ class ResetPasswordVerificationController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         startTimer();
-        Get.snackbar('Success', 'OTP Resent Successfully');
+        Get.snackbar('Success'.tr, 'OTP Resent Successfully'.tr);
       } else {
         final data = json.decode(response.body);
         Get.snackbar('Error', data['message'] ?? 'Failed to resend OTP');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to resend OTP. Please try again.');
+      Get.snackbar('Error'.tr, 'Failed to resend OTP. Please try again.'.tr);
     } finally {
       isLoading.value = false;
     }

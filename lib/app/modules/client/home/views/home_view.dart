@@ -12,6 +12,7 @@ import '../controllers/home_controller.dart';
 
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/components/artisan_home_card.dart';
+import '../../../dashboard/controllers/dashboard_controller.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -171,7 +172,13 @@ class HomeView extends GetView<HomeController> {
               ),
             ),
             GestureDetector(
-              onTap: () => Get.toNamed(Routes.SERVICES),
+              onTap: () {
+                if (Get.isRegistered<DashboardController>()) {
+                  Get.find<DashboardController>().changePage(1);
+                } else {
+                  Get.toNamed(Routes.SERVICES);
+                }
+              },
               child: Icon(
                 Icons.arrow_forward,
                 color: AppColors.textColor,
@@ -368,7 +375,9 @@ class HomeView extends GetView<HomeController> {
             ),
             GestureDetector(
               onTap: () {
-                Get.toNamed(Routes.NEARBY_ARTISANS);
+                Get.toNamed(Routes.NEARBY_ARTISANS, arguments: {
+                  'artisans': controller.recommendedArtisans.toList(),
+                });
               },
               child: Text(
                 AppStrings.seeAll.tr,

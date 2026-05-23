@@ -73,30 +73,30 @@ class SignUpView extends GetView<SignUpController> {
         children: [
           CustomTextField(
             labelText: AppStrings.fullName.tr,
-            hintText: 'Your Name',
+            hintText: AppStrings.yourNameHint.tr,
             controller: controller.nameController,
-            validator: (value) => value == null || value.isEmpty ? 'Please enter your name' : null,
+            validator: (value) => value == null || value.isEmpty ? AppStrings.pleaseEnterName.tr : null,
           ),
           SizedBox(height: 16.0),
           CustomTextField(
             labelText: AppStrings.email.tr,
-            hintText: 'brooklynsim@gm |',
+            hintText: AppStrings.emailHintAlt.tr,
             controller: controller.emailController,
             keyboardType: TextInputType.emailAddress,
-            validator: (value) => value == null || value.isEmpty ? 'Please enter your email' : null,
+            validator: (value) => value == null || value.isEmpty ? AppStrings.pleaseEnterEmail.tr : null,
           ),
           SizedBox(height: 16.0),
           CustomTextField(
             labelText: AppStrings.number.tr,
-            hintText: '+1 (500) 000-0000',
+            hintText: AppStrings.phoneHint.tr,
             controller: controller.phoneController,
             keyboardType: TextInputType.phone,
-            validator: (value) => value == null || value.isEmpty ? 'Please enter your phone number' : null,
+            validator: (value) => value == null || value.isEmpty ? AppStrings.pleaseEnterPhone.tr : null,
           ),
           SizedBox(height: 16.0),
           Obx(() => CustomTextField(
             labelText: AppStrings.password.tr,
-            hintText: '***********',
+            hintText: AppStrings.passwordHint.tr,
             controller: controller.passwordController,
             obscureText: controller.obscurePassword.value,
             suffixIcon: IconButton(
@@ -109,14 +109,14 @@ class SignUpView extends GetView<SignUpController> {
               ),
               onPressed: controller.togglePasswordVisibility,
             ),
-            validator: (value) => value == null || value.isEmpty ? 'Please enter your password' : null,
+            validator: (value) => value == null || value.isEmpty ? AppStrings.pleaseEnterPassword.tr : null,
           )),
           SizedBox(height: 16.0),
 
           SizedBox(height: 16.0),
           CustomTextField(
-            labelText: 'Referral Code (Optional)',
-            hintText: 'Enter referral code',
+            labelText: AppStrings.referralCodeOptional.tr,
+            hintText: AppStrings.enterReferralCodeHint.tr,
             controller: controller.referralController,
           ),
           SizedBox(height: 16.0),
@@ -132,7 +132,7 @@ class SignUpView extends GetView<SignUpController> {
               Expanded(
                 child: RichText(
                   text: TextSpan(
-                    text: 'Agree with ',
+                    text: AppStrings.agreeWith.tr,
                     style: GoogleFonts.poppins(
                       color: AppColors.textColor,
                       fontSize: 14.0,
@@ -140,7 +140,7 @@ class SignUpView extends GetView<SignUpController> {
                     ),
                     children: [
                       TextSpan(
-                        text: 'terms',
+                        text: AppStrings.terms.tr,
                         style: GoogleFonts.poppins(
                           color: AppColors.textColor,
                           fontSize: 14.0,
@@ -148,7 +148,7 @@ class SignUpView extends GetView<SignUpController> {
                         ),
                       ),
                       TextSpan(
-                        text: ' and ',
+                        text: AppStrings.andWord.tr,
                         style: GoogleFonts.poppins(
                           color: AppColors.textColor,
                           fontSize: 14.0,
@@ -156,7 +156,7 @@ class SignUpView extends GetView<SignUpController> {
                         ),
                       ),
                       TextSpan(
-                        text: 'privacy',
+                        text: AppStrings.privacy.tr,
                         style: GoogleFonts.poppins(
                           color: AppColors.textColor,
                           fontSize: 14.0,

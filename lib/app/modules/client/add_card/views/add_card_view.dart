@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../controllers/add_card_controller.dart';
 
 class AddCardView extends GetView<AddCardController> {
@@ -13,7 +14,7 @@ class AddCardView extends GetView<AddCardController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Add Card",
+          AppStrings.addCard.tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -40,7 +41,7 @@ class AddCardView extends GetView<AddCardController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Fill your VISA or Master Card details and save the card",
+                    AppStrings.fillCardDetails.tr,
                     style: GoogleFonts.poppins(
                       fontSize: 14.0,
                       fontWeight: FontWeight.w500,
@@ -79,14 +80,14 @@ class AddCardView extends GetView<AddCardController> {
         children: [
           _buildTextField(
             controller.nameController,
-            "Cardholder name",
-            label: "Cardholder name",
+            AppStrings.cardholderName.tr,
+            label: AppStrings.cardholderName.tr,
           ),
           const SizedBox(height: 20.0),
           _buildTextField(
             controller.cardNumberController,
-            "4242 4242 4242 4242",
-            label: "Card Number",
+            AppStrings.cardNo.tr,
+            label: AppStrings.cardNumber.tr,
             icon: Icons.credit_card,
           ),
           const SizedBox(height: 20.0),
@@ -95,16 +96,16 @@ class AddCardView extends GetView<AddCardController> {
               Expanded(
                 child: _buildTextField(
                   controller.expiryController,
-                  "12/28",
-                  label: "Expiry date",
+                  AppStrings.expiry.tr,
+                  label: AppStrings.expiryDate.tr,
                 ),
               ),
               const SizedBox(width: 16.0),
               Expanded(
                 child: _buildTextField(
                   controller.cvvController,
-                  "***",
-                  label: "CVV",
+                  AppStrings.cvv.tr,
+                  label: AppStrings.cvvLabel.tr,
                 ),
               ),
             ],
@@ -112,8 +113,8 @@ class AddCardView extends GetView<AddCardController> {
           const SizedBox(height: 20.0),
           _buildTextField(
             controller.addressController,
-            "Branch name",
-            label: "Address",
+            AppStrings.branchName.tr,
+            label: AppStrings.address.tr,
           ),
         ],
       ),
@@ -189,7 +190,7 @@ class AddCardView extends GetView<AddCardController> {
             elevation: 0,
           ),
           child: Text(
-            "Save Card",
+            AppStrings.saveCard.tr,
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 16.0,

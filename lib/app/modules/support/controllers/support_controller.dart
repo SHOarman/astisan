@@ -164,9 +164,7 @@ class SupportController extends GetxController {
 
   Future<void> submitFeedback() async {
     if (subjectController.text.isEmpty || emailController.text.isEmpty || messageController.text.isEmpty) {
-      Get.snackbar(
-        'Oops', 
-        'Please fill all fields',
+      Get.snackbar('Oops'.tr, 'Please fill all fields'.tr,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -215,9 +213,7 @@ class SupportController extends GetxController {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Get.back(); // Go back from Feedback screen
-        Get.snackbar(
-          'Success', 
-          'Feedback submitted successfully.',
+        Get.snackbar('Success'.tr, 'Feedback submitted successfully.'.tr,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
@@ -230,9 +226,7 @@ class SupportController extends GetxController {
         // Server may still have processed the feedback even with a 500
         // Show success and go back since the data was sent
         Get.back(); // Go back from Feedback screen
-        Get.snackbar(
-          'Submitted', 
-          'Your feedback has been sent.',
+        Get.snackbar('Submitted'.tr, 'Your feedback has been sent.'.tr,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
@@ -245,9 +239,7 @@ class SupportController extends GetxController {
     } catch (e) {
       Get.back(); // Close loading dialog
       print('Error submitting feedback: $e');
-      Get.snackbar(
-        'Error', 
-        'Something went wrong',
+      Get.snackbar('Error'.tr, 'Something went wrong'.tr,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -265,7 +257,7 @@ class SupportController extends GetxController {
         attachedImagePath.value = image.path;
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick image: $e',
+      Get.snackbar('Error'.tr, 'Failed to pick image: $e'.tr,
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }

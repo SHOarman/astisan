@@ -22,50 +22,50 @@ class ProfileController extends GetxController {
 
   final menuItems = [
     {
-      'title': "Language",
-      'subtitle': 'English, French',
+      'title': AppStrings.language.tr,
+      'subtitle': AppStrings.englishFrench.tr,
       'icon': Icons.language,
       'color': const Color(0xFF6C63FF),
     },
     {
       'title': AppStrings.orderHistory.tr,
-      'subtitle': '4 completed bookings',
+      'subtitle': '4 ${AppStrings.completedBookingsCount.tr}',
       'icon': Icons.receipt_long,
       'color': const Color(0xFF6C63FF),
     },
     {
       'title': AppStrings.savedAddresses.tr,
-      'subtitle': '2 addresses saved',
+      'subtitle': '2 ${AppStrings.addressesSavedCount.tr}',
       'icon': Icons.location_on_outlined,
       'color': const Color(0xFF9C27B0),
     },
     {
       'title': AppStrings.paymentMethods.tr,
-      'subtitle': 'Visa **** 4242',
+      'subtitle': AppStrings.visaCardDesc.tr,
       'icon': Icons.credit_card,
       'color': const Color(0xFF4CAF50),
     },
     {
-      'title': 'Emergency Support',
-      'subtitle': '24/7 AI & Admin chat',
+      'title': AppStrings.emergencySupport.tr,
+      'subtitle': AppStrings.emergencySupportSub.tr,
       'icon': Icons.chat_bubble_outline,
       'color': const Color(0xFFF44336),
     },
     {
-      'title': 'Refer & Get Bonus',
-      'subtitle': 'Invite friends, earn €15',
+      'title': AppStrings.referAndGetBonus.tr,
+      'subtitle': AppStrings.referAndGetBonusSub.tr,
       'icon': Icons.local_activity_outlined,
       'color': const Color(0xFFFFC107),
     },
     {
       'title': AppStrings.privacySecurity.tr,
-      'subtitle': 'Password secured',
+      'subtitle': AppStrings.passwordSecured.tr,
       'icon': Icons.shield_outlined,
       'color': const Color(0xFF2196F3),
     },
     {
       'title': AppStrings.helpSupport.tr,
-      'subtitle': 'FAQ, contact us',
+      'subtitle': AppStrings.faqContactUs.tr,
       'icon': Icons.help_outline,
       'color': const Color(0xFF9E9E9E),
     },
@@ -159,7 +159,7 @@ class ProfileController extends GetxController {
           await prefs.setString('user_profile_pic', userProfileImage.value);
         } else {
           userName.value = 'Permission Denied (403)';
-          Get.snackbar('Access Denied', 'Your account does not have permission for this role.', backgroundColor: Colors.orange, colorText: Colors.white);
+          Get.snackbar('Access Denied'.tr, 'Your account does not have permission for this role.'.tr, backgroundColor: Colors.orange, colorText: Colors.white);
         }
       } else {
         userName.value = 'Error ${response.statusCode}';
@@ -224,11 +224,11 @@ class ProfileController extends GetxController {
       Get.toNamed(Routes.SECURITY);
     } else if (title == AppStrings.orderHistory.tr) {
       Get.toNamed(Routes.ORDER_HISTORY);
-    } else if (title == 'Refer & Get Bonus') {
+    } else if (title == AppStrings.referAndGetBonus.tr || title == 'Refer & Get Bonus') {
       Get.toNamed(Routes.GET_BONUS);
-    } else if (title == 'Emergency Support') {
+    } else if (title == AppStrings.emergencySupport.tr || title == 'Emergency Support') {
       Get.toNamed(Routes.emergency_support);
-    } else if (title == 'Language') {
+    } else if (title == AppStrings.language.tr || title == 'Language') {
       Get.toNamed(Routes.language);
     }
   }
@@ -240,6 +240,6 @@ class ProfileController extends GetxController {
   Future<void> signOut() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    Get.offAllNamed(Routes.SIGN_UP);
+    Get.offAllNamed(Routes.LOGIN);
   }
 }

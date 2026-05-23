@@ -97,7 +97,7 @@ class ConfirmBookingView extends GetView<BookingController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  controller.serviceData['title'] ?? 'Service Selection',
+                                  controller.serviceData['title'] ?? AppStrings.serviceSelection.tr,
                                   style: GoogleFonts.poppins(
                                     color: AppColors.textColor,
                                     fontSize: 16.0,
@@ -107,7 +107,7 @@ class ConfirmBookingView extends GetView<BookingController> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  'Matching you with the best artisan',
+                                  AppStrings.matchingBestArtisan.tr,
                                   style: GoogleFonts.poppins(
                                     color: AppColors.greyText,
                                     fontSize: 12.0,
@@ -115,7 +115,7 @@ class ConfirmBookingView extends GetView<BookingController> {
                                 ),
                                 const SizedBox(height: 4.0),
                                 Text(
-                                  'Price Range: ${controller.serviceFeeString}',
+                                  '${AppStrings.priceRange.tr}: ${controller.serviceFeeString}',
                                   style: GoogleFonts.poppins(
                                     color: AppColors.primary,
                                     fontSize: 13.0,
@@ -132,14 +132,14 @@ class ConfirmBookingView extends GetView<BookingController> {
                     // Date
                     _buildSummaryItem(
                       icon: Icons.calendar_today_outlined,
-                      label: 'Date',
+                      label: AppStrings.date.tr,
                       value: '${date['day']}, ${date['month']} ${date['date']}',
                     ),
                     const SizedBox(height: 16.0),
                     // Time
                     _buildSummaryItem(
                       icon: Icons.access_time,
-                      label: 'Time',
+                      label: AppStrings.time.tr,
                       value: '${time.hour}:${time.minute.toString().padLeft(2, '0')}',
                     ),
                     const SizedBox(height: 16.0),
@@ -155,7 +155,7 @@ class ConfirmBookingView extends GetView<BookingController> {
                       icon: Icons.description_outlined,
                       label: AppStrings.notes.tr,
                       value: controller.notesController.text.isEmpty
-                          ? 'No additional notes'
+                          ? AppStrings.noAdditionalNotes.tr
                           : controller.notesController.text,
                     ),
                     const SizedBox(height: 32.0),

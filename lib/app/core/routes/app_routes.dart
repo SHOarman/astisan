@@ -45,6 +45,7 @@ abstract class Routes {
   static const SECURITY = '/security';
   static const CHANGE_PASSWORD = '/change-password';
   static const GET_BONUS = '/get-bonus';
+  static const RECENT_BOOKINGS = '/recent-bookings';
   static const ORDER_HISTORY = '/order-history';
   static const WORKER_NAVIGATION = '/worker-navigation';
   static const WORKER_JOB_STATUS = '/worker-job-status';

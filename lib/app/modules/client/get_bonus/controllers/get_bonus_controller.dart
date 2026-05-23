@@ -60,9 +60,7 @@ class GetBonusController extends GetxController {
   void copyReferralCode() {
     if (referralCode.value.isEmpty) return;
     Clipboard.setData(ClipboardData(text: referralCode.value));
-    Get.snackbar(
-      'Copied',
-      'Referral code copied to clipboard',
+    Get.snackbar('Copied'.tr, 'Referral code copied to clipboard'.tr,
       snackPosition: SnackPosition.BOTTOM,
     );
   }

@@ -36,7 +36,7 @@ class GetBonusView extends GetView<GetBonusController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Refer & Earn",
+              AppStrings.referAndEarn.tr,
               style: GoogleFonts.poppins(
                 fontSize: 20.0,
                 fontWeight: FontWeight.w700,
@@ -55,7 +55,7 @@ class GetBonusView extends GetView<GetBonusController> {
             ),
             const SizedBox(height: 48.0),
             Text(
-              "Share this promo code",
+              AppStrings.sharePromoCode.tr,
               style: GoogleFonts.poppins(
                 fontSize: 14.0,
                 color: AppColors.greyText,
@@ -78,7 +78,7 @@ class GetBonusView extends GetView<GetBonusController> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Obx(() => Text(
-                          controller.isLoading.value ? '...' : (controller.referralCode.value.isEmpty ? 'N/A' : controller.referralCode.value),
+                          controller.isLoading.value ? '...' : (controller.referralCode.value.isEmpty ? AppStrings.na.tr : controller.referralCode.value),
                           style: GoogleFonts.poppins(
                             fontSize: 16.0,
                             fontWeight: FontWeight.w700,
@@ -130,7 +130,7 @@ class GetBonusView extends GetView<GetBonusController> {
             ),
             const SizedBox(height: 32.0),
             Text(
-              "Referral History",
+              AppStrings.referralHistory.tr,
               style: GoogleFonts.poppins(
                 fontSize: 18.0,
                 fontWeight: FontWeight.w700,
@@ -144,7 +144,7 @@ class GetBonusView extends GetView<GetBonusController> {
               }
               if (controller.referralHistory.isEmpty) {
                 return Text(
-                  "You haven't referred anyone yet.",
+                  AppStrings.noReferralsYet.tr,
                   style: GoogleFonts.poppins(
                     fontSize: 14.0,
                     color: AppColors.greyText,
@@ -157,7 +157,7 @@ class GetBonusView extends GetView<GetBonusController> {
                 itemCount: controller.referralHistory.length,
                 itemBuilder: (context, index) {
                   final ref = controller.referralHistory[index];
-                  final name = ref['referred_name'] ?? ref['referred_email'] ?? 'Unknown';
+                  final name = ref['referred_name'] ?? ref['referred_email'] ?? AppStrings.unknown.tr;
                   final bool bonusPaid = ref['bonus_paid'] == true;
                   final amount = ref['bonus_amount'] ?? '0';
                   
@@ -169,7 +169,7 @@ class GetBonusView extends GetView<GetBonusController> {
                     ),
                     title: Text(name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                     subtitle: Text(
-                      bonusPaid ? "Bonus Paid" : "Pending",
+                      bonusPaid ? AppStrings.bonusPaid.tr : AppStrings.pending.tr,
                       style: GoogleFonts.poppins(
                         color: bonusPaid ? Colors.green : Colors.orange,
                         fontSize: 12,

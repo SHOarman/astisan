@@ -31,9 +31,7 @@ class TrackingView extends GetView<TrackingController> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (Get.currentRoute == Routes.TRACKING || Get.currentRoute == Routes.TRACKINGSCREEN) {
             Get.back();
-            Get.snackbar(
-              "Status Update",
-              "Tracking is no longer available.",
+            Get.snackbar("Status Update".tr, "Tracking is no longer available.".tr,
               snackPosition: SnackPosition.BOTTOM,
             );
           }
@@ -216,7 +214,7 @@ class TrackingView extends GetView<TrackingController> {
   }
 
   Widget _buildProgressCircle() {
-    return Container(
+    return Obx(() => Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -232,7 +230,7 @@ class TrackingView extends GetView<TrackingController> {
               fit: StackFit.expand,
               children: [
                 CircularProgressIndicator(
-                  value: 0.6,
+                  value: controller.progressPercent.value,
                   strokeWidth: 8.0,
                   backgroundColor: AppColors.primary.withOpacity(0.2),
                   valueColor: const AlwaysStoppedAnimation<Color>(AppColors.timelineCurrent),
@@ -245,7 +243,7 @@ class TrackingView extends GetView<TrackingController> {
                       const Icon(Icons.build_circle_outlined, color: AppColors.timelineCurrent, size: 32.0),
                       const SizedBox(height: 4.0),
                       Text(
-                        '34 min',
+                        "${controller.elapsedMinutes.value} ${'min'.tr}",
                         style: GoogleFonts.poppins(
                           color: AppColors.textColor,
                           fontSize: 14.0,
@@ -269,7 +267,7 @@ class TrackingView extends GetView<TrackingController> {
           ),
           const SizedBox(height: 4.0),
           Text(
-            'Started at 10:18 AM · 34 min elapsed',
+            "${'Started at'.tr} ${controller.workingTime.value} \u00b7 ${AppStrings.minElapsed.tr.replaceFirst('%s', controller.elapsedMinutes.value.toString())}",
             style: GoogleFonts.poppins(
               color: AppColors.greyText,
               fontSize: 12.0,
@@ -277,85 +275,93 @@ class TrackingView extends GetView<TrackingController> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTimeline() {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.statusTimeline.tr,
-            style: GoogleFonts.poppins(
-              color: AppColors.textColor,
-              fontSize: 16.0,
-              fontWeight: FontWeight.w700,
+    return Obx(() {
+      final String lowerStatus = controller.status.value.toLowerCase();
+      final bool isConfirmed = controller.isStatusAtLeast('confirmed');
+      final bool isOnWay = controller.isStatusAtLeast('on_way');
+      final bool isWorking = controller.isStatusAtLeast('working') || controller.isStatusAtLeast('arrived');
+      final bool isCompleted = controller.isStatusAtLeast('completed');
+
+      return Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppStrings.statusTimeline.tr,
+              style: GoogleFonts.poppins(
+                color: AppColors.textColor,
+                fontSize: 16.0,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 24.0),
-          const StatusTimelineTile(
-            title: 'Booking Confirmed',
-            subtitle: 'Your booking has been accepted',
-            time: '09:45 AM',
-            icon: Icons.check,
-            state: TimelineState.completed,
-          ),
-          const StatusTimelineTile(
-            title: 'On the Way',
-            subtitle: 'Artisan is heading to your location',
-            time: '10:00 AM',
-            icon: Icons.check,
-            state: TimelineState.completed,
-          ),
-          StatusTimelineTile(
-            title: 'Working',
-            subtitle: 'Service in progress at your location',
-            time: '10:18 AM',
-            icon: Icons.build,
-            state: TimelineState.current,
-            trailingWidget: Row(
-              children: [
-                Row(
-                  children: List.generate(3, (index) => Container(
-                    margin: const EdgeInsets.only(right: 4.0),
-                    width: 6.0,
-                    height: 6.0,
-                    decoration: BoxDecoration(
-                      color: AppColors.timelineCurrent.withOpacity(0.4 + (index * 0.2)),
-                      shape: BoxShape.circle,
-                    ),
-                  )),
-                ),
-                const SizedBox(width: 8.0),
-                Text(
-                  'In progress...',
-                  style: GoogleFonts.poppins(
-                    color: AppColors.timelineCurrent,
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w500,
+            const SizedBox(height: 24.0),
+            StatusTimelineTile(
+              title: AppStrings.bookingConfirmed.tr,
+              subtitle: 'Your booking has been accepted'.tr,
+              time: controller.confirmationTime.value,
+              icon: Icons.check,
+              state: isConfirmed ? (isOnWay ? TimelineState.completed : TimelineState.current) : TimelineState.pending,
+            ),
+            StatusTimelineTile(
+              title: AppStrings.onTheWay.tr,
+              subtitle: AppStrings.artisanHeadingLocation.tr,
+              time: controller.onWayTime.value,
+              icon: Icons.check,
+              state: isOnWay ? (isWorking ? TimelineState.completed : TimelineState.current) : TimelineState.pending,
+            ),
+            StatusTimelineTile(
+              title: AppStrings.working.tr,
+              subtitle: AppStrings.serviceInProgressLocation.tr,
+              time: controller.workingTime.value,
+              icon: Icons.build,
+              state: isWorking ? (isCompleted ? TimelineState.completed : TimelineState.current) : TimelineState.pending,
+              trailingWidget: lowerStatus == 'working' ? Row(
+                children: [
+                  Row(
+                    children: List.generate(3, (index) => Container(
+                      margin: const EdgeInsets.only(right: 4.0),
+                      width: 6.0,
+                      height: 6.0,
+                      decoration: BoxDecoration(
+                        color: AppColors.timelineCurrent.withOpacity(0.4 + (index * 0.2)),
+                        shape: BoxShape.circle,
+                      ),
+                    )),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8.0),
+                  Text(
+                    AppStrings.inProgressSub.tr,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.timelineCurrent,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ) : null,
             ),
-          ),
-          const StatusTimelineTile(
-            title: 'Completed',
-            subtitle: 'Service has been completed',
-            time: 'Pending',
-            icon: Icons.celebration,
-            state: TimelineState.pending,
-            isLast: true,
-          ),
-        ],
-      ),
-    );
+            StatusTimelineTile(
+              title: AppStrings.completed.tr,
+              subtitle: 'Service has been completed'.tr,
+              time: isCompleted ? controller.completedTime.value : 'Pending'.tr,
+              icon: Icons.celebration,
+              state: isCompleted ? TimelineState.completed : TimelineState.pending,
+              isLast: true,
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildServiceDetails() {
@@ -378,9 +384,9 @@ class TrackingView extends GetView<TrackingController> {
             ),
           ),
           const SizedBox(height: 16.0),
-          _buildDetailRow('Service', controller.serviceName.value),
+          _buildDetailRow('Service'.tr, controller.serviceName.value),
           const SizedBox(height: 12.0),
-          _buildDetailRow('Location', controller.location.value),
+          _buildDetailRow('Location'.tr, controller.location.value),
           const SizedBox(height: 12.0),
           _buildDetailRow(AppStrings.estimatedCost.tr, controller.estimatedCost.value),
           const SizedBox(height: 12.0),
@@ -647,7 +653,9 @@ class TrackingView extends GetView<TrackingController> {
                         const Icon(Icons.near_me_outlined, color: AppColors.statusCompletedText, size: 18.0),
                         const SizedBox(width: 8.0),
                         Text(
-                          'ETA: ${controller.etaMinutes.value} minutes · ${controller.distanceKm.value} km away',
+                          'ETA: %s minutes · %s km away'.tr
+                              .replaceFirst('%s', controller.etaMinutes.value.toString())
+                              .replaceFirst('%s', controller.distanceKm.value.toString()),
                           style: GoogleFonts.poppins(color: AppColors.statusCompletedText, fontSize: 12.0, fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -691,7 +699,7 @@ class TrackingView extends GetView<TrackingController> {
       return Column(
         children: costs.map<Widget>((cost) {
           final String costId = cost['id']?.toString() ?? '';
-          final String reason = cost['reason']?.toString() ?? 'Extra Charge';
+          final String reason = cost['reason']?.toString() ?? 'Extra Charge'.tr;
           final String amount = cost['amount']?.toString() ?? '0.00';
           final String status = (cost['status'] ?? 'pending').toString().toLowerCase();
 
@@ -701,13 +709,13 @@ class TrackingView extends GetView<TrackingController> {
 
           if (status == 'approved') {
             statusColor = Colors.green;
-            statusText = "Approved";
+            statusText = "Approved".tr;
           } else if (status == 'rejected' || status == 'declined') {
             statusColor = Colors.red;
-            statusText = "Declined";
+            statusText = "Declined".tr;
           } else {
             statusColor = Colors.orange;
-            statusText = "Pending Approval";
+            statusText = "Pending Approval".tr;
           }
 
           return Container(
@@ -735,7 +743,7 @@ class TrackingView extends GetView<TrackingController> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Additional Cost Request",
+                      "Additional Cost Request".tr,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 15.0,
@@ -761,7 +769,7 @@ class TrackingView extends GetView<TrackingController> {
                 ),
                 const SizedBox(height: 12.0),
                 Text(
-                  "Reason: $reason",
+                  "${'Reason:'.tr} $reason",
                   style: GoogleFonts.poppins(
                     color: AppColors.greyText,
                     fontSize: 13.0,
@@ -769,7 +777,7 @@ class TrackingView extends GetView<TrackingController> {
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  "Amount: \$$amount",
+                  "${'Amount:'.tr} \$$amount",
                   style: GoogleFonts.poppins(
                     color: AppColors.textColor,
                     fontSize: 16.0,
@@ -789,7 +797,7 @@ class TrackingView extends GetView<TrackingController> {
                             padding: const EdgeInsets.symmetric(vertical: 12.0),
                           ),
                           child: Text(
-                            "Decline",
+                            "Decline".tr,
                             style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -804,7 +812,7 @@ class TrackingView extends GetView<TrackingController> {
                             padding: const EdgeInsets.symmetric(vertical: 12.0),
                           ),
                           child: Text(
-                            "Approve",
+                            "Approve".tr,
                             style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                         ),

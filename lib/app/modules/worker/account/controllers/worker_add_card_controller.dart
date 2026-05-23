@@ -33,12 +33,12 @@ class WorkerAddCardController extends GetxController {
 
   void saveCard() {
     Get.back();
-    Get.snackbar('Success', 'Card added successfully.');
+    Get.snackbar('Success'.tr, 'Card added successfully.'.tr);
   }
 
   void deleteCard() {
     Get.back();
-    Get.snackbar('Success', 'Card deleted successfully.');
+    Get.snackbar('Success'.tr, 'Card deleted successfully.'.tr);
   }
 
   @override

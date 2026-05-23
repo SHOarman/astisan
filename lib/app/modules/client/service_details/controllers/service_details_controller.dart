@@ -29,7 +29,7 @@ class ServiceDetailsController extends GetxController {
     '30-day service warranty',
   ].obs;
 
-  final reviews = [
+  final reviews = <Map<String, dynamic>>[
     {
       'name': 'Sarah Williams',
       'date': '2 days ago',
@@ -95,6 +95,7 @@ class ServiceDetailsController extends GetxController {
       normalizeArtisanData();
       if (isArtisanSpecificFlow.value) {
         fetchArtisanProfile();
+        fetchArtisanReviews();
       } else {
         fetchTopArtisansForService();
       }
@@ -170,6 +171,53 @@ class ServiceDetailsController extends GetxController {
     }
   }
 
+  Future<void> fetchArtisanReviews() async {
+    final String? artisanId = artisanData['id']?.toString() ?? artisanData['artisan_id']?.toString();
+    if (artisanId == null) return;
+    
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token')?.trim().replaceAll('"', '');
+
+      final response = await http.get(
+        Uri.parse("${ApiServices.baseurl}/api/reviews/artisan/$artisanId/public/"),
+        headers: { 
+          'Accept-Language': ApiServices.currentLanguage, 
+          'Accept': 'application/json',
+          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final dynamic decoded = json.decode(response.body);
+        
+        List<dynamic> data = [];
+        if (decoded is List) {
+          data = decoded;
+        } else if (decoded is Map) {
+          data = decoded['reviews'] ?? decoded['results'] ?? [];
+          
+          // Update average rating and review count dynamically
+          if (decoded['average_rating'] != null) {
+            artisanData['rating'] = double.tryParse(decoded['average_rating'].toString()) ?? 0.0;
+          }
+          if (decoded['review_count'] != null) {
+            artisanData['review_count'] = decoded['review_count'];
+          }
+        }
+        
+        reviews.assignAll(data.map((e) => <String, dynamic>{
+          'name': e['client_name'] ?? 'Client',
+          'rating': e['rating'] ?? 5,
+          'comment': e['comment'] ?? '',
+          'image': ApiServices.formatImageUrl(e['client_picture']?.toString()),
+          'date': e['created_at'] != null ? e['created_at'].toString().substring(0, 10) : '',
+        }).toList());
+      }
+    } catch(e) {
+      print("Error fetching reviews: $e");
+    }
+  }
+
   void normalizeArtisanData() {
     artisanData['full_name'] ??= artisanData['name'];
     artisanData['profile_picture'] ??= artisanData['avatar'];
@@ -178,7 +226,6 @@ class ServiceDetailsController extends GetxController {
     artisanData['distance'] ??= artisanData['distanceOrTime'];
     artisanData['occupation'] ??= artisanData['role'];
 
-    // Pre-populate observables if data is already present in arguments
     if (artisanData['bio'] != null) artisanBio.value = artisanData['bio'].toString();
     if (artisanData['experience'] != null) artisanExperience.value = "${artisanData['experience']} Years";
     

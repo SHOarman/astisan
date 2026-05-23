@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/components/custom_button.dart';
 import '../../core/constants/static/app_colors.dart';
+import '../../core/constants/static/app_strings.dart';
 import 'auth_controller_worker/auth_worker_controller.dart';
 
 class SerivesDetels extends GetView<AuthWorkerController> {
@@ -16,7 +17,7 @@ class SerivesDetels extends GetView<AuthWorkerController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text("Complete Service Profile", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text(AppStrings.completeServiceProfile.tr, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         backgroundColor: AppColors.primary,
         centerTitle: true,
       ),
@@ -26,18 +27,18 @@ class SerivesDetels extends GetView<AuthWorkerController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Please select the service you provide. This will be visible to Admin and Clients.",
+              AppStrings.selectServiceProvide.tr,
               style: GoogleFonts.poppins(fontSize: 14, color: AppColors.greyText),
             ),
             const SizedBox(height: 32.0),
 
             // Category Dropdown
-            Text("Service Category", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            Text(AppStrings.serviceCategory.tr, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Obx(() => controller.isCategoriesLoading.value
                 ? const Center(child: CircularProgressIndicator())
                 : _buildDropdown(
-              hint: "Select Category",
+              hint: AppStrings.selectCategoryHint.tr,
               value: controller.selectedCategoryId.value.isEmpty ? null : controller.selectedCategoryId.value,
               items: controller.categories.map((c) => DropdownMenuItem<String>(
                   value: c['id'].toString(),
@@ -49,12 +50,12 @@ class SerivesDetels extends GetView<AuthWorkerController> {
             const SizedBox(height: 24.0),
 
             // Service Dropdown
-            Text("Specific Service", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            Text(AppStrings.specificService.tr, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Obx(() => controller.isServicesLoading.value
                 ? const LinearProgressIndicator()
                 : _buildDropdown(
-              hint: "Select Service",
+              hint: AppStrings.selectServiceHint.tr,
               value: controller.selectedServiceId.value.isEmpty ? null : controller.selectedServiceId.value,
               items: controller.services.map((s) => DropdownMenuItem<String>(
                   value: s['id'].toString(),
@@ -66,7 +67,7 @@ class SerivesDetels extends GetView<AuthWorkerController> {
             const SizedBox(height: 24.0),
 
             // Rate Input
-            Text("Your Hourly Rate", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            Text(AppStrings.yourHourlyRate.tr, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             TextFormField(
               controller: controller.rateController,
@@ -80,7 +81,7 @@ class SerivesDetels extends GetView<AuthWorkerController> {
             Obx(() => controller.priceMin.value > 0
                 ? Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Text("Recommended range: ${controller.priceMin.value} - ${controller.priceMax.value}",
+              child: Text("${AppStrings.recommendedRange.tr} ${controller.priceMin.value} - ${controller.priceMax.value}",
                   style: TextStyle(color: AppColors.primary, fontSize: 12)),
             )
                 : const SizedBox()),
@@ -88,7 +89,7 @@ class SerivesDetels extends GetView<AuthWorkerController> {
             const SizedBox(height: 40.0),
 
             Obx(() => CustomButton(
-              text: "Save & Go to Dashboard",
+              text: AppStrings.saveAndGoDashboard.tr,
               isLoading: controller.isLoading.value,
               onPressed: () => controller.saveServiceDetails(),
             )),

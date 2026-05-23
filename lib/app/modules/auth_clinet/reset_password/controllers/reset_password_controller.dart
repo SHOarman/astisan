@@ -54,7 +54,7 @@ class ResetPasswordController extends GetxController {
         final data = json.decode(response.body);
         
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Get.snackbar('Success', 'Password reset successfully. You can now login.');
+          Get.snackbar('Success'.tr, 'Password reset successfully. You can now login.'.tr);
           
           await Future.delayed(const Duration(milliseconds: 600));
           
@@ -68,7 +68,7 @@ class ResetPasswordController extends GetxController {
           Get.snackbar('Error', data['message'] ?? 'Failed to reset password');
         }
       } catch (e) {
-        Get.snackbar('Error', 'Connection failed. Please try again.');
+        Get.snackbar('Error'.tr, 'Connection failed. Please try again.'.tr);
       } finally {
         isLoading.value = false;
       }

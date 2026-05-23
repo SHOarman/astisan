@@ -102,13 +102,13 @@ class VerificationController extends GetxController {
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           startTimer();
-          Get.snackbar('Success', 'A new code has been sent.');
+          Get.snackbar('Success'.tr, 'A new code has been sent.'.tr);
         } else {
           final data = json.decode(response.body);
           Get.snackbar('Error', data['message'] ?? 'Failed to resend code');
         }
       } catch (e) {
-        Get.snackbar('Error', 'Connection failed');
+        Get.snackbar('Error'.tr, 'Connection failed'.tr);
       } finally {
         isLoading.value = false;
       }
@@ -182,9 +182,7 @@ class VerificationController extends GetxController {
                 Get.find<RoleController>().setRole('worker');
               }
 
-              Get.snackbar(
-                'Success',
-                'Account verified! Please complete your service profile.',
+              Get.snackbar('Success'.tr, 'Account verified! Please complete your service profile.'.tr,
               );
               await Future.delayed(const Duration(milliseconds: 1000));
               Get.offAllNamed(Routes.serives_detels);
@@ -206,12 +204,12 @@ class VerificationController extends GetxController {
         }
       } catch (e) {
         print("Verify Exception: $e");
-        Get.snackbar('Error', 'Connection failed. Try again.');
+        Get.snackbar('Error'.tr, 'Connection failed. Try again.'.tr);
       } finally {
         isLoading.value = false;
       }
     } else {
-      Get.snackbar('Invalid Code', 'Please enter a 6-digit verification code.');
+      Get.snackbar('Invalid Code'.tr, 'Please enter a 6-digit verification code.'.tr);
     }
   }
 }

@@ -17,6 +17,10 @@ class NearbyArtisansController extends GetxController {
     super.onInit();
     if (Get.arguments != null) {
       serviceData.value = Map<String, dynamic>.from(Get.arguments['service'] ?? {});
+      if (Get.arguments['artisans'] != null) {
+        artisans.assignAll(List<Map<String, dynamic>>.from(Get.arguments['artisans']));
+        return;
+      }
     }
     fetchNearbyArtisans();
   }

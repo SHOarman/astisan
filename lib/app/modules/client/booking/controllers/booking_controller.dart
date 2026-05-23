@@ -422,9 +422,7 @@ class BookingController extends GetxController {
       }
 
       if (serviceId.isEmpty) {
-        Get.snackbar(
-          "Error",
-          "Could not identify the service to book. Please select a service first.",
+        Get.snackbar("Error".tr, "Could not identify the service to book. Please select a service first.".tr,
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
@@ -504,9 +502,7 @@ class BookingController extends GetxController {
       if (response.statusCode == 201) {
         if (Get.isDialogOpen ?? false) Get.back();
         final decoded = json.decode(response.body);
-        Get.snackbar(
-          "Success",
-          "Booking confirmed successfully!",
+        Get.snackbar("Success".tr, "Booking confirmed successfully!".tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: const Color(0xFF4CAE79),
           colorText: Colors.white,
@@ -515,9 +511,7 @@ class BookingController extends GetxController {
         Get.offAllNamed(Routes.DASHBOARD);
       } else {
         if (Get.isDialogOpen ?? false) Get.back();
-        Get.snackbar(
-          "Error",
-          "Failed to create booking: ${response.body}",
+        Get.snackbar("Error".tr, "Failed to create booking: ${response.body}".tr,
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );

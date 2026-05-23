@@ -40,7 +40,7 @@ class AddAddressController extends GetxController {
   Future<void> saveAddress() async {
     // Only validate the form for custom label
     if (label.value == 'other' && customLabelController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter a custom label');
+      Get.snackbar('Error'.tr, 'Please enter a custom label'.tr);
       return;
     }
 
@@ -109,13 +109,13 @@ class AddAddressController extends GetxController {
         if (response.statusCode == 201 || response.statusCode == 200) {
           Get.find<SavedAddressesController>().fetchAddresses();
           Get.back();
-          Get.snackbar('Success', 'Address added successfully');
+          Get.snackbar('Success'.tr, 'Address added successfully'.tr);
         } else {
           final data = json.decode(response.body);
           Get.snackbar('Error', data['message'] ?? 'Failed to add address');
         }
       } catch (e) {
-        Get.snackbar('Error', 'Connection failed');
+        Get.snackbar('Error'.tr, 'Connection failed'.tr);
       } finally {
         isLoading.value = false;
       }

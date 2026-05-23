@@ -84,9 +84,9 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter a new password';
+                return AppStrings.pleaseEnterNewPassword.tr;
               }
-              if (value.length < 6) return 'Password must be at least 6 characters';
+              if (value.length < 6) return AppStrings.passwordMin6Chars.tr;
               return null;
             },
           )),
@@ -108,10 +108,10 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please confirm your password';
+                return AppStrings.pleaseConfirmPassword.tr;
               }
               if (value != controller.newPasswordController.text) {
-                return 'Passwords do not match';
+                return AppStrings.passwordsDoNotMatch.tr;
               }
               return null;
             },

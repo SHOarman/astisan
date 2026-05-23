@@ -73,7 +73,7 @@ class SignUpController extends GetxController {
         final data = json.decode(response.body);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          Get.snackbar('Success', 'OTP sent to your email/phone');
+          Get.snackbar('Success'.tr, 'OTP sent to your email/phone'.tr);
 
           FocusManager.instance.primaryFocus?.unfocus();
           await Future.delayed(const Duration(milliseconds: 250));
@@ -99,25 +99,21 @@ class SignUpController extends GetxController {
         }
       } catch (e) {
         print("Connection Error: $e");
-        Get.snackbar(
-          'Error',
-          'Could not connect to server. Check your internet.',
+        Get.snackbar('Error'.tr, 'Could not connect to server. Check your internet.'.tr,
           snackPosition: SnackPosition.BOTTOM,
         );
       } finally {
         isLoading.value = false;
       }
     } else if (!agreeToTerms.value) {
-      Get.snackbar(
-        'Terms & Privacy',
-        'You must agree to the terms and privacy policy',
+      Get.snackbar('Terms & Privacy'.tr, 'You must agree to the terms and privacy policy'.tr,
         snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
 
   Future<void> onSocialLogin(String provider) async {
-    Get.snackbar('Social Login', 'Initiating $provider login...');
+    Get.snackbar('Social Login'.tr, 'Initiating $provider login...'.tr);
   }
 
   void navigateToLogin() {

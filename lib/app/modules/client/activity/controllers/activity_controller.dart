@@ -135,11 +135,9 @@ class ActivityController extends GetxController {
       
       if (status == 'requested') {
         upcomingBookings.add(booking);
-      } else if (['confirmed', 'on_way', 'arrived', 'working', 'completed'].contains(status)) {
-        // 'completed' stays in Confirmed tab until client confirms via payment
+      } else if (['confirmed', 'on_way', 'arrived', 'working'].contains(status)) {
         confirmedBookings.add(booking);
-      } else if (status == 'client_paid') {
-        // Locally set after client finishes payment flow
+      } else if (status == 'completed' || status == 'client_paid') {
         completedBookings.add(booking);
       } else if (status == 'cancelled' || status == 'rejected') {
         cancelledBookings.add(booking);

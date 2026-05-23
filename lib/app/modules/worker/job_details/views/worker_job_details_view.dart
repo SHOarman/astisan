@@ -413,12 +413,15 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(fontSize: 14.0, color: AppColors.greyText),
+        Flexible(
+          child: Text(
+            label.tr,
+            style: GoogleFonts.poppins(fontSize: 14.0, color: AppColors.greyText),
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
+          flex: 2,
           child: Text(
             value,
             textAlign: TextAlign.end,

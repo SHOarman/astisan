@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/Services/api_services.dart';
 import '../controllers/worker_booking_history_controller.dart';
@@ -23,7 +24,7 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
             onPressed: () => Get.back(),
           ),
           title: Text(
-            "Order History",
+            AppStrings.orderHistory.tr,
             style: GoogleFonts.poppins(
               color: AppColors.textColor,
               fontSize: 18,
@@ -39,10 +40,10 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
               color: AppColors.primary,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            tabs: const [
-              Tab(text: "Accepted"),
-              Tab(text: "Completed"),
-              Tab(text: "Cancelled"),
+            tabs: [
+              Tab(text: AppStrings.accepted.tr),
+              Tab(text: AppStrings.completed.tr),
+              Tab(text: AppStrings.cancelled.tr),
             ],
           ),
         ),
@@ -50,9 +51,9 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
             ? const Center(child: CircularProgressIndicator())
             : TabBarView(
                 children: [
-                  _buildBookingList(controller.acceptedBookings, "Accept by you", const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
-                  _buildBookingList(controller.completedBookings, "Completed", const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
-                  _buildBookingList(controller.cancelledBookings, "Cancelled", const Color(0xFFFFEBEE), const Color(0xFFE53935)),
+                  _buildBookingList(controller.acceptedBookings, AppStrings.acceptByYou.tr, const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
+                  _buildBookingList(controller.completedBookings, AppStrings.completed.tr, const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
+                  _buildBookingList(controller.cancelledBookings, AppStrings.cancelled.tr, const Color(0xFFFFEBEE), const Color(0xFFE53935)),
                 ],
               )),
       ),
@@ -217,7 +218,7 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               child: Text(
-                "View Details",
+                AppStrings.viewDetails.tr,
                 style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ),
@@ -230,24 +231,24 @@ class WorkerBookingHistoryView extends GetView<WorkerBookingHistoryController> {
   String _getStatusLabel(String status) {
     switch (status.toLowerCase()) {
       case 'requested':
-        return "Requested";
+        return "Requested".tr;
       case 'confirmed':
       case 'accepted':
-        return "Accept by you";
+        return AppStrings.acceptByYou.tr;
       case 'on_way':
       case 'on_the_way':
       case 'on-the-way':
-        return "On the Way";
+        return AppStrings.onTheWay.tr;
       case 'arrived':
-        return "Arrived";
+        return "Arrived".tr;
       case 'working':
-        return "Working";
+        return AppStrings.working.tr;
       case 'completed':
-        return "Completed";
+        return AppStrings.completed.tr;
       case 'cancelled':
-        return "Cancelled";
+        return AppStrings.cancelled.tr;
       case 'rejected':
-        return "Rejected";
+        return AppStrings.rejected.tr;
       default:
         return status.toUpperCase();
     }

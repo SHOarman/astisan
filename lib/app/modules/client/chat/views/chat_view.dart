@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/static/app_colors.dart';
 import '../../../../core/components/custom_chat_bubble.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../worker/chat/controllers/worker_chat_controller.dart';
 
 class ClientChatView extends GetView<UniversalChatController> {
@@ -50,7 +51,7 @@ class ClientChatView extends GetView<UniversalChatController> {
                     overflow: TextOverflow.ellipsis,
                   )),
                   Obx(() => Text(
-                    controller.isOnline.value ? 'Active now' : 'Offline',
+                    controller.isOnline.value ? AppStrings.activeNow.tr : AppStrings.offline.tr,
                     style: GoogleFonts.poppins(
                       color: controller.isOnline.value ? Colors.green : Colors.grey,
                       fontSize: 12,
@@ -79,10 +80,10 @@ class ClientChatView extends GetView<UniversalChatController> {
       }
 
       if (controller.messages.isEmpty) {
-        return const Center(
+        return Center(
           child: Text(
-            "No messages yet. Say hi!",
-            style: TextStyle(color: Colors.grey),
+            AppStrings.noMessagesYet.tr,
+            style: const TextStyle(color: Colors.grey),
           ),
         );
       }

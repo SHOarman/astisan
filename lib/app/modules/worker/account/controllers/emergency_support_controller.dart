@@ -31,7 +31,7 @@ class EmergencySupportController extends GetxController {
     await loadChatHistory();
     if (messages.isEmpty) {
       _addSystemMessage(
-        "Hi! 👋 I'm here to support your practice. What's on your mind today?",
+        "Hi! 👋 I'm here to support your practice. What's on your mind today?".tr,
       );
     }
   }
@@ -167,12 +167,12 @@ class EmergencySupportController extends GetxController {
         _addSystemMessage(reply);
       } else {
         print('AI Chat error: ${response.statusCode} ${response.body}');
-        _addSystemMessage('Sorry, the server returned an error.');
+        _addSystemMessage('Sorry, the server returned an error.'.tr);
       }
     } catch (e) {
       print('Error sending message: $e');
       _addSystemMessage(
-        'Sorry, there was an error connecting to the support chat.',
+        'Sorry, there was an error connecting to the support chat.'.tr,
       );
     } finally {
       isLoading.value = false;

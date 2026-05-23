@@ -98,7 +98,7 @@ class ResetPasswordVerificationView extends GetView<ResetPasswordVerificationCon
                     : null,
                 child: Text(
                   controller.timerSeconds.value > 0
-                      ? 'Resend in $timeFormatted'
+                      ? '${AppStrings.resendIn.tr} $timeFormatted'
                       : AppStrings.resendCode.tr,
                   style: GoogleFonts.poppins(
                     color: (controller.timerSeconds.value > 0 || controller.isLoading.value)

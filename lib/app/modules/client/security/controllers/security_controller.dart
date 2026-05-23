@@ -34,12 +34,12 @@ class SecurityController extends GetxController {
     final confirmPassword = confirmPasswordController.text;
 
     if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
-      Get.snackbar('Error', 'Please fill all fields', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error'.tr, 'Please fill all fields'.tr, snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
     if (newPassword != confirmPassword) {
-      Get.snackbar('Error', 'New passwords do not match', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error'.tr, 'New passwords do not match'.tr, snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
@@ -70,7 +70,7 @@ class SecurityController extends GetxController {
       Get.back(); // close loading dialog
 
       if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Your password successfully changed', snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar('Success'.tr, 'Your password successfully changed'.tr, snackPosition: SnackPosition.BOTTOM);
         currentPassController.clear();
         newPasswordController.clear();
         confirmPasswordController.clear();
@@ -98,7 +98,7 @@ class SecurityController extends GetxController {
     } catch (e) {
       Get.back(); // close loading dialog
       print('Error changing password: $e');
-      Get.snackbar('Error', 'Something went wrong', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error'.tr, 'Something went wrong'.tr, snackPosition: SnackPosition.BOTTOM);
     }
   }
 

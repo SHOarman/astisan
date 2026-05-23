@@ -106,3 +106,21 @@ class CustomChatBubble extends StatelessWidget {
   }
 }
 
+// Widget Preview for the IDE
+@Preview()
+Widget previewCustomChatBubble() {
+  return const Material(
+    child: CustomChatBubble(
+      message: "Hello, how can I help you today?",
+      time: "10:30 AM",
+      isMe: false,
+      showAvatar: true,
+    ),
+  );
+}
+
+// Dummy annotation for the IDE to pick up
+class Preview {
+  const Preview();
+}
+

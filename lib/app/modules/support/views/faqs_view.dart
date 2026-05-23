@@ -27,7 +27,7 @@ class FaqsView extends GetView<SupportController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'FAQs',
+          'FAQs'.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -40,7 +40,7 @@ class FaqsView extends GetView<SupportController> {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.faqsList.isEmpty) {
-          return const Center(child: Text('No FAQs available at the moment.'));
+          return Center(child: Text(AppStrings.noFaqsAvailable.tr));
         }
         return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),

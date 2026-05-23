@@ -86,7 +86,7 @@ class WorkerSavedAddressesController extends GetxController {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        Get.snackbar("Error", "Location services are disabled.");
+        Get.snackbar("Error".tr, "Location services are disabled.".tr);
         isLoading.value = false;
         return;
       }
@@ -95,7 +95,7 @@ class WorkerSavedAddressesController extends GetxController {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          Get.snackbar("Error", "Location permissions are denied");
+          Get.snackbar("Error".tr, "Location permissions are denied".tr);
           isLoading.value = false;
           return;
         }
@@ -116,11 +116,11 @@ class WorkerSavedAddressesController extends GetxController {
         currentCity.value = place.locality ?? place.subAdministrativeArea ?? "Dhaka";
         currentState.value = place.administrativeArea ?? "Dhaka Division";
         currentCountry.value = place.country ?? "Bangladesh";
-        Get.snackbar("Success", "Location updated. Press Save to apply.", snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar("Success".tr, "Location updated. Press Save to apply.".tr, snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
       print("Error getting location: $e");
-      Get.snackbar("Error", "Could not get current location");
+      Get.snackbar("Error".tr, "Could not get current location".tr);
     } finally {
       isLoading.value = false;
     }
@@ -149,7 +149,7 @@ class WorkerSavedAddressesController extends GetxController {
     }
 
     if (currentLat.value == 0.0 || currentLng.value == 0.0) {
-      Get.snackbar('Error', 'Please select a valid location first.');
+      Get.snackbar('Error'.tr, 'Please select a valid location first.'.tr);
       return;
     }
 
@@ -190,13 +190,13 @@ class WorkerSavedAddressesController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.back();
-        Get.snackbar('Success', 'Address saved successfully.', backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar('Success'.tr, 'Address saved successfully.'.tr, backgroundColor: Colors.green, colorText: Colors.white);
         hasSavedAddress.value = true;
       } else {
-        Get.snackbar('Error', 'Failed to save address: ${response.body}');
+        Get.snackbar('Error'.tr, 'Failed to save address: ${response.body}'.tr);
       }
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred while saving.');
+      Get.snackbar('Error'.tr, 'An error occurred while saving.'.tr);
     } finally {
       isLoading.value = false;
     }

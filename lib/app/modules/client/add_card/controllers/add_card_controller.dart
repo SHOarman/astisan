@@ -12,7 +12,7 @@ class AddCardController extends GetxController {
 
   void saveCard() {
     if (nameController.text.isEmpty || cardNumberController.text.isEmpty || expiryController.text.isEmpty) {
-      Get.snackbar('Error', 'Please fill all card details');
+      Get.snackbar('Error'.tr, 'Please fill all card details'.tr);
       return;
     }
 
@@ -35,9 +35,9 @@ class AddCardController extends GetxController {
       });
 
       Get.back();
-      Get.snackbar('Success', 'Card added successfully');
+      Get.snackbar('Success'.tr, 'Card added successfully'.tr);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to add card');
+      Get.snackbar('Error'.tr, 'Failed to add card'.tr);
     }
   }
 

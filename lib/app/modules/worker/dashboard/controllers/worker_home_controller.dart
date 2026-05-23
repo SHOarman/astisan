@@ -213,8 +213,10 @@ class WorkerHomeController extends GetxController {
           .trim()
           .replaceAll('"', '')
           .replaceAll('Bearer ', '');
-      final url = ApiServices.artisan_today_schedule;
-      print("DEBUG: Fetching today schedule from: $url");
+      
+      // Use artisan_bookings to get all bookings and filter manually for today's accepted ones
+      final url = ApiServices.artisan_bookings;
+      print("DEBUG: Fetching bookings from: $url");
 
       final response = await http
           .get(
@@ -227,91 +229,47 @@ class WorkerHomeController extends GetxController {
           )
           .timeout(const Duration(seconds: 15));
 
-      print("DEBUG: Schedule response status: ${response.statusCode}");
-      print(
-        "DEBUG: Schedule response body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}",
-      );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> results = (data is List)
             ? data
             : (data['results'] as List? ?? []);
 
-        print("DEBUG: Parsed ${results.length} bookings from today schedule");
-
-        final List<Map<String, dynamic>> processedResults = [];
-
-        for (var e in results) {
-          final map = Map<String, dynamic>.from(e);
-
-          // Geocode fallback and live distance calculation if backend sends null distance_km
-          if (map['distance_km'] == null || map['distance_km'] == 'null') {
-            double? destLat;
-            double? destLng;
-
-            final rawLat = map['address_lat'] ?? map['lat'];
-            final rawLng = map['address_lng'] ?? map['lng'];
-
-            if (rawLat != null) destLat = double.tryParse(rawLat.toString());
-            if (rawLng != null) destLng = double.tryParse(rawLng.toString());
-
-            if (destLat == null && map['full_address'] != null) {
-              try {
-                final locations = await locationFromAddress(
-                  map['full_address'].toString(),
-                );
-                if (locations.isNotEmpty) {
-                  destLat = locations.first.latitude;
-                  destLng = locations.first.longitude;
-                }
-              } catch (_) {}
-            }
-
-            if (destLat != null &&
-                destLng != null &&
-                Get.isRegistered<LocationController>()) {
-              final locCtrl = Get.find<LocationController>();
-              final currentPos = locCtrl.currentPosition.value;
-              if (currentPos != null) {
-                final dist = Geolocator.distanceBetween(
-                  currentPos.latitude,
-                  currentPos.longitude,
-                  destLat,
-                  destLng,
-                );
-                map['distance_km'] = (dist / 1000.0).toStringAsFixed(1);
-              }
-            }
-          }
-
-          processedResults.add(map);
-        }
-
         final DateTime now = DateTime.now();
         final String todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
-        final newBookings = processedResults
-            .map((e) => ScheduleBooking.fromJson(e))
+        final newBookings = results
+            .map((e) => ScheduleBooking.fromJson(e as Map<String, dynamic>))
             .where((b) {
               final status = b.status.toLowerCase();
-              if (status == 'requested') return false;
-              if (status == 'completed') return false;
-              if (status == 'cancelled' || status == 'rejected') return false;
+              // Statuses that count as "accepted" or "in progress"
+              final bool isAcceptedOrInProgress = [
+                'confirmed', 
+                'accepted', 
+                'on_way', 
+                'on_the_way', 
+                'on-the-way', 
+                'arrived', 
+                'working'
+              ].contains(status);
               
-              if (b.scheduledDate.isEmpty) return true;
-              final String bookingDate = b.scheduledDate.split('T')[0];
+              if (!isAcceptedOrInProgress) return false;
+              
+              // Filter by today's date
+              if (b.scheduledDate.isEmpty) return false;
+              final String bookingDate = b.scheduledDate.contains('T') 
+                  ? b.scheduledDate.split('T')[0] 
+                  : b.scheduledDate;
+                  
               return bookingDate == todayStr;
             })
             .toList();
 
         if (_hasChanges(newBookings)) {
           scheduleBookings.assignAll(newBookings);
-          print(
-            "DEBUG: Updated scheduleBookings with ${newBookings.length} items",
-          );
         }
-      } else {
+      }
+else {
         print(
           "DEBUG: fetchTodaySchedule non-200: ${response.statusCode} ${response.body}",
         );

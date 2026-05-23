@@ -183,3 +183,52 @@ class WorkerChatView extends GetView<UniversalChatController> {
     );
   }
 }
+
+// Widget Preview for the IDE
+@Preview()
+Widget previewWorkerBanner() {
+  return const Material(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        WorkerBannerPreview(),
+      ],
+    ),
+  );
+}
+
+class WorkerBannerPreview extends StatelessWidget {
+  const WorkerBannerPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBF2FA),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.star_rounded, color: AppColors.primary, size: 28),
+          const SizedBox(width: 12),
+          Text(
+            "Job in Progress",
+            style: GoogleFonts.poppins(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const Spacer(),
+          const Icon(Icons.arrow_forward, color: AppColors.primary, size: 18),
+        ],
+      ),
+    );
+  }
+}
+
+// Dummy annotation for the IDE to pick up
+class Preview {
+  const Preview();
+}

@@ -21,7 +21,7 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
       appBar: AppBar(
         title: Obx(() => Text(
             controller.isArtisanSpecificFlow.value 
-                ? 'Artisan Details'
+                ? 'Artisan Details'.tr
                 : AppStrings.serviceDetails.tr,
             style: GoogleFonts.poppins(color: AppColors.white, fontSize: 18.0, fontWeight: FontWeight.w600))),
         centerTitle: true,
@@ -311,15 +311,25 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
         Row(children: [
           const Icon(Icons.star_rounded, color: AppColors.ratingStar, size: 24.0),
           const SizedBox(width: 8.0),
-          Text('4.7 Average Rating', style: GoogleFonts.poppins(color: AppColors.textColor, fontSize: 16.0, fontWeight: FontWeight.w700)),
+          Obx(() => Text('${controller.serviceData['rating'] ?? controller.artisanData['rating'] ?? '4.7'} ${'Average Rating'.tr}', style: GoogleFonts.poppins(color: AppColors.textColor, fontSize: 16.0, fontWeight: FontWeight.w700))),
         ]),
         const SizedBox(height: 24.0),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: controller.reviews.length,
-          itemBuilder: (context, index) => _buildReviewCard(controller.reviews[index]),
-        ),
+        Obx(() {
+          if (controller.reviews.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text('No reviews yet'.tr, style: GoogleFonts.poppins(color: AppColors.greyText)),
+              ),
+            );
+          }
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: controller.reviews.length,
+            itemBuilder: (context, index) => _buildReviewCard(controller.reviews[index]),
+          );
+        }),
       ],
     );
   }
@@ -332,12 +342,28 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            CircleAvatar(radius: 20.0, backgroundImage: AssetImage(review['image'])),
+            CircleAvatar(
+              radius: 20.0, 
+              backgroundColor: Colors.grey[200],
+              backgroundImage: (review['image'] != null && review['image'].toString().isNotEmpty)
+                  ? NetworkImage(review['image']) 
+                  : null,
+              child: (review['image'] == null || review['image'].toString().isEmpty)
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            ),
             const SizedBox(width: 12.0),
-            Expanded(child: Text(review['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.w700))),
+            Expanded(child: Text(review['name'] ?? 'Client', style: GoogleFonts.poppins(fontWeight: FontWeight.w700))),
+            Row(
+              children: [
+                const Icon(Icons.star, color: AppColors.ratingStar, size: 16),
+                const SizedBox(width: 4),
+                Text('${review['rating']}', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              ],
+            )
           ]),
           const SizedBox(height: 12.0),
-          Text(review['comment'], style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0)),
+          Text(review['comment'] ?? '', style: GoogleFonts.poppins(color: AppColors.greyText, fontSize: 14.0)),
         ],
       ),
     );
@@ -424,9 +450,9 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
                           children: [
                             Row(
                               children: [
-                                Text(artisan['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                                Expanded(child: Text(artisan['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
                                 if (isSelected) ...[
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
@@ -438,7 +464,8 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
                                 ],
                               ],
                             ),
-                            Row(
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 const Icon(Icons.star, color: AppColors.ratingStar, size: 14),
                                 const SizedBox(width: 4),
@@ -501,8 +528,13 @@ class ServiceDetailsView extends GetView<ServiceDetailsController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(artisan['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
               Row(
+                children: [
+                  Expanded(child: Text(artisan['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+                ],
+              ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Icon(Icons.star, color: AppColors.ratingStar, size: 14),
                   const SizedBox(width: 4),

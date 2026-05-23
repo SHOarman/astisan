@@ -82,6 +82,7 @@ import '../../modules/client/security/views/change_password_view.dart';
 import '../../modules/client/security/controllers/security_controller.dart';
 import '../../modules/client/get_bonus/views/get_bonus_view.dart';
 import '../../modules/client/get_bonus/controllers/get_bonus_controller.dart';
+import '../../modules/client/recent_bookings/views/recent_bookings_view.dart';
 import '../../modules/client/activity/views/activity_view.dart';
 import '../../modules/client/activity/controllers/activity_controller.dart';
 import '../../modules/worker/account/views/emergencysupport.dart';
@@ -475,6 +476,10 @@ class AppPages {
       binding: BindingsBuilder(() {
         Get.lazyPut<GetBonusController>(() => GetBonusController());
       }),
+    ),
+    GetPage(
+      name: Routes.RECENT_BOOKINGS,
+      page: () => const RecentBookingsView(),
     ),
     GetPage(
       name: Routes.ORDER_HISTORY,

@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
-      title: 'Fixgo Artisan Platform',
+      title: 'FixGo',
       theme: AppTheme.lightTheme,
       translations: AppStrings(), // Applying generated localized strings
       fallbackLocale: const Locale('en', 'US'),

@@ -26,7 +26,7 @@ class FeedbackView extends GetView<SupportController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Feedback',
+          AppStrings.feedbook.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -170,7 +170,7 @@ class FeedbackView extends GetView<SupportController> {
                                 children: [
                                   const Icon(Icons.image, size: 16, color: AppColors.primary),
                                   const SizedBox(width: 4),
-                                  const Text("Image attached", style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
+                                  Text(AppStrings.imageAttached.tr, style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
                                   const SizedBox(width: 8),
                                   GestureDetector(
                                     onTap: () => controller.attachedImagePath.value = '',
@@ -204,7 +204,7 @@ class FeedbackView extends GetView<SupportController> {
           elevation: 0,
         ),
         child: Text(
-          'Submit',
+          AppStrings.submit.tr,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.bold,

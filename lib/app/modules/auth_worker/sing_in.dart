@@ -60,22 +60,22 @@ class SingIn extends GetView<AuthWorkerController> {
       children: [
         CustomTextField(
           labelText: AppStrings.email.tr,
-          hintText: 'example@mail.com',
+          hintText: AppStrings.emailHint.tr,
           controller: controller.emailController,
           keyboardType: TextInputType.emailAddress,
-          validator: (value) => (value == null || !GetUtils.isEmail(value)) ? 'Enter a valid email' : null,
+          validator: (value) => (value == null || !GetUtils.isEmail(value)) ? AppStrings.enterValidEmailError.tr : null,
         ),
         const SizedBox(height: 16.0),
         Obx(() => CustomTextField(
           labelText: AppStrings.password.tr,
-          hintText: '***************',
+          hintText: AppStrings.passwordHint.tr,
           controller: controller.passwordController,
           obscureText: controller.obscurePassword.value,
           suffixIcon: IconButton(
             onPressed: () => controller.togglePasswordVisibility(),
             icon: Icon(controller.obscurePassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
           ),
-          validator: (value) => (value == null || value.isEmpty) ? 'Enter your password' : null,
+          validator: (value) => (value == null || value.isEmpty) ? AppStrings.enterPasswordError.tr : null,
         )),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

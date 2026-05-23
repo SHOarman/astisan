@@ -312,7 +312,7 @@ class AuthWorkerController extends GetxController {
             await prefs.setString('role', 'worker');
             Get.find<RoleController>().setRole('worker');
             await fetchAndSaveProfile(cleanToken);
-            Get.snackbar('Success', 'Login Successful!');
+            Get.snackbar('Success'.tr, 'Login Successful!'.tr);
             Get.offAllNamed(Routes.DASHBOARD);
           } else {
             _showErrorSnackBar('Login Error', 'Token not found.');
@@ -449,7 +449,7 @@ class AuthWorkerController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.offAllNamed(Routes.DASHBOARD);
-        Get.snackbar('Success', 'Profile updated and visible to Admin');
+        Get.snackbar('Success'.tr, 'Profile updated and visible to Admin'.tr);
       } else {
         final data = json.decode(response.body);
         _showErrorSnackBar('Error', data['message'] ?? 'Failed to update profile (${response.statusCode})');

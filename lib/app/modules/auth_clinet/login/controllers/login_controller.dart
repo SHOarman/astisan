@@ -84,7 +84,7 @@ class LoginController extends GetxController {
 
           if (token.isEmpty) {
             print("WARNING: Login successful but NO TOKEN found in response keys");
-            Get.snackbar('Warning', 'Login success, but session token missing');
+            Get.snackbar('Warning'.tr, 'Login success, but session token missing'.tr);
           } else {
             String cleanToken = token.trim().replaceAll('"', '').replaceAll('Bearer ', '');
             print("Extracted Clean Token: $cleanToken");
@@ -100,7 +100,7 @@ class LoginController extends GetxController {
             print("Token and Role saved to SharedPreferences");
           }
 
-          Get.snackbar('Success', 'Login Successful');
+          Get.snackbar('Success'.tr, 'Login Successful'.tr);
           
           FocusManager.instance.primaryFocus?.unfocus();
           await Future.delayed(const Duration(milliseconds: 250));
@@ -112,7 +112,7 @@ class LoginController extends GetxController {
         }
       } catch (e) {
         print("Catch Error: $e");
-        Get.snackbar('Error', 'Connection failed');
+        Get.snackbar('Error'.tr, 'Connection failed'.tr);
       } finally {
         isLoading.value = false;
       }
@@ -130,6 +130,6 @@ class LoginController extends GetxController {
   }
 
   void onSocialLogin(String provider) {
-    Get.snackbar('Social Login', 'Initiating $provider login...');
+    Get.snackbar('Social Login'.tr, 'Initiating $provider login...'.tr);
   }
 }

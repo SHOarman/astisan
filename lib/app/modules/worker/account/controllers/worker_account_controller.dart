@@ -107,6 +107,7 @@ class WorkerAccountController extends GetxController {
 
           // Fetch specific service to get a better name if "Artisan"
           await fetchMyServices(cleanToken);
+          await fetchWorkerStats(cleanToken);
 
           if (artisan['skills'] != null) {
             if (artisan['skills'] is String) {
@@ -137,6 +138,28 @@ class WorkerAccountController extends GetxController {
       print("Profile error: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchWorkerStats(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiServices.artisan_bookings),
+        headers: {
+          'Accept-Language': ApiServices.currentLanguage,
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final results = (data is Map && data.containsKey('results')) ? data['results'] as List : (data is List ? data : []);
+        int completedCount = results.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'completed').length;
+        jobsDone.value = completedCount;
+      }
+    } catch (e) {
+      print("Error fetching worker completed bookings: $e");
     }
   }
 

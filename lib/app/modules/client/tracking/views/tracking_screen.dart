@@ -535,9 +535,7 @@ class TrackingScreen extends GetView<TrackingController> {
                           secondaryButtonText: "Go Back",
                           onPrimaryPressed: () {
                             Navigator.pop(context); // Close dialog
-                            Get.snackbar(
-                              "Cancelled",
-                              "Booking cancelled successfully",
+                            Get.snackbar("Cancelled".tr, "Booking cancelled successfully".tr,
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: Colors.redAccent,
                               colorText: Colors.white,

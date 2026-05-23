@@ -229,13 +229,13 @@ class WorkerTrackingController extends GetxController {
       print("DEBUG: Tracking Response: ${response.statusCode} ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Status updated successfully",
+        Get.snackbar("Success".tr, "Status updated successfully".tr,
             backgroundColor: const Color(0xFF4CAE79),
             colorText: const Color(0xFFFFFFFF));
         fetchBookingDetails();
         return true;
       } else {
-        Get.snackbar("Error", "Failed: ${response.body}",
+        Get.snackbar("Error".tr, "Failed: ${response.body}".tr,
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
         return false;
@@ -305,20 +305,20 @@ class WorkerTrackingController extends GetxController {
       print("DEBUG: Request Additional Cost Response: ${response.statusCode} ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Additional cost requested successfully",
+        Get.snackbar("Success".tr, "Additional cost requested successfully".tr,
             backgroundColor: const Color(0xFF4CAE79),
             colorText: const Color(0xFFFFFFFF));
         fetchBookingDetails();
         return true;
       } else {
-        Get.snackbar("Error", "Failed to request additional cost: ${response.body}",
+        Get.snackbar("Error".tr, "Failed to request additional cost: ${response.body}".tr,
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
         return false;
       }
     } catch (e) {
       print("Error in requesting additional cost: $e");
-      Get.snackbar("Error", "An error occurred: $e",
+      Get.snackbar("Error".tr, "An error occurred: $e".tr,
           backgroundColor: const Color(0xFFFF0000),
           colorText: const Color(0xFFFFFFFF));
       return false;

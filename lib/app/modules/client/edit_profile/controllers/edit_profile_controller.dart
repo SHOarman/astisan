@@ -45,7 +45,7 @@ class EditProfileController extends GetxController {
       isWorker.value = (role == 'worker' || role == 'artisan');
 
       if (token == null || token.isEmpty) {
-        Get.snackbar('Error', 'Authentication token not found');
+        Get.snackbar('Error'.tr, 'Authentication token not found'.tr);
         return;
       }
 
@@ -84,18 +84,18 @@ class EditProfileController extends GetxController {
           final data = json.decode(altResponse.body);
           _populateFields(data);
           if (isWorker.value) await _fetchWorkerServices(cleanToken);
-          Get.snackbar('Role Synced', 'Your account role was updated to $altRole');
+          Get.snackbar('Role Synced'.tr, 'Your account role was updated to $altRole'.tr);
         } else {
-          Get.snackbar('Access Denied', 'Your account does not have permissions for this section.', backgroundColor: Colors.red, colorText: Colors.white);
+          Get.snackbar('Access Denied'.tr, 'Your account does not have permissions for this section.'.tr, backgroundColor: Colors.red, colorText: Colors.white);
         }
       } else if (response.statusCode == 401) {
-        Get.snackbar('Session Expired', 'Please login again', backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar('Session Expired'.tr, 'Please login again'.tr, backgroundColor: Colors.red, colorText: Colors.white);
       } else {
-        Get.snackbar('Error', 'Failed to load profile (${response.statusCode})', backgroundColor: Colors.orange, colorText: Colors.white);
+        Get.snackbar('Error'.tr, 'Failed to load profile (${response.statusCode})'.tr, backgroundColor: Colors.orange, colorText: Colors.white);
       }
     } catch (e) {
       print("Error fetching profile: $e");
-      Get.snackbar('Error', 'Failed to fetch profile: $e');
+      Get.snackbar('Error'.tr, 'Failed to fetch profile: $e'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -174,7 +174,7 @@ class EditProfileController extends GetxController {
       final String? token = prefs.getString('token');
 
       if (token == null || token.isEmpty) {
-        Get.snackbar('Error', 'Authentication token not found');
+        Get.snackbar('Error'.tr, 'Authentication token not found'.tr);
         return;
       }
 
@@ -279,7 +279,7 @@ class EditProfileController extends GetxController {
       var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Profile updated successfully');
+        Get.snackbar('Success'.tr, 'Profile updated successfully'.tr);
 
         if (Get.isRegistered<ProfileController>()) {
           final profileCtrl = Get.find<ProfileController>();
@@ -327,14 +327,12 @@ class EditProfileController extends GetxController {
 
         Get.back();
       } else {
-        Get.snackbar(
-          'Error',
-          'Failed to update profile: ${response.statusCode}',
+        Get.snackbar('Error'.tr, 'Failed to update profile: ${response.statusCode}'.tr,
         );
       }
     } catch (e) {
       print("Error updating profile: $e");
-      Get.snackbar('Error', 'Connection failed');
+      Get.snackbar('Error'.tr, 'Connection failed'.tr);
     } finally {
       isLoading.value = false;
     }

@@ -79,7 +79,7 @@ class ReportIssueController extends GetxController {
         attachedFiles.add(file);
       }
     } catch (e) {
-      Get.snackbar("Error", "Could not pick image: $e");
+      Get.snackbar("Error".tr, "Could not pick image: $e".tr);
     }
   }
 
@@ -115,11 +115,11 @@ class ReportIssueController extends GetxController {
 
   void submitReport() {
     if (selectedIssueType.isEmpty) {
-      Get.snackbar("Error", "Please select an issue type", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Error".tr, "Please select an issue type".tr, backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
     if (descriptionController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please provide a description", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Error".tr, "Please provide a description".tr, backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
@@ -144,7 +144,7 @@ class ReportIssueController extends GetxController {
       final String? token = prefs.getString('token');
       if (token == null) {
         Get.back();
-        Get.snackbar("Error", "Authorization token not found");
+        Get.snackbar("Error".tr, "Authorization token not found".tr);
         return;
       }
 
@@ -218,7 +218,7 @@ class ReportIssueController extends GetxController {
     } catch (e) {
       Get.back(); // Dismiss loading
       print("Error reporting issue: $e");
-      Get.snackbar("Error", "Something went wrong. Please try again.");
+      Get.snackbar("Error".tr, "Something went wrong. Please try again.".tr);
     }
   }
 

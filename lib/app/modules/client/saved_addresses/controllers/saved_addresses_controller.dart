@@ -5,6 +5,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +29,7 @@ class SavedAddressesController extends GetxController {
       final token = prefs.getString('token');
       
       if (token == null) {
-        Get.snackbar('Error', 'Session expired. Please login again.');
+        Get.snackbar('Error'.tr, 'Session expired. Please login again.'.tr);
         return;
       }
 
@@ -62,10 +63,10 @@ class SavedAddressesController extends GetxController {
           'raw': e,
         }).toList());
       } else {
-        Get.snackbar('Error', 'Failed to load: ${response.statusCode}');
+        Get.snackbar('Error'.tr, 'Failed to load: ${response.statusCode}'.tr);
       }
     } catch (e) {
-      Get.snackbar('Error', 'Network error: $e');
+      Get.snackbar('Error'.tr, 'Network error: $e'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -98,10 +99,10 @@ class SavedAddressesController extends GetxController {
 
       if (response.statusCode == 204 || response.statusCode == 200) {
         fetchAddresses();
-        Get.snackbar('Success', 'Address deleted successfully');
+        Get.snackbar('Success'.tr, 'Address deleted successfully'.tr);
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to delete address');
+      Get.snackbar('Error'.tr, 'Failed to delete address'.tr);
     }
   }
 

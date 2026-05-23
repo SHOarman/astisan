@@ -101,7 +101,7 @@ class HelpSupportView extends GetView<SupportController> {
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
       title: Text(
-        title,
+        title.tr,
         style: GoogleFonts.poppins(
           color: AppColors.textColor,
           fontSize: 16.0,

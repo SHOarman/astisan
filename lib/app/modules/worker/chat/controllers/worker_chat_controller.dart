@@ -89,6 +89,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart'; // Add this for IOWebSocketChannel
 import '../../../../core/Services/api_services.dart';
 import '../../job_details/controllers/worker_job_details_controller.dart'; // import models
 
@@ -142,7 +143,11 @@ class UniversalChatController extends GetxController {
 
       // First, try to get the actual chat room using the booking ID
       String roomUrl = "$baseurl/api/chat/$role/booking/$roomId/";
-      final roomResponse = await http.get(Uri.parse(roomUrl), headers: { 'Accept-Language': ApiServices.currentLanguage, "Authorization": "Bearer $token"});
+      final roomResponse = await http.get(Uri.parse(roomUrl), headers: { 
+        'Accept-Language': ApiServices.currentLanguage, 
+        "Authorization": "Bearer $token",
+        'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true' // Skip phishing page
+      });
       
       String realRoomId = roomId;
       if (roomResponse.statusCode == 200 || roomResponse.statusCode == 201) {
@@ -161,7 +166,11 @@ class UniversalChatController extends GetxController {
 
       // If messages weren't included, fetch them using the real room ID
       String url = "$baseurl/api/chat/$role/$realRoomId/messages/";
-      final response = await http.get(Uri.parse(url), headers: { 'Accept-Language': ApiServices.currentLanguage, "Authorization": "Bearer $token"});
+      final response = await http.get(Uri.parse(url), headers: { 
+        'Accept-Language': ApiServices.currentLanguage, 
+        "Authorization": "Bearer $token",
+        'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true'
+      });
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -191,27 +200,39 @@ class UniversalChatController extends GetxController {
 
     print("DEBUG: Connecting to WebSocket: $wsUrl");
 
-    channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-    
-    channel!.stream.listen((event) {
-      print("DEBUG: WebSocket Received: $event");
-      final data = jsonDecode(event);
-      if (data['type'] == 'user_status') {
-         isOnline.value = data['is_online'] == true || data['status'] == 'online';
-      } else if (data['type'] == 'new_message' || data['message'] != null) {
-        final msgData = data['message'] ?? data;
-        final newMsg = ChatMessageModel.fromJson(msgData);
-        
-        messages.removeWhere((m) => m.id.startsWith('temp_') && m.content == newMsg.content);
-        
-        // Add the real message from the server
-        messages.insert(0, newMsg);
-      }
-    }, onError: (error) {
-      print("DEBUG: WebSocket Error: $error");
-    }, onDone: () {
-      print("DEBUG: WebSocket Connection Closed. Code: ${channel!.closeCode}, Reason: ${channel!.closeReason}");
-    });
+    try {
+      // Use IOWebSocketChannel to pass custom headers required for DevTunnels
+      channel = IOWebSocketChannel.connect(
+        Uri.parse(wsUrl),
+        headers: {
+          'X-Tunnel-Skip-Anti-Phishing-Threshold': 'true',
+          'Origin': baseurl,
+        },
+      );
+      
+      channel!.stream.listen((event) {
+        print("DEBUG: WebSocket Received: $event");
+        final data = jsonDecode(event);
+        if (data['type'] == 'user_status') {
+           isOnline.value = data['is_online'] == true || data['status'] == 'online';
+        } else if (data['type'] == 'new_message' || data['message'] != null) {
+          final msgData = data['message'] ?? data;
+          final newMsg = ChatMessageModel.fromJson(msgData);
+          
+          messages.removeWhere((m) => m.id.startsWith('temp_') && m.content == newMsg.content);
+          
+          // Add the real message from the server
+          messages.insert(0, newMsg);
+        }
+      }, onError: (error) {
+        print("DEBUG: WebSocket Error: $error");
+        // Auto-reconnect or show error
+      }, onDone: () {
+        print("DEBUG: WebSocket Connection Closed. Code: ${channel!.closeCode}, Reason: ${channel!.closeReason}");
+      });
+    } catch (e) {
+      print("DEBUG: WebSocket Exception: $e");
+    }
   }
 
   void sendMessage() {

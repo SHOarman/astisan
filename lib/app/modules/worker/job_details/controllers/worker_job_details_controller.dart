@@ -306,7 +306,7 @@ class WorkerJobDetailsController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         bookingStatus.value = status;
-        Get.snackbar("Success", "Status updated successfully",
+        Get.snackbar("Success".tr, "Status updated successfully".tr,
             backgroundColor: const Color(0xFF4CAE79),
             colorText: const Color(0xFFFFFFFF));
         
@@ -320,14 +320,14 @@ class WorkerJobDetailsController extends GetxController {
         fetchJobDetails();
         return true;
       } else {
-        Get.snackbar("Error", "Update failed (${response.statusCode}): ${response.body}",
+        Get.snackbar("Error".tr, "Update failed (${response.statusCode}): ${response.body}".tr,
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
         return false;
       }
     } catch (e) {
       print("Error updating status: $e");
-      Get.snackbar("Error", "Something went wrong");
+      Get.snackbar("Error".tr, "Something went wrong".tr);
       return false;
     } finally {
       isLoading.value = false;
@@ -367,7 +367,7 @@ class WorkerJobDetailsController extends GetxController {
       if (response.statusCode != 200 && response.statusCode != 204) {
         checklist[index]['checked'] = !newChecked;
         checklist.refresh();
-        Get.snackbar("Error", "Failed to update item status");
+        Get.snackbar("Error".tr, "Failed to update item status".tr);
       }
     } catch (e) {
       checklist[index]['checked'] = !newChecked;
@@ -679,32 +679,32 @@ class WorkerJobDetailsController extends GetxController {
     if (attachmentImage.value.isNotEmpty) {
       Get.to(() => WorkerImageView(imagePath: attachmentImage.value));
     } else {
-      Get.snackbar("Error", "No attachment found");
+      Get.snackbar("Error".tr, "No attachment found".tr);
     }
   }
 
   Future<void> downloadAttachment() async {
     if (attachmentImage.value.isEmpty) {
-      Get.snackbar("Error", "No attachment to download");
+      Get.snackbar("Error".tr, "No attachment to download".tr);
       return;
     }
     try {
-      Get.snackbar("Download", "Download started...",
+      Get.snackbar("Download".tr, "Download started...".tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColors.primary.withOpacity(0.1));
 
       final response = await http.get(Uri.parse(attachmentImage.value));
       if (response.statusCode == 200) {
         await Future.delayed(const Duration(seconds: 1));
-        Get.snackbar("Success", "File saved to downloads",
+        Get.snackbar("Success".tr, "File saved to downloads".tr,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green.withOpacity(0.1));
       } else {
-        Get.snackbar("Error", "Failed to reach file server");
+        Get.snackbar("Error".tr, "Failed to reach file server".tr);
       }
     } catch (e) {
       print("Download error: $e");
-      Get.snackbar("Error", "Could not complete download");
+      Get.snackbar("Error".tr, "Could not complete download".tr);
     }
   }
 
@@ -746,9 +746,7 @@ class WorkerJobDetailsController extends GetxController {
 
     final success = await updateStatus("completed");
     if (success) {
-      Get.snackbar(
-        "Success",
-        "Job completed successfully!",
+      Get.snackbar("Success".tr, "Job completed successfully!".tr,
         backgroundColor: const Color(0xFF4CAE79),
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,

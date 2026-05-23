@@ -373,7 +373,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                           const Icon(Icons.check, color: AppColors.timelineActive, size: 16.0),
                           const SizedBox(width: 8.0),
                           Text(
-                            artisan != null ? 'Artisan Found!' : 'No Artisan Nearby',
+                            artisan != null ? AppStrings.artisanFound.tr : AppStrings.noArtisanNearby.tr,
                             style: GoogleFonts.poppins(
                               color: AppColors.timelineActive,
                               fontSize: 14.0,
@@ -387,11 +387,11 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                   avatarPath: artisan != null && artisan['avatar'] != null && artisan['avatar'].isNotEmpty
                       ? artisan['avatar']
                       : AppImages.homeSarahWilliams,
-                  name: artisan != null ? artisan['name'] : 'Searching...',
+                  name: artisan != null ? artisan['name'] : AppStrings.searching.tr,
                   details: artisan != null
                       ? '${artisan['role']} \u00B7 ${artisan['distance']}'
-                      : 'Checking availability',
-                  ratingText: 'Rating',
+                      : AppStrings.checkingAvailability.tr,
+                  ratingText: AppStrings.rating.tr,
                   ratingValue: artisan != null ? artisan['rating'].toString() : '0.0',
                   actionWidget: Column(
                     children: [
@@ -431,10 +431,10 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                             showDialog(
                               context: context,
                               builder: (context) => CustomDialog(
-                                title: "Cancel this order?",
-                                subtitle: "You can't undo this later",
-                                primaryButtonText: "Confirm",
-                                secondaryButtonText: "Cancel",
+                                title: AppStrings.cancelOrder.tr,
+                                subtitle: AppStrings.cannotUndo.tr,
+                                primaryButtonText: AppStrings.confirm.tr,
+                                secondaryButtonText: AppStrings.cancel.tr,
                                 onPrimaryPressed: () => Navigator.pop(context),
                                 onSecondaryPressed: () => Navigator.pop(context),
                               ),
@@ -448,7 +448,7 @@ class FindingArtisanView extends GetView<FindingArtisanController> {
                             ),
                           ),
                           child: Text(
-                            'Cancel \u2715',
+                            AppStrings.cancel.tr,
                             style: GoogleFonts.poppins(
                               color: AppColors.greyText,
                               fontSize: 16.0,

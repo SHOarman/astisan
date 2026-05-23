@@ -68,13 +68,13 @@ class SubCategoryController extends GetxController {
           };
         }).toList());
       } else if (response.statusCode == 504) {
-        Get.snackbar("Server Timeout", "The server is taking too long to respond. Please try again.",
+        Get.snackbar("Server Timeout".tr, "The server is taking too long to respond. Please try again.".tr,
             snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
       print("Error fetching sub-category services: $e");
       if (e.toString().contains("TimeoutException")) {
-        Get.snackbar("Connection Timeout", "Please check your internet connection and try again.",
+        Get.snackbar("Connection Timeout".tr, "Please check your internet connection and try again.".tr,
             snackPosition: SnackPosition.BOTTOM);
       }
     } finally {

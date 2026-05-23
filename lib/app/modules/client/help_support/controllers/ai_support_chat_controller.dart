@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/static/app_strings.dart';
 
 class AiSupportChatController extends GetxController {
   final messages = <Map<String, dynamic>>[].obs;
@@ -85,11 +86,11 @@ class AiSupportChatController extends GetxController {
         });
         _scrollToBottom();
       } else {
-        Get.snackbar("Error", "Failed to get response from AI.", snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar("Error".tr, AppStrings.failedToGetAiResponse.tr, snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
       print("Error sending message to AI: $e");
-      Get.snackbar("Error", "Something went wrong.", snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar("Error".tr, AppStrings.somethingWentWrong.tr, snackPosition: SnackPosition.BOTTOM);
     } finally {
       isSending.value = false;
     }

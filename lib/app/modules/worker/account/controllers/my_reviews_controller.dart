@@ -69,7 +69,7 @@ class MyReviewsController extends GetxController {
         ratingBreakdown.value = counts;
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load reviews');
+      Get.snackbar('Error'.tr, 'Failed to load reviews'.tr);
     } finally {
       isLoading.value = false;
     }

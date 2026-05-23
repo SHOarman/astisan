@@ -47,7 +47,7 @@ class ActivityView extends GetView<ActivityController> {
                     ),
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: "Search orders...",
+                        hintText: AppStrings.searchOrders.tr,
                         hintStyle: GoogleFonts.poppins(
                           color: Colors.grey[400],
                           fontSize: 15.0,
@@ -77,10 +77,10 @@ class ActivityView extends GetView<ActivityController> {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   tabs: [
-                    _buildTab("Upcoming", controller.getCount("Upcoming").toString()),
-                    _buildTab("Confirmed", controller.getCount("Confirmed").toString()),
-                    _buildTab("Completed", controller.getCount("Completed").toString()),
-                    _buildTab("Cancelled", controller.getCount("Cancelled").toString()),
+                    _buildTab(AppStrings.upcoming.tr, controller.getCount("Upcoming").toString()),
+                    _buildTab(AppStrings.bookingConfirmed.tr, controller.getCount("Confirmed").toString()),
+                    _buildTab(AppStrings.completed.tr, controller.getCount("Completed").toString()),
+                    _buildTab(AppStrings.cancelled.tr, controller.getCount("Cancelled").toString()),
                   ],
                 )),
                 const SizedBox(height: 10.0),

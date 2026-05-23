@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/components/status_timeline_tile.dart';
 import '../controllers/worker_tracking_controller.dart';
 
@@ -14,7 +15,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          "Tracking",
+          AppStrings.tracking.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -51,7 +52,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                   ),
                   const SizedBox(width: 6.0),
                   Text(
-                    isLive ? "Live" : "Arrived",
+                    isLive ? AppStrings.live.tr : "Arrived".tr,
                     style: GoogleFonts.poppins(
                       color: isLive ? AppColors.timelineActive : Colors.orange,
                       fontSize: 12.0,
@@ -168,17 +169,17 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
       String statusLabel;
       String timeLabel;
       if (s == 'working') {
-        statusLabel = "Service In Progress";
-        timeLabel = "Started at ${controller.workingTime.value} \u00b7 $elapsed min elapsed";
+        statusLabel = AppStrings.serviceInProgress.tr;
+        timeLabel = "${'Started at'.tr} ${controller.workingTime.value} \u00b7 ${AppStrings.minElapsed.tr.replaceFirst('%s', elapsed.toString())}";
       } else if (s == 'arrived') {
-        statusLabel = "Arrived at Location";
-        timeLabel = "Waiting to start work";
+        statusLabel = "Arrived at Location".tr;
+        timeLabel = "Waiting to start work".tr;
       } else if (s == 'completed') {
-        statusLabel = "Service Completed";
-        timeLabel = "Completed at ${controller.completedTime.value}";
+        statusLabel = "Service Completed".tr;
+        timeLabel = "${'Completed at'.tr} ${controller.completedTime.value}";
       } else {
-        statusLabel = "En Route";
-        timeLabel = "Heading to client location";
+        statusLabel = "En Route".tr;
+        timeLabel = "Heading to client location".tr;
       }
 
       return Container(
@@ -264,7 +265,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Service Details",
+            AppStrings.serviceDetails.tr,
             style: GoogleFonts.poppins(
               color: AppColors.textColor,
               fontSize: 18.0,
@@ -272,13 +273,13 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
             ),
           ),
           const SizedBox(height: 20.0),
-          _buildDetailRow('Service', controller.serviceName.value),
+          _buildDetailRow('Service'.tr, controller.serviceName.value),
           const Divider(height: 24, color: Color(0xFFF1F4F8)),
-          _buildDetailRow('Location', controller.location.value),
+          _buildDetailRow('Location'.tr, controller.location.value),
           const Divider(height: 24, color: Color(0xFFF1F4F8)),
-          _buildDetailRow('Price', controller.estimatedCost.value),
+          _buildDetailRow('Price'.tr, controller.estimatedCost.value),
           const Divider(height: 24, color: Color(0xFFF1F4F8)),
-          _buildDetailRow('Job Start', controller.workingTime.value != 'Pending' 
+          _buildDetailRow(AppStrings.jobStart.tr, controller.workingTime.value != 'Pending' 
               ? controller.workingTime.value 
               : controller.jobStartTime.value),
         ],
@@ -298,7 +299,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Status Timeline",
+            AppStrings.statusTimeline.tr,
             style: GoogleFonts.poppins(
               color: AppColors.textColor,
               fontSize: 18.0,
@@ -309,36 +310,36 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
           Obx(() => Column(
             children: [
               StatusTimelineTile(
-                title: 'Job Accepted',
-                subtitle: 'You accepted the job',
+                title: AppStrings.jobAccepted.tr,
+                subtitle: AppStrings.artisanAcceptedJob.tr,
                 time: controller.acceptedTime.value,
                 icon: Icons.check,
                 state: controller.currentStep.value >= 0 ? TimelineState.completed : TimelineState.pending,
               ),
               StatusTimelineTile(
-                title: 'On the Way',
-                subtitle: 'Heading to client location',
+                title: AppStrings.onTheWay.tr,
+                subtitle: 'Heading to client location'.tr,
                 time: controller.onWayTime.value,
                 icon: Icons.check,
                 state: controller.currentStep.value >= 1 ? TimelineState.completed : TimelineState.pending,
               ),
               StatusTimelineTile(
-                title: 'Arrived',
-                subtitle: 'Arrived at service location',
+                title: 'Arrived'.tr,
+                subtitle: 'Arrived at service location'.tr,
                 time: controller.currentStep.value >= 2
                     ? controller.workingTime.value
-                    : 'Pending',
+                    : 'Pending'.tr,
                 icon: Icons.location_on,
                 state: controller.currentStep.value >= 2
                     ? (controller.currentStep.value > 2 ? TimelineState.completed : TimelineState.current)
                     : TimelineState.pending,
               ),
               StatusTimelineTile(
-                title: 'Working',
-                subtitle: 'Service in progress',
+                title: AppStrings.working.tr,
+                subtitle: 'Service in progress'.tr,
                 time: controller.currentStep.value >= 2 
-                    ? '${controller.elapsedMinutes.value} min elapsed' 
-                    : 'Pending',
+                    ? '${controller.elapsedMinutes.value} ${'min elapsed'.tr}' 
+                    : 'Pending'.tr,
                 icon: Icons.build,
                 state: controller.currentStep.value >= 2
                     ? (controller.currentStep.value > 2 ? TimelineState.completed : TimelineState.current)
@@ -356,7 +357,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                     )),
                     const SizedBox(width: 8.0),
                     Text(
-                      'In progress...',
+                      AppStrings.inProgressSub.tr,
                       style: GoogleFonts.poppins(
                         color: AppColors.primary,
                         fontSize: 12.0,
@@ -367,8 +368,8 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                 ) : null,
               ),
               StatusTimelineTile(
-                title: 'Completed',
-                subtitle: 'Service has been completed',
+                title: AppStrings.completed.tr,
+                subtitle: 'Service has been completed'.tr,
                 time: controller.completedTime.value,
                 icon: Icons.celebration,
                 state: controller.currentStep.value == 3 ? TimelineState.completed : TimelineState.pending,
@@ -385,15 +386,20 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            color: AppColors.greyText,
-            fontSize: 14.0,
-            fontWeight: FontWeight.w500,
+        Flexible(
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              color: AppColors.greyText,
+              fontSize: 14.0,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
+        const SizedBox(width: 16),
         Flexible(
+          flex: 2,
           child: Text(
             value.isNotEmpty ? value : '--',
             style: GoogleFonts.poppins(
@@ -437,19 +443,19 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
           Color bgColor;
 
           if (isCompleted) {
-            buttonText = "✓ Completed";
+            buttonText = "✓ Completed".tr;
             onPressed = null;
             bgColor = const Color(0xFFE5E7EB);
           } else if (isWorking) {
-            buttonText = "Mark as Complete";
+            buttonText = "Mark as Complete".tr;
             onPressed = controller.markAsComplete;
             bgColor = AppColors.primary;
           } else if (isArrived) {
-            buttonText = "Start Working";
+            buttonText = "Start Working".tr;
             onPressed = controller.startWorking;
             bgColor = Colors.orange;
           } else {
-            buttonText = "Mark as Complete";
+            buttonText = "Mark as Complete".tr;
             onPressed = null;
             bgColor = const Color(0xFFE5E7EB);
           }
@@ -467,7 +473,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                     elevation: 0,
                   ),
                   child: Text(
-                    "Request Additional Cost",
+                    "Request Additional Cost".tr,
                     style: GoogleFonts.poppins(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
@@ -509,7 +515,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
         title: Text(
-          "Request Additional Cost",
+          "Request Additional Cost".tr,
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w700,
             color: AppColors.textColor,
@@ -521,7 +527,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
             TextField(
               controller: reasonCtrl,
               decoration: InputDecoration(
-                hintText: "Reason (e.g. Extra materials)",
+                hintText: "Reason (e.g. Extra materials)".tr,
                 hintStyle: GoogleFonts.poppins(color: AppColors.greyText),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
               ),
@@ -531,7 +537,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
               controller: amountCtrl,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                hintText: "Amount (e.g. 25.50)",
+                hintText: "Amount (e.g. 25.50)".tr,
                 hintStyle: GoogleFonts.poppins(color: AppColors.greyText),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
                 prefixText: "\$ ",
@@ -543,7 +549,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
           TextButton(
             onPressed: () => Get.back(),
             child: Text(
-              "Cancel",
+              "Cancel".tr,
               style: GoogleFonts.poppins(color: AppColors.greyText, fontWeight: FontWeight.w600),
             ),
           ),
@@ -554,11 +560,11 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
               final amount = double.tryParse(amountStr);
 
               if (reason.isEmpty) {
-                Get.snackbar("Error", "Please enter a reason");
+                Get.snackbar("Error".tr, "Please enter a reason".tr);
                 return;
               }
               if (amount == null || amount <= 0) {
-                Get.snackbar("Error", "Please enter a valid amount");
+                Get.snackbar("Error".tr, "Please enter a valid amount".tr);
                 return;
               }
 
@@ -570,7 +576,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
             ),
             child: Text(
-              "Submit",
+              "Submit".tr,
               style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
@@ -589,7 +595,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
 
       return Column(
         children: costs.map<Widget>((cost) {
-          final String reason = cost['reason']?.toString() ?? 'Extra Charge';
+          final String reason = cost['reason']?.toString() ?? 'Extra Charge'.tr;
           final String amount = cost['amount']?.toString() ?? '0.00';
           final String status = (cost['status'] ?? 'pending').toString().toLowerCase();
 
@@ -598,13 +604,13 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
 
           if (status == 'approved') {
             statusColor = Colors.green;
-            statusText = "Approved";
+            statusText = "Approved".tr;
           } else if (status == 'rejected' || status == 'declined') {
             statusColor = Colors.red;
-            statusText = "Declined";
+            statusText = "Declined".tr;
           } else {
             statusColor = Colors.orange;
-            statusText = "Pending Client Approval";
+            statusText = "Pending Client Approval".tr;
           }
 
           return Container(
@@ -629,25 +635,31 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Requested Cost",
+                      "Requested Cost".tr,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 15.0,
                         color: AppColors.textColor,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Text(
-                        statusText,
-                        style: GoogleFonts.poppins(
-                          color: statusColor,
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Text(
+                          statusText,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            color: statusColor,
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -655,7 +667,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                 ),
                 const SizedBox(height: 12.0),
                 Text(
-                  "Reason: $reason",
+                  "${'Reason:'.tr} $reason",
                   style: GoogleFonts.poppins(
                     color: AppColors.greyText,
                     fontSize: 13.0,
@@ -663,7 +675,7 @@ class WorkerTrackingView extends GetView<WorkerTrackingController> {
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  "Amount: \$$amount",
+                  "${'Amount:'.tr} \$$amount",
                   style: GoogleFonts.poppins(
                     color: AppColors.textColor,
                     fontSize: 16.0,

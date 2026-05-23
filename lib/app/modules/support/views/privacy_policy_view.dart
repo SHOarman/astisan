@@ -26,7 +26,7 @@ class PrivacyPolicyView extends GetView<SupportController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Privacy Policy',
+          'Privacy Policy'.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,

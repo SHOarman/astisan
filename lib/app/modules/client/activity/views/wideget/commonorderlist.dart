@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
+import 'package:artisan/app/core/constants/static/app_strings.dart';
 
 class CustomBookingCard extends StatelessWidget {
   final String imageUrl;
@@ -123,7 +125,7 @@ class CustomBookingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "by $providerName",
+                      "${AppStrings.by.tr}$providerName",
                       style: GoogleFonts.poppins(
                         color: Colors.grey.shade500,
                         fontSize: 14,
@@ -133,19 +135,26 @@ class CustomBookingCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          date,
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
+                        Expanded(
+                          child: Text(
+                            date,
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey.shade400,
+                              fontSize: 13,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text(
-                          amount,
-                          style: GoogleFonts.poppins(
-                            color: amountColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            amount,
+                            style: GoogleFonts.poppins(
+                              color: amountColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

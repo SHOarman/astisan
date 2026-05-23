@@ -71,15 +71,15 @@ class NearbyArtisansView extends GetView<NearbyArtisansController> {
                   itemBuilder: (context, index) {
                     final artisan = controller.artisans[index];
                     return ArtisanProfileCard(
-                      name: artisan['full_name'],
-                      role: artisan['occupation'],
-                      avatarPath: artisan['profile_picture'],
-                      isVerified: artisan['is_verified'],
-                      rating: artisan['rating'],
-                      reviews: artisan['review_count'],
-                      pricePerHour: artisan['hourly_rate']?.toString() ?? '25',
-                      distanceOrTime: artisan['distance'] ?? 'Nearby',
-                      isOnline: true,
+                      name: artisan['full_name'] ?? artisan['name'] ?? 'Artisan',
+                      role: artisan['occupation'] ?? artisan['role'] ?? 'Specialist',
+                      avatarPath: artisan['profile_picture'] ?? artisan['avatar'],
+                      isVerified: artisan['is_verified'] ?? artisan['isVerified'] ?? false,
+                      rating: artisan['rating'] ?? 0.0,
+                      reviews: artisan['review_count'] ?? artisan['reviews'] ?? 0,
+                      pricePerHour: artisan['hourly_rate']?.toString() ?? artisan['price']?.toString() ?? '25',
+                      distanceOrTime: artisan['distance'] ?? artisan['distanceOrTime'] ?? 'Nearby',
+                      isOnline: artisan['is_online'] ?? artisan['isOnline'] ?? true,
                       onTap: () {
                         Get.toNamed(Routes.SERVICE_DETAILS, arguments: {
                           'service': controller.serviceData.value,

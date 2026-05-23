@@ -22,7 +22,7 @@ class BookingView extends GetView<BookingController> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Booking Info',
+          AppStrings.bookingInfo.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -213,50 +213,7 @@ class BookingView extends GetView<BookingController> {
             child: Stack(
               children: [
                 Positioned.fill(child: CustomPaint(painter: MapLinesPainter())),
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(6.0),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.white,
-                            width: 2.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withAlpha(50),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.location_on,
-                          color: AppColors.white,
-                          size: 20.0,
-                        ),
-                      ),
-                      Container(
-                        width: 2.0,
-                        height: 14.0,
-                        color: AppColors.primary.withAlpha(80),
-                      ),
-                      Text(
-                        'New York, NY',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.primary.withAlpha(150),
-                          fontSize: 10.0,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 10.0),
-                    ],
-                  ),
-                ),
+
                 Positioned(
                   bottom: 12.0,
                   left: 12.0,
@@ -306,7 +263,7 @@ class BookingView extends GetView<BookingController> {
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Text(
-                      'No saved addresses found. Please add one.',
+                      AppStrings.noSavedAddresses.tr,
                       style: GoogleFonts.poppins(color: AppColors.greyText),
                     ),
                   ),
@@ -412,8 +369,7 @@ class BookingView extends GetView<BookingController> {
               maxLines: 6,
               maxLength: 500,
               decoration: InputDecoration(
-                hintText:
-                'Describe your issue, specific requirements, or any other details that would help the artisan...',
+                hintText: AppStrings.describeIssueHint.tr,
                 hintStyle: GoogleFonts.poppins(
                   color: AppColors.greyText,
                   fontSize: 14.0,
@@ -432,7 +388,7 @@ class BookingView extends GetView<BookingController> {
             alignment: Alignment.centerRight,
             child: Obx(
                   () => Text(
-                '${controller.notesLength}/500 characters',
+                '${controller.notesLength}/500 ${AppStrings.charactersLimit.tr}',
                 style: GoogleFonts.poppins(
                   color: AppColors.greyText,
                   fontSize: 12.0,
@@ -499,10 +455,10 @@ class BookingView extends GetView<BookingController> {
 
     final address = controller.addresses.isNotEmpty
         ? controller.addresses[controller.selectedAddressIndex.value]['address']
-        : 'No address selected';
+        : AppStrings.noAddressSelected.tr;
 
     final notes = controller.notesController.text.isEmpty
-        ? 'No additional notes'
+        ? AppStrings.noAdditionalNotes.tr
         : controller.notesController.text;
 
     return SingleChildScrollView(
@@ -511,7 +467,7 @@ class BookingView extends GetView<BookingController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Booking Summary',
+            AppStrings.bookingSummary.tr,
             style: GoogleFonts.poppins(
               color: AppColors.textColor,
               fontSize: 18.0,
@@ -579,13 +535,13 @@ class BookingView extends GetView<BookingController> {
               ),
             ),
           if (artisan.isNotEmpty) SizedBox(height: 16.0),
-          _buildSummaryCard(Icons.calendar_today_outlined, 'Date', '${date['day']}, ${date['month']} ${date['date']}'),
+          _buildSummaryCard(Icons.calendar_today_outlined, AppStrings.date.tr, '${date['day']}, ${date['month']} ${date['date']}'),
           SizedBox(height: 12.0),
-          _buildSummaryCard(Icons.access_time, 'Time', timeStr),
+          _buildSummaryCard(Icons.access_time, AppStrings.time.tr, timeStr),
           SizedBox(height: 12.0),
-          _buildSummaryCard(Icons.location_on_outlined, 'Address', address),
+          _buildSummaryCard(Icons.location_on_outlined, AppStrings.address.tr, address),
           SizedBox(height: 12.0),
-          _buildSummaryCard(Icons.note_alt_outlined, 'Notes', notes),
+          _buildSummaryCard(Icons.note_alt_outlined, AppStrings.notes.tr, notes),
           SizedBox(height: 24.0),
           Container(
             padding: EdgeInsets.all(20.0),
@@ -595,11 +551,11 @@ class BookingView extends GetView<BookingController> {
             ),
             child: Column(
               children: [
-                _buildPriceRow('Service fee', controller.serviceFeeString),
+                _buildPriceRow(AppStrings.serviceFee.tr, controller.serviceFeeString),
                 SizedBox(height: 8.0),
-                _buildPriceRow('Platform fee', controller.platformFeeString),
+                _buildPriceRow(AppStrings.platformFee.tr, controller.platformFeeString),
                 Divider(height: 24.0, color: AppColors.border),
-                _buildPriceRow('Estimated Total', controller.estimatedTotalString, isTotal: true),
+                _buildPriceRow(AppStrings.estimatedTotal.tr, controller.estimatedTotalString, isTotal: true),
               ],
             ),
           ),

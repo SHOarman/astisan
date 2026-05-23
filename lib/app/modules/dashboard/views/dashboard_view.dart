@@ -24,17 +24,17 @@ class DashboardView extends GetView<DashboardController> {
     final roleController = Get.find<RoleController>();
 
     final List<NavItemData> clientItems = [
-      NavItemData(label: 'Home', icon: AppImages.navHome),
-      NavItemData(label: 'Services', icon: AppImages.navServices),
-      NavItemData(label: 'Activity', icon: AppImages.navActivity),
-      NavItemData(label: 'Account', icon: AppImages.navProfile),
+      NavItemData(label: 'Home'.tr, icon: AppImages.navHome),
+      NavItemData(label: 'Services'.tr, icon: AppImages.navServices),
+      NavItemData(label: 'Activity'.tr, icon: AppImages.navActivity),
+      NavItemData(label: 'Account'.tr, icon: AppImages.navProfile),
     ];
 
     final List<NavItemData> workerItems = [
-      NavItemData(label: 'Dashboard', icon: Icons.grid_view_rounded),
-      NavItemData(label: 'Notifications', icon: Icons.notifications_none_rounded),
-      NavItemData(label: 'Earnings', icon: Icons.attach_money_rounded),
-      NavItemData(label: 'Account', icon: Icons.person_outline_rounded),
+      NavItemData(label: 'Dashboard'.tr, icon: Icons.grid_view_rounded),
+      NavItemData(label: 'Notifications'.tr, icon: Icons.notifications_none_rounded),
+      NavItemData(label: 'Earnings'.tr, icon: Icons.attach_money_rounded),
+      NavItemData(label: 'Account'.tr, icon: Icons.person_outline_rounded),
     ];
 
     return Obx(() {

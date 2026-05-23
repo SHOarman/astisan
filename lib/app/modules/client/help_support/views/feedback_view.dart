@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:artisan/app/core/constants/static/app_strings.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,7 +15,7 @@ class FeedbackView extends GetView<HelpSupportController> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Feedback',
+          AppStrings.feedbook.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -48,14 +49,14 @@ class FeedbackView extends GetView<HelpSupportController> {
                 child: Column(
                   children: [
                     _buildFeedbackSection(
-                      'Subject',
-                      'Short title of your issue or suggestion',
+                      AppStrings.subject.tr,
+                      AppStrings.subjectHint.tr,
                       controller.subjectController,
                     ),
                     SizedBox(height: 16.0),
                     _buildFeedbackSection(
-                      'Email Address',
-                      'Write your email',
+                      AppStrings.emailAddress.tr,
+                      AppStrings.emailHint.tr,
                       controller.emailController,
                     ),
                     SizedBox(height: 16.0),
@@ -75,7 +76,7 @@ class FeedbackView extends GetView<HelpSupportController> {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Submit',
+                  AppStrings.submit.tr,
                   style: GoogleFonts.poppins(
                     color: AppColors.white,
                     fontSize: 16.0,
@@ -142,7 +143,7 @@ class FeedbackView extends GetView<HelpSupportController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Massage', // Using verbatim spelling from image
+            AppStrings.message.tr,
             style: GoogleFonts.poppins(
               color: AppColors.textColor,
               fontSize: 14.0,
@@ -162,7 +163,7 @@ class FeedbackView extends GetView<HelpSupportController> {
                   controller: controller.messageController,
                   maxLines: 8,
                   decoration: InputDecoration(
-                    hintText: 'Please explain what happend...', // Using verbatim spelling
+                    hintText: AppStrings.messageHint.tr,
                     hintStyle: GoogleFonts.poppins(color: AppColors.greyText.withAlpha(150), fontSize: 14.0),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 60.0),

@@ -15,7 +15,7 @@ class HelpSupportView extends GetView<HelpSupportController> {
       backgroundColor: AppColors.background, // F9F9F9/White
       appBar: AppBar(
         title: Text(
-          'Help & Support',
+          'Help & Support'.tr,
           style: GoogleFonts.poppins(
             color: AppColors.textColor,
             fontSize: 18.0,
@@ -52,15 +52,15 @@ class HelpSupportView extends GetView<HelpSupportController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildMenuItem('Emergency Support (AI)', () => Get.to(() => const AiSupportChatView())),
+                _buildMenuItem('Emergency Support (AI)'.tr, () => Get.to(() => const AiSupportChatView())),
                 _buildDivider(),
-                _buildMenuItem('Privacy Policy', controller.goToPrivacyPolicy),
+                _buildMenuItem('Privacy Policy'.tr, controller.goToPrivacyPolicy),
                 _buildDivider(),
-                _buildMenuItem('Terms of Service', controller.goToTermsOfService),
+                _buildMenuItem('Terms of Service'.tr, controller.goToTermsOfService),
                 _buildDivider(),
-                _buildMenuItem('FAQs', controller.goToFaqs),
+                _buildMenuItem('FAQs'.tr, controller.goToFaqs),
                 _buildDivider(),
-                _buildMenuItem('Feedback', controller.goToFeedback, isLast: true),
+                _buildMenuItem('Feedback'.tr, controller.goToFeedback, isLast: true),
               ],
             ),
           ),

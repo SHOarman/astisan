@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/global_controllers/role_controller.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../dashboard/controllers/dashboard_controller.dart';
@@ -33,9 +34,7 @@ class _LanguageState extends State<Language> {
     }
 
     // Success snackbar
-    Get.snackbar(
-      "Success", 
-      "Language changed successfully", 
+    Get.snackbar("Success".tr, "Language changed successfully".tr, 
       backgroundColor: Colors.green.withOpacity(0.9), 
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
@@ -70,9 +69,9 @@ class _LanguageState extends State<Language> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Language",
-          style: TextStyle(
+        title: Text(
+          AppStrings.language.tr,
+          style: const TextStyle(
             color: Color(0xFF1D2939),
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -139,4 +138,4 @@ class _LanguageState extends State<Language> {
       ),
     );
   }
-}
+}

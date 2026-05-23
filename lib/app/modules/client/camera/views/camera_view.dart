@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../controllers/camera_controller.dart';
 
 class CameraView extends GetView<CameraController> {
@@ -25,7 +26,7 @@ class CameraView extends GetView<CameraController> {
                       Icon(Icons.camera_alt, color: Colors.white.withOpacity(0.3), size: 64),
                       const SizedBox(height: 16),
                       Text(
-                        'Opening Camera...',
+                        AppStrings.openingCamera.tr,
                         style: GoogleFonts.poppins(
                           color: Colors.white.withOpacity(0.5),
                           fontSize: 14.0,
@@ -64,7 +65,7 @@ class CameraView extends GetView<CameraController> {
               left: 0,
               right: 0,
               child: Text(
-                'Take a Photo',
+                AppStrings.takePhoto.tr,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
@@ -148,7 +149,7 @@ class CameraView extends GetView<CameraController> {
               const Icon(Icons.refresh, color: Colors.white, size: 28.0),
               const SizedBox(height: 8.0),
               Text(
-                'Retake',
+                AppStrings.retake.tr,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 12.0,
@@ -180,7 +181,7 @@ class CameraView extends GetView<CameraController> {
               ),
             ),
             child: Text(
-              'Next',
+              AppStrings.next.tr,
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 16.0,

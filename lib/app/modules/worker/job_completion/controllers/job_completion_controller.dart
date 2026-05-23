@@ -124,12 +124,12 @@ class JobCompletionController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Checklist item added",
+        Get.snackbar("Success".tr, "Checklist item added".tr,
             backgroundColor: const Color(0xFF4CAE79),
             colorText: Colors.white);
         fetchChecklist();
       } else {
-        Get.snackbar("Error", "Failed to add checklist item: ${response.body}");
+        Get.snackbar("Error".tr, "Failed to add checklist item: ${response.body}".tr);
       }
     } catch (e) {
       print("Error adding checklist item: $e");
@@ -172,7 +172,7 @@ class JobCompletionController extends GetxController {
       if (response.statusCode != 200 && response.statusCode != 204) {
         checklist[index]['checked'] = !newChecked;
         checklist.refresh();
-        Get.snackbar("Error", "Failed to update item status");
+        Get.snackbar("Error".tr, "Failed to update item status".tr);
       }
     } catch (e) {
       checklist[index]['checked'] = !newChecked;
@@ -189,9 +189,7 @@ class JobCompletionController extends GetxController {
   Future<void> completeJob() async {
     // 1. Validation check
     if (signatureController.isEmpty) {
-      Get.snackbar(
-        "Signature Required",
-        "Please get the client's signature before completing the job.",
+      Get.snackbar("Signature Required".tr, "Please get the client's signature before completing the job.".tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange.withOpacity(0.9),
         colorText: Colors.white,
@@ -204,7 +202,7 @@ class JobCompletionController extends GetxController {
 
     final signatureBytes = await signatureController.toPngBytes();
     if (signatureBytes == null) {
-      Get.snackbar("Error", "Failed to capture signature image.");
+      Get.snackbar("Error".tr, "Failed to capture signature image.".tr);
       return;
     }
 
@@ -249,9 +247,7 @@ class JobCompletionController extends GetxController {
         print("DEBUG: Signature Upload Response: ${sigResponse.statusCode}");
 
         if (sigResponse.statusCode == 200 || sigResponse.statusCode == 201) {
-          Get.snackbar(
-            "Success",
-            "Job completed and signature uploaded successfully!",
+          Get.snackbar("Success".tr, "Job completed and signature uploaded successfully!".tr,
             backgroundColor: const Color(0xFF4CAE79),
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM,
@@ -261,9 +257,7 @@ class JobCompletionController extends GetxController {
           await Future.delayed(const Duration(milliseconds: 1500));
           Get.offAllNamed(Routes.WORKER_ACTIVE_JOB, arguments: {'bookingId': bookingId.value});
         } else {
-          Get.snackbar(
-            "Warning",
-            "Job marked as completed, but signature upload failed.",
+          Get.snackbar("Warning".tr, "Job marked as completed, but signature upload failed.".tr,
             backgroundColor: Colors.orange,
             colorText: Colors.white,
           );
@@ -271,12 +265,12 @@ class JobCompletionController extends GetxController {
           Get.offAllNamed(Routes.WORKER_ACTIVE_JOB, arguments: {'bookingId': bookingId.value});
         }
       } else {
-        Get.snackbar("Error", "Failed to complete job: ${response.statusCode}");
+        Get.snackbar("Error".tr, "Failed to complete job: ${response.statusCode}".tr);
       }
 
     } catch (e) {
       print("Error completing job: $e");
-      Get.snackbar("Error", "Something went wrong. Please try again.");
+      Get.snackbar("Error".tr, "Something went wrong. Please try again.".tr);
     } finally {
       isLoading.value = false;
     }
