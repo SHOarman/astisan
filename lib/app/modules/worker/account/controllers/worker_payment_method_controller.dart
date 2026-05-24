@@ -7,13 +7,13 @@ class WorkerPaymentMethodController extends GetxController {
     {
       'type': 'Visa',
       'number': '**** **** **** 4242',
-      'expiry': 'Expires 12/28',
+      'expiryDate': '12/28',
       'imagePath': AppImages.visaLogo,
     },
     {
       'type': 'MasterCard',
       'number': '**** **** **** 5555',
-      'expiry': 'Expires 05/26',
+      'expiryDate': '05/26',
       'imagePath': AppImages.masterLogo,
     },
   ].obs;

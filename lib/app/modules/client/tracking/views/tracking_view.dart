@@ -158,16 +158,29 @@ class TrackingView extends GetView<TrackingController> {
   }
 
   Widget _buildArtisanHeader() {
-    return Row(
+    return Obx(() => Row(
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12.0),
-          child: Image.asset(
-            AppImages.placeholderAvatar,
-            width: 50.0,
-            height: 50.0,
-            fit: BoxFit.cover,
-          ),
+          child: controller.artisanImageUrl.value.isNotEmpty
+              ? Image.network(
+                  controller.artisanImageUrl.value,
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Image.asset(
+                    AppImages.placeholderAvatar,
+                    width: 50.0,
+                    height: 50.0,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Image.asset(
+                  AppImages.placeholderAvatar,
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
         ),
         const SizedBox(width: 16.0),
         Expanded(
@@ -175,7 +188,7 @@ class TrackingView extends GetView<TrackingController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'James Wilson',
+                controller.artisanName.value.isNotEmpty ? controller.artisanName.value : 'Artisan',
                 style: GoogleFonts.poppins(
                   color: AppColors.textColor,
                   fontSize: 16.0,
@@ -187,7 +200,7 @@ class TrackingView extends GetView<TrackingController> {
                   const Icon(Icons.star, color: AppColors.ratingStar, size: 14.0),
                   const SizedBox(width: 4.0),
                   Text(
-                    '4.9 · Plumbing Expert',
+                    '${controller.rating.value} · ${controller.profession.value.isNotEmpty ? controller.profession.value : "Specialist"}',
                     style: GoogleFonts.poppins(
                       color: AppColors.greyText,
                       fontSize: 12.0,
@@ -210,7 +223,7 @@ class TrackingView extends GetView<TrackingController> {
           ),
         ),
       ],
-    );
+    ));
   }
 
   Widget _buildProgressCircle() {

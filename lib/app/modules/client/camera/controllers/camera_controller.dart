@@ -19,6 +19,9 @@ class CameraController extends GetxController {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.rear,
+        imageQuality: 50,
+        maxWidth: 1080,
+        maxHeight: 1080,
       );
       
       if (photo != null) {

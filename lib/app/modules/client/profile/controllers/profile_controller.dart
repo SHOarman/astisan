@@ -179,8 +179,8 @@ class ProfileController extends GetxController {
       // Fetch bookings to count completed ones
       final bookingResp = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
-        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-      );
+        headers: ApiServices.getHeaders(token: token),
+      ).timeout(const Duration(seconds: 15));
       if (bookingResp.statusCode == 200) {
         final data = jsonDecode(bookingResp.body);
         final results = (data is Map && data.containsKey('results')) ? data['results'] as List : (data is List ? data : []);
@@ -191,8 +191,8 @@ class ProfileController extends GetxController {
       // Fetch reviews
       final reviewResp = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/reviews/client/"),
-        headers: { 'Accept-Language': ApiServices.currentLanguage, 'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-      );
+        headers: ApiServices.getHeaders(token: token),
+      ).timeout(const Duration(seconds: 15));
       if (reviewResp.statusCode == 200) {
         final data = jsonDecode(reviewResp.body);
         stats['reviews'] = data['count'] ?? 0;

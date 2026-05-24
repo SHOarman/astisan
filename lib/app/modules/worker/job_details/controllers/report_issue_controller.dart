@@ -79,7 +79,7 @@ class ReportIssueController extends GetxController {
         attachedFiles.add(file);
       }
     } catch (e) {
-      Get.snackbar("Error".tr, "Could not pick image: $e".tr);
+      Get.snackbar("Error".tr, "${'Could not pick image:'.tr} $e");
     }
   }
 
@@ -210,7 +210,7 @@ class ReportIssueController extends GetxController {
         } catch (_) {
           errorMsg = response.body;
         }
-        Get.snackbar("Error", errorMsg,
+        Get.snackbar("Error".tr, errorMsg.tr,
             backgroundColor: Colors.red,
             colorText: Colors.white,
             duration: const Duration(seconds: 6));

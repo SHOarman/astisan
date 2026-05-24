@@ -17,7 +17,7 @@ class SplashView extends StatelessWidget {
       body: Center(
         child: Image.asset(
           AppImages.logo,
-          width: 200.0, // Approximate logo width
+          width: MediaQuery.of(context).size.width * 0.55, // Responsive logo width
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) => 
               const Icon(Icons.broken_image, size: 100),

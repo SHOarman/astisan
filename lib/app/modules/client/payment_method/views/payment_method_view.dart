@@ -56,7 +56,7 @@ class PaymentMethodView extends GetView<PaymentMethodController> {
                   return PaymentCardTile(
                     type: card['type'],
                     number: card['number'],
-                    expiry: card['expiry'],
+                    expiry: "${'Expires'.tr} ${card['expiryDate']}",
                     imagePath: card['image'],
                     onTap: () {},
                   );

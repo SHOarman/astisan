@@ -56,7 +56,7 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
       centerTitle: true,
       automaticallyImplyLeading: false,
       title: Text(
-        "Job Details",
+        AppStrings.jobDetailsTitle.tr,
         style: GoogleFonts.poppins(
           fontSize: 18.0,
           fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
                   child: Divider(height: 1),
                 ),
                 Text(
-                  "About Client",
+                  "About Client".tr,
                   style: GoogleFonts.poppins(
                     fontSize: 14.0,
                     fontWeight: FontWeight.w600,
@@ -178,14 +178,14 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
       title: AppStrings.serviceInfo.tr,
       child: Column(
         children: [
-          Obx(() => _buildDetailRow("Service", controller.serviceName.value, isBold: true)),
+          Obx(() => _buildDetailRow("Service".tr, controller.serviceName.value, isBold: true)),
           const SizedBox(height: 12.0),
-          Obx(() => _buildDetailRow("Payment", "\$${controller.paymentAmount.value.toStringAsFixed(2)}", valueColor: const Color(0xFF4CAF50), isBold: true)),
+          Obx(() => _buildDetailRow("Payment".tr, "\$${controller.paymentAmount.value.toStringAsFixed(2)}", valueColor: const Color(0xFF4CAF50), isBold: true)),
           const SizedBox(height: 12.0),
           Obx(() {
             final id = controller.displayBookingId.value;
             final displayId = id.isNotEmpty ? (id.startsWith('#') ? id : '#$id') : 'N/A';
-            return _buildDetailRow("Booking ID", displayId, isBold: true, isID: true);
+            return _buildDetailRow("Booking ID".tr, displayId, isBold: true, isID: true);
           }),
         ],
       ),
@@ -289,7 +289,7 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
     return Obx(() => controller.checklist.isEmpty 
       ? const SizedBox.shrink()
       : _buildSectionCard(
-          title: "Service Checklist",
+          title: AppStrings.jobChecklistTitle.tr,
           child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -352,7 +352,7 @@ class WorkerJobDetailsView extends GetView<WorkerJobDetailsController> {
               const SizedBox(width: 12.0),
               Expanded(
                 child: Text(
-                  controller.attachmentName.value,
+                  controller.attachmentName.value.tr,
                   style: GoogleFonts.poppins(
                     fontSize: 15.0,
                     color: AppColors.textColor,

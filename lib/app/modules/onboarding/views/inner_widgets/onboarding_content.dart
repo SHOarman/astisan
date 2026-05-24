@@ -29,18 +29,18 @@ class OnboardingContent extends StatelessWidget {
               child: Image.asset(
                 image,
                 width: double.infinity,
-                height: 380.0, // Reduced to 380 to better fit smaller devices
+                height: MediaQuery.of(context).size.height * 0.42, // Responsive height for different mobiles
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   width: double.infinity,
-                  height: 380.0,
+                  height: MediaQuery.of(context).size.height * 0.42,
                   color: AppColors.indicatorInactive,
                   child: const Icon(Icons.broken_image, size: 50),
                 ),
               ),
             ),
             
-            const SizedBox(height: 32.0),
+            const SizedBox(height: 24.0), // Reduced from 32.0 to give more space for text
             
             Text(
               title,

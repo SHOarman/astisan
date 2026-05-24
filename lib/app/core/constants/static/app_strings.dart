@@ -610,6 +610,28 @@ class AppStrings extends Translations {
   static const acceptByYou = 'Accept by you';
   static const noBookingsFound = 'No bookings found';
 
+  static const String incomingrequest = 'incoming_request';
+  static const String active = 'active';
+  static const String noIncomingRequests = 'no_incoming_requests';
+  static const String refresh = 'refresh';
+  static const String clientDefault = 'client_default';
+  static const String serviceDefault = 'service_default';
+  static const String addressNotSet = 'address_not_set';
+  static const String tagUrgent = 'tag_urgent';
+  static const String tagNormal = 'tag_normal';
+  static const String justNow = 'just_now';
+  static const String secondsAgoSuffix = 'seconds_ago_suffix';
+  static const String minutesAgoSuffix = 'minutes_ago_suffix';
+  static const String hoursAgoSuffix = 'hours_ago_suffix';
+  static const String daysAgoSuffix = 'days_ago_suffix';
+  static const String noDistance = 'no_distance';
+  static const String kmUnit = 'km_unit';
+  static const String calculating = 'calculating';
+  static const String verificationWarningText = 'verification_warning_text';
+  static const String verifyNow = 'verify_now';
+  static const String defult ="Default";
+  static const String detels ="Details";
+  static const String thsiweek ="This Week";
 
   @override
   Map<String, Map<String, String>> get keys => {
@@ -624,8 +646,80 @@ class AppStrings extends Translations {
           noBookingsFound: 'No bookings found',
           activeNow: 'Active now',
           offline: 'Offline',
+          AppStrings.incomingrequest: 'Incoming Requests',
+          AppStrings.active: 'Active',
+          AppStrings.noIncomingRequests: 'No incoming requests at the moment',
+          AppStrings.refresh: 'Refresh',
+          AppStrings.clientDefault: 'Client',
+          AppStrings.serviceDefault: 'Service',
+          AppStrings.addressNotSet: 'Address not set',
+          AppStrings.tagUrgent: 'URGENT',
+          AppStrings.tagNormal: 'NORMAL',
+          AppStrings.justNow: 'Just now',
+          AppStrings.secondsAgoSuffix: 's',
+          AppStrings.minutesAgoSuffix: 'm',
+          AppStrings.hoursAgoSuffix: 'h',
+          AppStrings.daysAgoSuffix: 'd',
+          AppStrings.noDistance: '-- km',
+          AppStrings.kmUnit: 'km',
+          AppStrings.calculating: 'Calculating...',
+          AppStrings.verificationWarningText: "Your account is not verified yet. To send work requests and get hired, please complete your verification.",
+          AppStrings.verifyNow: 'Verify Now',
+          'Saved Addresses': 'Saved Addresses',
+          'Current Service Location': 'Current Service Location',
+          'Service Area': 'Service Area',
+          "Tap 'Use Current Location' above to set your area.": "Tap 'Use Current Location' above to set your area.",
+          'Use Current Location': 'Use Current Location',
+          'Default': 'Default',
+          'Payment Methods': 'Payment Methods',
+          'Payment Method': 'Payment Method',
+          'Your Saved Card': 'Your Saved Card',
+          'Expires': 'Expires',
+          'Add New Payment Method': 'Add New Payment Method',
+          'SSL Secured': 'SSL Secured',
+          '256-bit Encryption': '256-bit Encryption',
+          'PCI Compliant': 'PCI Compliant',
         },
         'fr_FR': {
+          detels :"Détails",
+          thisWeek :"Cette semaine",
+
+
+          AppStrings.incomingrequest: 'Demandes Entrantes',
+          AppStrings.active: 'Actif',
+          AppStrings.noIncomingRequests: 'Aucune demande entrante pour le moment',
+          AppStrings.refresh: 'Actualiser',
+          AppStrings.clientDefault: 'Client',
+          AppStrings.serviceDefault: 'Service',
+          AppStrings.addressNotSet: 'Adresse non définie',
+          AppStrings.tagUrgent: 'URGENT',
+          AppStrings.tagNormal: 'NORMAL',
+          AppStrings.justNow: 'À l\'instant',
+          AppStrings.secondsAgoSuffix: 's',
+          AppStrings.minutesAgoSuffix: 'm',
+          AppStrings.hoursAgoSuffix: 'h',
+          AppStrings.daysAgoSuffix: 'j',
+          AppStrings.noDistance: '-- km',
+          AppStrings.kmUnit: 'km',
+          AppStrings.calculating: 'Calcul en cours...',
+          AppStrings.verificationWarningText: "Votre compte n'est pas encore vérifié. Pour envoyer des demandes de travail et être embauché, veuillez compléter votre vérification.",
+          AppStrings.verifyNow: 'Vérifier maintenant',
+          'Saved Addresses': 'Adresses enregistrées',
+          'Current Service Location': 'Lieu de service actuel',
+          'Service Area': 'Zone de service',
+          "Tap 'Use Current Location' above to set your area.": "Appuyez sur 'Utiliser la position actuelle' pour définir votre zone.",
+          'Use Current Location': 'Utiliser la position actuelle',
+          'Default': 'Par défaut',
+          'Payment Methods': 'Modes de paiement',
+          'Payment Method': 'Mode de paiement',
+          'Your Saved Card': 'Votre carte enregistrée',
+          'Expires': 'Expire le',
+          'Add New Payment Method': 'Ajouter un mode de paiement',
+          'SSL Secured': 'Sécurisé SSL',
+          '256-bit Encryption': 'Cryptage 256 bits',
+          'PCI Compliant': 'Conforme PCI',
+          active :"requêtes actives",
+          incomingrequest:"Demandes entrantes",
           feedbook: "Retour",
           not_addreshfined: "Aucune adresse enregistrée trouvée",
           addnew_addresh: "Ajouter une nouvelle adresse",
@@ -637,6 +731,19 @@ class AppStrings extends Translations {
           activeNow: 'En ligne',
           offline: 'Hors ligne',
           viewDetails: 'Voir les détails',
+          'About Client': 'À propos du client',
+          'Service': 'Service',
+          'Additional cost requested successfully': 'Coût supplémentaire demandé avec succès',
+          'Failed to request additional cost:': 'Échec de la demande de coût supplémentaire :',
+          'Failed:': 'Échec :',
+          'Update failed': 'La mise à jour a échoué',
+          'Could not pick image:': 'Impossible de choisir l\'image :',
+          'Failed to add checklist item:': 'Échec de l\'ajout de l\'élément de la liste de contrôle :',
+          'Failed to complete job:': 'Échec de l\'achèvement du travail :',
+          'Booking Accepted successfully': 'Réservation acceptée avec succès',
+          'Booking Declined successfully': 'Réservation refusée avec succès',
+          'Failed to save address:': 'Échec de l\'enregistrement de l\'adresse :',
+          'Server Error': 'Erreur du serveur',
           occupation: 'Profession',
           bio: 'Biographie',
           experienceYears: 'Expérience (Années)',

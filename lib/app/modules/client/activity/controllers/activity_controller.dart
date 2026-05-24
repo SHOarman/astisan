@@ -38,10 +38,7 @@ class ActivityController extends GetxController {
 
       final response = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
-        headers: { 'Accept-Language': ApiServices.currentLanguage, 
-          'Accept': 'application/json',
-          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-        },
+        headers: ApiServices.getHeaders(token: token),
       ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
@@ -90,10 +87,7 @@ class ActivityController extends GetxController {
 
       final response = await http.get(
         Uri.parse("${ApiServices.baseurl}/api/bookings/client/"),
-        headers: { 'Accept-Language': ApiServices.currentLanguage, 
-          'Accept': 'application/json',
-          if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-        },
+        headers: ApiServices.getHeaders(token: token),
       ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
@@ -133,14 +127,17 @@ class ActivityController extends GetxController {
     for (var booking in bookings) {
       final String status = (booking['status'] ?? '').toString().toLowerCase();
       
-      if (status == 'requested') {
+      if (status == 'requested' || status == 'pending') {
         upcomingBookings.add(booking);
-      } else if (['confirmed', 'on_way', 'arrived', 'working'].contains(status)) {
+      } else if (['confirmed', 'on_way', 'on-the-way', 'arrived', 'working', 'in_progress'].contains(status)) {
         confirmedBookings.add(booking);
-      } else if (status == 'completed' || status == 'client_paid') {
+      } else if (['completed', 'client_paid', 'paid', 'success'].contains(status)) {
         completedBookings.add(booking);
-      } else if (status == 'cancelled' || status == 'rejected') {
+      } else if (['cancelled', 'rejected', 'failed', 'canceled'].contains(status)) {
         cancelledBookings.add(booking);
+      } else {
+        // Fallback for any unknown status
+        upcomingBookings.add(booking);
       }
     }
   }

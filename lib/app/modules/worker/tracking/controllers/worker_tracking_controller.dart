@@ -222,6 +222,7 @@ class WorkerTrackingController extends GetxController {
         },
         body: json.encode({
           "new_status": newStatus,
+          "status": newStatus,
           "note": "",
         }),
       ).timeout(const Duration(seconds: 15));
@@ -235,7 +236,7 @@ class WorkerTrackingController extends GetxController {
         fetchBookingDetails();
         return true;
       } else {
-        Get.snackbar("Error".tr, "Failed: ${response.body}".tr,
+        Get.snackbar("Error".tr, "${'Failed:'.tr} ${response.body}",
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
         return false;
@@ -311,7 +312,7 @@ class WorkerTrackingController extends GetxController {
         fetchBookingDetails();
         return true;
       } else {
-        Get.snackbar("Error".tr, "Failed to request additional cost: ${response.body}".tr,
+        Get.snackbar("Error".tr, "${'Failed to request additional cost:'.tr} ${response.body}",
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
         return false;

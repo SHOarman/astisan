@@ -193,7 +193,7 @@ class WorkerSavedAddressesController extends GetxController {
         Get.snackbar('Success'.tr, 'Address saved successfully.'.tr, backgroundColor: Colors.green, colorText: Colors.white);
         hasSavedAddress.value = true;
       } else {
-        Get.snackbar('Error'.tr, 'Failed to save address: ${response.body}'.tr);
+        Get.snackbar('Error'.tr, "${'Failed to save address:'.tr} ${response.body}");
       }
     } catch (e) {
       Get.snackbar('Error'.tr, 'An error occurred while saving.'.tr);

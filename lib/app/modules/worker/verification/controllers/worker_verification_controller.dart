@@ -122,11 +122,11 @@ class WorkerVerificationController extends GetxController {
           }
         } else {
           // AI Rejected or pending
-          Get.snackbar('Verification Update', data['summary'] ?? 'Information mismatch found.');
+          Get.snackbar('Verification Update'.tr, data['summary']?.toString().tr ?? 'Information mismatch found.'.tr);
           showFailure();
         }
       } else {
-        Get.snackbar('Error'.tr, 'Server Error (${response.statusCode})'.tr);
+        Get.snackbar('Error'.tr, "${'Server Error'.tr} (${response.statusCode})");
         showFailure();
       }
     } catch (e) {

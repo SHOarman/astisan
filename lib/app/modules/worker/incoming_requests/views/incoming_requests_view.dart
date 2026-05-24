@@ -1,12 +1,21 @@
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get_state_manager/src/simple/get_view.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/Services/api_services.dart';
-import '../../../../core/constants/static/app_colors.dart';
-import '../../../../core/routes/app_routes.dart';
 import '../../../../core/components/request_card.dart';
+import '../../../../core/constants/static/app_colors.dart';
+import '../../../../core/constants/static/app_strings.dart';
 import '../../../../core/global_controllers/location_controller.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../controllers/incoming_requests_controller.dart';
 
 class IncomingRequestsView extends GetView<IncomingRequestsController> {
@@ -24,12 +33,12 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
         toolbarHeight: 80,
         automaticallyImplyLeading: false,
         title: Obx(
-          () => Column(
+              () => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Incoming Requests",
+                AppStrings.incomingrequest.tr,
                 style: GoogleFonts.poppins(
                   fontSize: 20.0,
                   fontWeight: FontWeight.w700,
@@ -37,7 +46,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                 ),
               ),
               Text(
-                "${controller.requests.length} active requests",
+                "${controller.requests.length} ${AppStrings.active.tr}",
                 style: GoogleFonts.poppins(
                   fontSize: 13.0,
                   color: AppColors.greyText,
@@ -52,7 +61,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
             padding: const EdgeInsets.only(right: 24.0),
             child: Center(
               child: Obx(
-                () => Container(
+                    () => Container(
                   width: 32,
                   height: 32,
                   decoration: const BoxDecoration(
@@ -91,7 +100,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "No incoming requests at the moment",
+                  AppStrings.noIncomingRequests.tr,
                   style: GoogleFonts.poppins(
                     color: AppColors.greyText,
                     fontSize: 16,
@@ -100,7 +109,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: controller.fetchRequests,
-                  child: const Text("Refresh"),
+                  child: Text(AppStrings.refresh.tr),
                 ),
               ],
             ),
@@ -120,12 +129,12 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Obx(
-                    () => controller.isVerified.value
+                        () => controller.isVerified.value
                         ? const SizedBox.shrink()
                         : Padding(
-                            padding: const EdgeInsets.only(bottom: 24.0),
-                            child: _buildVerificationWarning(),
-                          ),
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: _buildVerificationWarning(),
+                    ),
                   ),
                   ListView.builder(
                     shrinkWrap: true,
@@ -135,8 +144,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                       final req = controller.requests[index];
                       final String bookingId = req['id']?.toString() ?? '';
 
-                      // Extremely robust client parsing from flat or nested server response
-                      String clientName = "Client";
+                      String clientName = AppStrings.clientDefault.tr;
                       String? clientPicture;
                       String clientRating = "4.8";
 
@@ -145,34 +153,33 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                           final clientData = req['client'];
                           clientName =
                               clientData['full_name']?.toString() ??
-                              clientData['name']?.toString() ??
-                              'Client';
+                                  clientData['name']?.toString() ??
+                                  AppStrings.clientDefault.tr;
                           clientPicture = ApiServices.formatImageUrl(
                             clientData['profile_picture']?.toString(),
                           );
                           clientRating =
                               clientData['avg_rating']?.toString() ??
-                              clientData['rating']?.toString() ??
-                              clientData['avg_rating_client']?.toString() ??
-                              '4.8';
+                                  clientData['rating']?.toString() ??
+                                  clientData['avg_rating_client']?.toString() ??
+                                  '4.8';
                         } else {
                           clientName = req['client'].toString();
                         }
                       } else {
-                        clientName = req['client_name']?.toString() ?? 'Client';
+                        clientName = req['client_name']?.toString() ?? AppStrings.clientDefault.tr;
                         clientPicture = ApiServices.formatImageUrl(
                           req['client_picture']?.toString(),
                         );
                       }
 
-                      // If client rating is still fallback 4.8, check flat keys
                       if (clientRating == "4.8") {
                         final String parsedRating =
                             req['client_rating']?.toString() ??
-                            req['client_avg_rating']?.toString() ??
-                            req['avg_rating']?.toString() ??
-                            req['rating']?.toString() ??
-                            "";
+                                req['client_avg_rating']?.toString() ??
+                                req['avg_rating']?.toString() ??
+                                req['rating']?.toString() ??
+                                "";
                         if (parsedRating.isNotEmpty &&
                             parsedRating.toLowerCase() != "null") {
                           clientRating = parsedRating;
@@ -180,13 +187,13 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                       }
 
                       final String serviceTitle =
-                          req['service_name'] ?? 'Service';
+                          req['service_name'] ?? AppStrings.serviceDefault.tr;
                       final String address =
-                          req['full_address'] ?? 'Address not set';
+                          req['full_address'] ?? AppStrings.addressNotSet.tr;
 
                       final String tag =
                           req['urgency']?.toString().toUpperCase() ??
-                          ((req['is_urgent'] == true) ? 'URGENT' : 'NORMAL');
+                              ((req['is_urgent'] == true) ? AppStrings.tagUrgent.tr : AppStrings.tagNormal.tr);
 
                       final String timeAgo = getTimeAgo(
                         req['requested_at']?.toString(),
@@ -223,23 +230,23 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
   }
 
   String getTimeAgo(String? timeStr) {
-    if (timeStr == null || timeStr.isEmpty) return 'Just now';
+    if (timeStr == null || timeStr.isEmpty) return AppStrings.justNow.tr;
     try {
       final DateTime? parsed = DateTime.tryParse(timeStr);
-      if (parsed == null) return 'Just now';
+      if (parsed == null) return AppStrings.justNow.tr;
       final DateTime localParsed = parsed.toLocal();
       final Duration diff = DateTime.now().difference(localParsed);
       if (diff.inSeconds < 60) {
-        return '${diff.inSeconds}s ago';
+        return '${diff.inSeconds}${AppStrings.secondsAgoSuffix.tr}';
       } else if (diff.inMinutes < 60) {
-        return '${diff.inMinutes}m ago';
+        return '${diff.inMinutes}${AppStrings.minutesAgoSuffix.tr}';
       } else if (diff.inHours < 24) {
-        return '${diff.inHours}h ago';
+        return '${diff.inHours}${AppStrings.hoursAgoSuffix.tr}';
       } else {
-        return '${diff.inDays}d ago';
+        return '${diff.inDays}${AppStrings.daysAgoSuffix.tr}';
       }
     } catch (e) {
-      return 'Just now';
+      return AppStrings.justNow.tr;
     }
   }
 
@@ -253,19 +260,18 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
       double? destLat;
       double? destLng;
 
-      // Extremely robust coordinate key checks
       final rawLat =
           req['address_lat'] ??
-          req['lat'] ??
-          req['latitude'] ??
-          req['client_lat'] ??
-          req['client_latitude'];
+              req['lat'] ??
+              req['latitude'] ??
+              req['client_lat'] ??
+              req['client_latitude'];
       final rawLng =
           req['address_lng'] ??
-          req['lng'] ??
-          req['longitude'] ??
-          req['client_lng'] ??
-          req['client_longitude'];
+              req['lng'] ??
+              req['longitude'] ??
+              req['client_lng'] ??
+              req['client_longitude'];
 
       print("DEBUG GET_DISTANCE: rawLat=$rawLat, rawLng=$rawLng");
 
@@ -286,7 +292,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
           destLng == null ||
           destLat == 0.0 ||
           destLng == 0.0)
-        return "-- km";
+        return AppStrings.noDistance.tr;
 
       if (currentPos != null) {
         final double distanceInMeters = Geolocator.distanceBetween(
@@ -296,15 +302,14 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
           destLng,
         );
         final double distanceInKm = distanceInMeters / 1000.0;
-        return "${distanceInKm.toStringAsFixed(1)} km";
+        return "${distanceInKm.toStringAsFixed(1)} ${AppStrings.kmUnit.tr}";
       } else {
-        // If the worker's position is null/loading, trigger background location fetch
         locCtrl.getUserLocation();
-        return "Calculating...";
+        return AppStrings.calculating.tr;
       }
     } catch (e) {
       print("Error calculating distance: $e");
-      return "-- km";
+      return AppStrings.noDistance.tr;
     }
   }
 
@@ -322,7 +327,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
           const Icon(Icons.error_rounded, color: AppColors.urgentRed, size: 36),
           const SizedBox(height: 16.0),
           Text(
-            "Your account isn't verified yet. To send work requests and get hired, please complete your verification.",
+            AppStrings.verificationWarningText.tr,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 14.0,
@@ -346,7 +351,7 @@ class IncomingRequestsView extends GetView<IncomingRequestsController> {
                 ),
               ),
               child: Text(
-                "Verify now",
+                AppStrings.verifyNow.tr,
                 style: GoogleFonts.poppins(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w700,

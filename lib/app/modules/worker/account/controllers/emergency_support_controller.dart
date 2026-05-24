@@ -92,12 +92,13 @@ class EmergencySupportController extends GetxController {
       if (token == null) return;
       token = token.trim().replaceAll('"', '');
 
+      final String? role = prefs.getString('role');
+      final bool isClient = role == 'client';
+      final String endpoint = isClient ? '${ApiServices.baseurl}/api/chat/ai/client/' : '${ApiServices.baseurl}/api/chat/ai/artisan/';
+
       final response = await http.get(
-        Uri.parse('${ApiServices.baseurl}/api/chat/ai/artisan/'),
-        headers: { 'Accept-Language': ApiServices.currentLanguage, 
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse(endpoint),
+        headers: ApiServices.getHeaders(token: token),
       );
 
       if (response.statusCode == 200) {
@@ -141,13 +142,13 @@ class EmergencySupportController extends GetxController {
       String? token = prefs.getString('token');
       if (token != null) token = token.trim().replaceAll('"', '');
 
+      final String? role = prefs.getString('role');
+      final bool isClient = role == 'client';
+      final String endpoint = isClient ? '${ApiServices.baseurl}/api/chat/ai/client/' : '${ApiServices.baseurl}/api/chat/ai/artisan/';
+
       final response = await http.post(
-        Uri.parse('${ApiServices.baseurl}/api/chat/ai/artisan/'),
-        headers: { 'Accept-Language': ApiServices.currentLanguage, 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+        Uri.parse(endpoint),
+        headers: ApiServices.getHeaders(token: token),
         body: jsonEncode({
           'message': text,
         }),

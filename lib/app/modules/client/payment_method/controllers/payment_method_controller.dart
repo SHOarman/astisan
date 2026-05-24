@@ -6,13 +6,13 @@ class PaymentMethodController extends GetxController {
     {
       'type': 'Visa',
       'number': '•••••25544',
-      'expiry': 'Expires 11/26',
+      'expiryDate': '11/26',
       'image': 'assets/images/visa_logo.png',
     },
     {
       'type': 'Master',
       'number': '•••••25544',
-      'expiry': 'Expires 11/26',
+      'expiryDate': '11/26',
       'image': 'assets/images/master_logo.png',
     },
   ].obs;

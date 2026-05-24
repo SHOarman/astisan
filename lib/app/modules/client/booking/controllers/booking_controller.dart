@@ -292,14 +292,9 @@ class BookingController extends GetxController {
           final artisanId = selectedArtisan['id']?.toString() ?? '';
           if (artisanId.isNotEmpty) {
             final res = await http.get(
-              Uri.parse(
-                "${ApiServices.artisan_public_profile}$artisanId/public/",
-              ),
-              headers: { 'Accept-Language': ApiServices.currentLanguage, 
-                if (token != null) 'Authorization': 'Bearer $token',
-                'Accept': 'application/json',
-              },
-            );
+              Uri.parse("${ApiServices.artisan_public_profile}$artisanId/public/"),
+              headers: ApiServices.getHeaders(token: token),
+            ).timeout(const Duration(seconds: 10));
             if (res.statusCode == 200) {
               final data = json.decode(res.body);
               if (data['services'] != null &&
@@ -328,37 +323,8 @@ class BookingController extends GetxController {
             '';
         request.fields['artisan'] = artisanId;
 
-        // Ensure we have a valid serviceId for THIS artisan
-        if (serviceId.isEmpty) {
-          // Attempt to fetch correct service ID from their profile if still missing
-          try {
-            final res = await http.get(
-              Uri.parse(
-                "${ApiServices.artisan_public_profile}$artisanId/public/",
-              ),
-              headers: { 'Accept-Language': ApiServices.currentLanguage, 
-                if (token != null) 'Authorization': 'Bearer $token',
-                'Accept': 'application/json',
-              },
-            );
-            if (res.statusCode == 200) {
-              final data = json.decode(res.body);
-              if (data['services'] != null &&
-                  data['services'] is List &&
-                  data['services'].isNotEmpty) {
-                serviceId =
-                    data['services'][0]['service']?.toString() ??
-                    data['services'][0]['id']?.toString() ??
-                    '';
-              } else if (data['artisan_profile'] != null &&
-                  data['artisan_profile']['service_id'] != null) {
-                serviceId = data['artisan_profile']['service_id'].toString();
-              }
-            }
-          } catch (e) {
-            print("Error fetching artisan service: $e");
-          }
-        }
+        // We already attempted to fetch the correct service ID above.
+        // No need to duplicate the API call here.
       } else {
         // Auto-match flow: No artisan selected, use the service ID from home page selection
         // Omit the 'artisan' field to let the system auto-assign
@@ -370,11 +336,8 @@ class BookingController extends GetxController {
         try {
           final res2 = await http.get(
             Uri.parse(ApiServices.popular_services),
-            headers: { 'Accept-Language': ApiServices.currentLanguage, 
-              'Accept': 'application/json',
-              if (token != null) 'Authorization': 'Bearer $token',
-            },
-          );
+            headers: ApiServices.getHeaders(token: token),
+          ).timeout(const Duration(seconds: 10));
           if (res2.statusCode == 200) {
             final data2 = json.decode(res2.body);
             List<dynamic> list2 = (data2 is Map)
@@ -466,17 +429,9 @@ class BookingController extends GetxController {
       // Image
       if (capturedImagePath.value.isNotEmpty) {
         try {
-          // Attach using both 'image' and 'file' keys with specific Content-Type to ensure 100% server compatibility
           request.files.add(
             await http.MultipartFile.fromPath(
               'image',
-              capturedImagePath.value,
-              contentType: MediaType('image', 'jpeg'),
-            ),
-          );
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              'file',
               capturedImagePath.value,
               contentType: MediaType('image', 'jpeg'),
             ),
@@ -492,7 +447,7 @@ class BookingController extends GetxController {
       print("DEBUG: Submitting booking request...");
       print("DEBUG: Fields: ${request.fields}");
       var streamedResponse = await request.send().timeout(
-        const Duration(seconds: 60),
+        const Duration(seconds: 120),
       );
       var response = await http.Response.fromStream(streamedResponse);
 

@@ -128,6 +128,7 @@ class IncomingRequestsController extends GetxController {
 
       final Map<String, dynamic> payload = {
         'new_status': currentStatus,
+        'status': currentStatus,
         'note': note,
       };
 
@@ -155,6 +156,7 @@ class IncomingRequestsController extends GetxController {
       if (response.statusCode == 400 && currentStatus == 'rejected') {
         currentStatus = 'cancelled';
         payload['new_status'] = currentStatus;
+        payload['status'] = currentStatus;
         payload['note'] = 'Declined by artisan';
 
         print("DEBUG: Rejection failed. Trying fallback status 'cancelled'...");
@@ -179,6 +181,7 @@ class IncomingRequestsController extends GetxController {
       if (response.statusCode == 400 && currentStatus == 'cancelled') {
         currentStatus = 'declined';
         payload['new_status'] = currentStatus;
+        payload['status'] = currentStatus;
         payload['note'] = 'Declined by artisan';
 
         print(
@@ -202,7 +205,7 @@ class IncomingRequestsController extends GetxController {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success'.tr, 'Booking ${status == '.trconfirmed' ? 'Accepted' : 'Declined'} successfully',
+        Get.snackbar('Success'.tr, status == 'confirmed' ? 'Booking Accepted successfully'.tr : 'Booking Declined successfully'.tr,
           snackPosition: SnackPosition.BOTTOM,
         );
 
@@ -216,7 +219,7 @@ class IncomingRequestsController extends GetxController {
         }
       } else {
         print("ERROR: Status update failed. Response: ${response.body}");
-        Get.snackbar('Error'.tr, 'Update failed (${response.statusCode}): ${response.body}'.tr,
+        Get.snackbar('Error'.tr, "${'Update failed'.tr} (${response.statusCode}): ${response.body}",
         );
       }
     } catch (e) {

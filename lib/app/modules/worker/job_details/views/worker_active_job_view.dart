@@ -23,8 +23,6 @@ class WorkerActiveJobView extends GetView<WorkerJobDetailsController> {
                 children: [
                   _buildClientCard(),
                   const SizedBox(height: 24),
-                  _buildMapCard(),
-                  const SizedBox(height: 24),
                   _buildLocationCard(),
                   const SizedBox(height: 24),
                   _buildChecklistCard(),
@@ -255,62 +253,6 @@ class WorkerActiveJobView extends GetView<WorkerJobDetailsController> {
           borderRadius: BorderRadius.circular(14),
         ),
         child: Icon(icon, color: iconColor, size: 22),
-      ),
-    );
-  }
-
-  Widget _buildMapCard() {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F8),
-        borderRadius: BorderRadius.circular(24),
-        image: const DecorationImage(
-          image: AssetImage(AppImages.mapPlaceholder),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Stack(
-        children: [
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.location_on, color: Colors.red, size: 32),
-            ),
-          ),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: ElevatedButton.icon(
-              onPressed: controller.startNavigation,
-              icon: const Icon(Icons.near_me, size: 18),
-              label: Text(
-                "Navigate",
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 10,
-                shadowColor: AppColors.primary.withOpacity(0.4),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

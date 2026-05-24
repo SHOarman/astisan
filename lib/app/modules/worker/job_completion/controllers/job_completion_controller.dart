@@ -129,7 +129,7 @@ class JobCompletionController extends GetxController {
             colorText: Colors.white);
         fetchChecklist();
       } else {
-        Get.snackbar("Error".tr, "Failed to add checklist item: ${response.body}".tr);
+        Get.snackbar("Error".tr, "${'Failed to add checklist item:'.tr} ${response.body}");
       }
     } catch (e) {
       print("Error adding checklist item: $e");
@@ -227,6 +227,7 @@ class JobCompletionController extends GetxController {
         },
         body: json.encode({
           "new_status": "completed",
+          "status": "completed",
           "note": "Job completed and signed",
         }),
       ).timeout(const Duration(seconds: 15));
@@ -265,7 +266,7 @@ class JobCompletionController extends GetxController {
           Get.offAllNamed(Routes.WORKER_ACTIVE_JOB, arguments: {'bookingId': bookingId.value});
         }
       } else {
-        Get.snackbar("Error".tr, "Failed to complete job: ${response.statusCode}".tr);
+        Get.snackbar("Error".tr, "${'Failed to complete job:'.tr} ${response.statusCode}");
       }
 
     } catch (e) {

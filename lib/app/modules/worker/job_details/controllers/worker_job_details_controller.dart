@@ -287,6 +287,7 @@ class WorkerJobDetailsController extends GetxController {
 
       final Map<String, dynamic> payload = {
         "new_status": status,
+        "status": status,
         "note": note,
       };
 
@@ -320,7 +321,7 @@ class WorkerJobDetailsController extends GetxController {
         fetchJobDetails();
         return true;
       } else {
-        Get.snackbar("Error".tr, "Update failed (${response.statusCode}): ${response.body}".tr,
+        Get.snackbar("Error".tr, "${'Update failed'.tr} (${response.statusCode}): ${response.body}",
             backgroundColor: const Color(0xFFFF0000),
             colorText: const Color(0xFFFFFFFF));
         return false;
@@ -732,6 +733,23 @@ class WorkerJobDetailsController extends GetxController {
       Get.toNamed(Routes.REPORT_ISSUE, arguments: {'bookingId': bookingId.value});
 
   Future<void> completeJob() async {
+    // Auto-advance state machine to avoid 400 Bad Request: "Cannot move booking from confirmed to completed"
+    String current = bookingStatus.value.toLowerCase();
+    
+    // Some endpoints use 'accepted' instead of 'confirmed'
+    if (current == 'confirmed' || current == 'accepted' || current == 'requested') {
+      await updateStatus('on_way');
+      current = 'on_way';
+    }
+    if (current == 'on_way') {
+      await updateStatus('arrived');
+      current = 'arrived';
+    }
+    if (current == 'arrived') {
+      await updateStatus('working');
+      current = 'working';
+    }
+
     if (!hasSignature.value) {
       Get.toNamed(Routes.JOB_COMPLETION, arguments: {
         'bookingId': bookingId.value,

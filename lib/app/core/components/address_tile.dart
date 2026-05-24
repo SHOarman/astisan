@@ -1,4 +1,6 @@
+import 'package:artisan/app/core/constants/static/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/static/app_colors.dart';
 
@@ -87,7 +89,7 @@ class AddressTile extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            "Default",
+                           "Default".tr,
                             style: GoogleFonts.poppins(
                               fontSize: 10.0,
                               fontWeight: FontWeight.w700,

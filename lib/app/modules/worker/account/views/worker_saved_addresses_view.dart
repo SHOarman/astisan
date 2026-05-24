@@ -18,7 +18,7 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Saved Addresses",
+          "Saved Addresses".tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -46,7 +46,7 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
-                      "Current Service Location",
+                      "Current Service Location".tr,
                       style: GoogleFonts.poppins(
                         fontSize: 18.0,
                         fontWeight: FontWeight.w700,
@@ -62,8 +62,8 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: AddressTile(
-                        title: 'Service Area',
-                        address: controller.currentAddress.value.isNotEmpty ? controller.currentAddress.value : "Tap 'Use Current Location' above to set your area.",
+                        title: 'Service Area'.tr,
+                        address: controller.currentAddress.value.isNotEmpty ? controller.currentAddress.value : "Tap 'Use Current Location' above to set your area.".tr,
                         isDefault: true,
                         icon: Icons.my_location,
                         isSelected: true,
@@ -156,7 +156,7 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
                         const Icon(Icons.my_location, color: AppColors.primary, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          "Use Current Location",
+                          "Use Current Location".tr,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -199,7 +199,7 @@ class WorkerSavedAddressesView extends GetView<WorkerSavedAddressesController> {
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
                 )
               : Text(
-                  "Save Changes",
+                  "Save Changes".tr,
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 16.0,

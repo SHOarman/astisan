@@ -15,7 +15,7 @@ class WorkerPaymentMethodView extends GetView<WorkerPaymentMethodController> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Payment Method",
+          "Payment Method".tr,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18.0,
@@ -36,7 +36,7 @@ class WorkerPaymentMethodView extends GetView<WorkerPaymentMethodController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Your Saved Card",
+              "Your Saved Card".tr,
               style: GoogleFonts.poppins(
                 fontSize: 18.0,
                 fontWeight: FontWeight.w700,
@@ -53,7 +53,7 @@ class WorkerPaymentMethodView extends GetView<WorkerPaymentMethodController> {
                 return PaymentCardTile(
                   type: card['type'],
                   number: card['number'],
-                  expiry: card['expiry'],
+                  expiry: "${'Expires'.tr} ${card['expiryDate']}",
                   imagePath: card['imagePath'],
                   onTap: () => controller.editCard(card),
                 );
@@ -84,7 +84,7 @@ class WorkerPaymentMethodView extends GetView<WorkerPaymentMethodController> {
             const Icon(Icons.add_circle_outline, color: AppColors.primary, size: 22),
             const SizedBox(width: 10.0),
             Text(
-              "Add New Payment Method",
+              "Add New Payment Method".tr,
               style: GoogleFonts.poppins(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w600,
@@ -105,9 +105,9 @@ class WorkerPaymentMethodView extends GetView<WorkerPaymentMethodController> {
         runSpacing: 16,
         alignment: WrapAlignment.center,
         children: [
-          _buildBadge(Icons.verified_user, "SSL Secured", Colors.green),
-          _buildBadge(Icons.security, "256-bit Encryption", Colors.blue),
-          _buildBadge(Icons.lock, "PCI Compliant", Colors.grey),
+          _buildBadge(Icons.verified_user, "SSL Secured".tr, Colors.green),
+          _buildBadge(Icons.security, "256-bit Encryption".tr, Colors.blue),
+          _buildBadge(Icons.lock, "PCI Compliant".tr, Colors.grey),
         ],
       ),
     );

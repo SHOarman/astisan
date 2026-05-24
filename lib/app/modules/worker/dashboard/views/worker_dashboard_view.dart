@@ -307,6 +307,8 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8.0),
             Text(
@@ -316,6 +318,8 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                 fontSize: 26.0,
                 fontWeight: FontWeight.w800,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4.0),
             Row(
@@ -327,12 +331,16 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                   Icon(Icons.trending_up, color: subtitleColor, size: 14),
                   const SizedBox(width: 4),
                 ],
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    color: subtitleColor,
-                    fontSize: 11.0,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      color: subtitleColor,
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -446,7 +454,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "This Week",
+               AppStrings.thisWeek.tr,
                 style: GoogleFonts.poppins(
                   fontSize: 18.0,
                   fontWeight: FontWeight.w700,
@@ -454,7 +462,7 @@ class WorkerDashboardView extends GetView<WorkerHomeController> {
                 ),
               ),
               Text(
-                "Details",
+                AppStrings.detels.tr,
                 style: GoogleFonts.poppins(
                   fontSize: 14.0,
                   fontWeight: FontWeight.w600,

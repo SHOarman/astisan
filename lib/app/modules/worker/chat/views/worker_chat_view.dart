@@ -70,7 +70,6 @@ class WorkerChatView extends GetView<UniversalChatController> {
       ),
       body: Column(
         children: [
-          _buildWorkerBanner(),
           Expanded(child: _buildSharedMessageList(controller)),
           _buildSharedInput(controller),
         ],
